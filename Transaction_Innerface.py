@@ -1,6 +1,6 @@
 from Request import Request, Types
 
-class Transaction_Innerface(Request):
+class ITransaction(Request):
 	__TYPE: Types
 
 	def __init__(self, SITE: str, TYPE: Types) -> None:
