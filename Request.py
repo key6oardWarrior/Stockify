@@ -1,5 +1,4 @@
 from bs4 import BeautifulSoup
-from Types import Browser, pickBrowser, setBrowser
 
 class Request:
 	# Politician's names and what trades they have made
@@ -16,6 +15,7 @@ class Request:
 		'''
 		from time import sleep
 		from sys import platform
+		from Types import Browser, pickBrowser, setBrowser
 
 		cnt = 1
 		BROWSER_TYPE: Browser

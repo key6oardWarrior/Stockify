@@ -1,4 +1,5 @@
-from Request import Request, Types
+from Request import Request
+from Types import Types
 
 class ITransaction(Request):
 	__TYPE: Types
