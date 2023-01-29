@@ -1,6 +1,5 @@
 from bs4 import BeautifulSoup
-from selenium import webdriver
-from TransactionType import *
+from Types import Browser, pickBrowser, setBrowser
 
 class Request:
 	# Politician's names and what trades they have made
@@ -16,26 +15,39 @@ class Request:
 		all data about the site's data
 		'''
 		from time import sleep
-		cnt = 1
+		from sys import platform
 
-		fireFox = webdriver.Firefox()
-		fireFox.get(SITE + str(cnt))
+		cnt = 1
+		BROWSER_TYPE: Browser
+
+		if platform == "darwin":
+			try:
+				from selenium import webdriver
+				browser = webdriver.Safari()
+				BROWSER_TYPE = Browser.Safari
+			except:
+				BROWSER_TYPE = setBrowser()
+		else:
+			BROWSER_TYPE = setBrowser()
+
+		browser = pickBrowser(BROWSER_TYPE)
+		browser.get(SITE + str(cnt))
 		sleep(0.1) # wait for page to fully load
-		self.__soupArr.append(BeautifulSoup(fireFox.page_source, "html.parser"))
-		fireFox.close()
+		self.__soupArr.append(BeautifulSoup(browser.page_source, "html.parser"))
+		browser.close()
 
 		BOLD_TAG = self.tagSearch(cnt-1, "div", "q-pagination").find_all("b")[1]
 		self.__NUM_PAGES = int(BOLD_TAG.string)
 
 		while cnt < self.__NUM_PAGES:
 			cnt += 1
-			fireFox = webdriver.Firefox()
-			fireFox.get(SITE + str(cnt))
+			browser = pickBrowser(BROWSER_TYPE)
+			browser.get(SITE + str(cnt))
 			sleep(0.1) # wait for page to fully load
 
-			self.__soupArr.append(BeautifulSoup(fireFox.page_source,
+			self.__soupArr.append(BeautifulSoup(browser.page_source,
 				"html.parser"))
-			fireFox.close()
+			browser.close()
 
 	def tagSearch(self, INDEX: int, TAG: str, CLASS_: str=None, ID: str=None):
 		'''
@@ -110,6 +122,6 @@ if __name__ == "__main__":
 	breq = Request("https://www.capitoltrades.com/trades?txType=buy&txDate=30d&page=")
 
 	for ii in range(breq.pages):
-		breq.orgnizeData(breq.tagSearch(ii, "div").find_all("h3"))
+		breq.orgnizeData(breq.tagSearch(ii, "div", "q-table-wrapper").find_all("span"))
 
-	print(breq.name_and_trade)
+	# print(breq.name_and_trade)
