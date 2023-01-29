@@ -30,9 +30,9 @@ class Request:
 		else:
 			BROWSER_TYPE = setBrowser()
 
+		WAIT = 0.2
 		browser = pickBrowser(BROWSER_TYPE)
 		browser.get(SITE + str(cnt))
-		WAIT = 0.2
 		sleep(WAIT) # wait for page to fully load
 		self.__soupArr.append(BeautifulSoup(browser.page_source, "html.parser"))
 		browser.close()
