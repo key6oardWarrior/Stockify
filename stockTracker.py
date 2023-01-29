@@ -6,3 +6,6 @@ for ii in range(breq.pages):
 	breq.orgnizeData(breq.tagSearch(ii, "div", "q-table-wrapper").find_all("span"))
 
 print(breq.name_and_trade)
+
+from os import remove
+remove("geckodriver.log") # delete log files from automating browser
