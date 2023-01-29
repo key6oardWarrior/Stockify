@@ -1,7 +1,8 @@
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from TransactionType import *
 
-class BuyReq:
+class Request:
 	# Politician's names and what trades they have made
 	__name_and_trade: dict[str, list] = dict({})
 	# each page's code as BeautifulSoup objects
@@ -41,8 +42,8 @@ class BuyReq:
 		Find all tags that are grouped under the given tag
 
 		# Params:
-		INDEX - Which page to search
-		TAG - HTML tag to be searched for 
+		INDEX - Which page to search\n
+		TAG - HTML tag to be searched for\n
 		CLASS_ - Find every tag that has that 
 		'''
 		if CLASS_ and ID:
@@ -106,7 +107,7 @@ def println(lst):
 		print(i, "\n")
 
 if __name__ == "__main__":
-	breq = BuyReq("https://www.capitoltrades.com/trades?txType=buy&txDate=30d&page=")
+	breq = Request("https://www.capitoltrades.com/trades?txType=buy&txDate=30d&page=")
 
 	for ii in range(breq.pages):
 		breq.orgnizeData(breq.tagSearch(ii, "div").find_all("h3"))
