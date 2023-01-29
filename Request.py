@@ -32,7 +32,8 @@ class Request:
 
 		browser = pickBrowser(BROWSER_TYPE)
 		browser.get(SITE + str(cnt))
-		sleep(0.1) # wait for page to fully load
+		WAIT = 0.2
+		sleep(WAIT) # wait for page to fully load
 		self.__soupArr.append(BeautifulSoup(browser.page_source, "html.parser"))
 		browser.close()
 
@@ -43,7 +44,7 @@ class Request:
 			cnt += 1
 			browser = pickBrowser(BROWSER_TYPE)
 			browser.get(SITE + str(cnt))
-			sleep(0.1) # wait for page to fully load
+			sleep(WAIT) # wait for page to fully load
 
 			self.__soupArr.append(BeautifulSoup(browser.page_source,
 				"html.parser"))
@@ -124,4 +125,4 @@ if __name__ == "__main__":
 	for ii in range(breq.pages):
 		breq.orgnizeData(breq.tagSearch(ii, "div", "q-table-wrapper").find_all("span"))
 
-	# print(breq.name_and_trade)
+	print(breq.name_and_trade)
