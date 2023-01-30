@@ -130,3 +130,6 @@ dmypy.json
 
 # browser log files
 geckodriver.log
+
+# generated text files
+*.txt
