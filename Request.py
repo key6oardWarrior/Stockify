@@ -1,54 +1,67 @@
 from bs4 import BeautifulSoup
+from Table import Table
 
 class Request:
 	# Politician's names and what trades they have made
-	__name_and_trade: dict[str, list] = dict({})
+	__table: Table = Table()
 	# each page's code as BeautifulSoup objects
 	__soupArr: list[BeautifulSoup] = []
 	# how many pages does the site have
 	__NUM_PAGES: int
+
+	def __moreSoup(self, browser, SITE: str) -> None:
+		'''
+		Add BeautifulSoup objects to the soup array
+
+		# Params:
+		browser - The browser being used to get the HTML data\n
+		SITE - The website to visit
+		'''
+		from time import sleep
+
+		WAIT = 0.2
+		browser.get(SITE)
+		sleep(WAIT) # wait for page to fully load
+		self.__soupArr.append(BeautifulSoup(browser.page_source, "html.parser"))
+		browser.close()
+
+	def __setTable(self) -> None:
+		for ii in range(0, len(self.__poly_trade), 2):
+			self.__table.addRow(self.__poly_trade[ii].string,
+				self.__poly_trade[ii+1].string)
+
+		# delete useless large objects
+		del self.__poly_trade
 
 	def __init__(self, SITE: str) -> None:
 		'''
 		Get Request object (aka requests.models.Response object). this contains
 		all data about the site's data
 		'''
-		from time import sleep
-		from sys import platform
-		from Types import Browser, pickBrowser, setBrowser
+		from Types import Browser, setBrowser, pickBrowser
 
 		cnt = 1
-		BROWSER_TYPE: Browser
+		BROWSER_TYPE: Browser = setBrowser()
 
-		if platform == "darwin":
-			try:
-				from selenium import webdriver
-				browser = webdriver.Safari()
-				BROWSER_TYPE = Browser.Safari
-			except:
-				BROWSER_TYPE = setBrowser()
-		else:
-			BROWSER_TYPE = setBrowser()
+		self.__moreSoup(pickBrowser(BROWSER_TYPE), SITE + str(cnt))
+		try:
+			self.__NUM_PAGES = int(self.tagSearch(cnt-1, "div", "q-pagination")
+				.find_all("b")[1])
+		except:
+			self.__NUM_PAGES = 1
 
-		WAIT = 0.2
-		browser = pickBrowser(BROWSER_TYPE)
-		browser.get(SITE + str(cnt))
-		sleep(WAIT) # wait for page to fully load
-		self.__soupArr.append(BeautifulSoup(browser.page_source, "html.parser"))
-		browser.close()
-
-		BOLD_TAG = self.tagSearch(cnt-1, "div", "q-pagination").find_all("b")[1]
-		self.__NUM_PAGES = int(BOLD_TAG.string)
+		soupSearch = self.tagSearch(cnt-1, "tbody")
+		# make global objects to pass large objects "by ref"
+		self.__poly_trade = soupSearch.find_all("h3") # Politician and their trade
+		self.__setTable()
 
 		while cnt < self.__NUM_PAGES:
 			cnt += 1
-			browser = pickBrowser(BROWSER_TYPE)
-			browser.get(SITE + str(cnt))
-			sleep(WAIT) # wait for page to fully load
 
-			self.__soupArr.append(BeautifulSoup(browser.page_source,
-				"html.parser"))
-			browser.close()
+			self.__moreSoup(pickBrowser(BROWSER_TYPE), SITE + str(cnt))
+			soupSearch = self.tagSearch(cnt-1, "tbody").find_all("h3")
+			self.__poly_trade.extend(soupSearch.find_all("h3"))
+			self.__setTable()
 
 	def tagSearch(self, INDEX: int, TAG: str, CLASS_: str=None, ID: str=None):
 		'''
@@ -65,30 +78,6 @@ class Request:
 		if CLASS_:
 			return self.__soupArr[INDEX].find(TAG, class_=CLASS_)
 		return self.__soupArr[INDEX].find(TAG, id=ID)
-
-	def orgnizeData(self, rawHtmlData: list) -> None:
-		'''
-		Orgnizes raw HTML data so politician trades can be stored in a dict
-
-		# Params:
-		rawHtmlData - A list of HTML h3 tags that contain data on politician's
-		trading. Each element is raw HTML data
-		'''
-		ii = 0
-		print("Key:\n{Politician: [Traded Issuer, times traded]}")
-		while ii < len(rawHtmlData)-1:
-			NAME: str = rawHtmlData[ii].string
-			TRADE: str = rawHtmlData[ii+1].string
-
-			if NAME in self.__name_and_trade:
-				if TRADE in self.__name_and_trade[NAME]:
-					self.__name_and_trade[NAME][1] += 1
-				else:
-					self.__name_and_trade[NAME] = [TRADE, 1]
-			else:
-				self.__name_and_trade[NAME] = [TRADE, 1]
-
-			ii += 2
 
 	def soupArr(self, INDEX: int) -> BeautifulSoup:
 		'''
@@ -108,21 +97,12 @@ class Request:
 		return self.__soupArr
 
 	@property
-	def name_and_trade(self) -> dict[str, list]:
-		return self.__name_and_trade
-
-	@property
 	def pages(self) -> int:
 		return self.__NUM_PAGES
 
-def println(lst):
-	for i in lst:
-		print(i, "\n")
+	@property
+	def table(self) -> Table:
+		return self.__table
 
 if __name__ == "__main__":
 	breq = Request("https://www.capitoltrades.com/trades?txType=buy&txDate=30d&page=")
-
-	for ii in range(breq.pages):
-		breq.orgnizeData(breq.tagSearch(ii, "div", "q-table-wrapper").find_all("span"))
-
-	print(breq.name_and_trade)

@@ -24,7 +24,7 @@ class Browser(Enum):
 	Chrome = 1,
 	Safari = 2
 
-def pickBrowser(BROWSER: Browser):
+def pickBrowser(BROWSER: Browser) -> webdriver:
 	if BROWSER == Browser.FireFox:
 		return webdriver.Firefox()
 
@@ -35,9 +35,18 @@ def pickBrowser(BROWSER: Browser):
 		return webdriver.Safari()
 
 def setBrowser() -> Browser:
+	from sys import platform
+
+	if platform == "darwin": # Mac OS
+		try:
+			webdriver.Safari().close()
+			return Browser.Safari
+		except:
+			pass
+
 	try:
-		webdriver.Firefox().close()
-		return Browser.FireFox
-	except:
 		webdriver.Chrome().close()
 		return Browser.Chrome
+	except:
+		webdriver.Firefox().close()
+		return Browser.FireFox
