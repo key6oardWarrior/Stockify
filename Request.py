@@ -30,9 +30,6 @@ class Request:
 			self.__table.addRow(self.__poly_trade[ii].string,
 				self.__poly_trade[ii+1].string)
 
-		# delete useless large objects
-		del self.__poly_trade
-
 	def __init__(self, SITE: str) -> None:
 		'''
 		Get Request object (aka requests.models.Response object). this contains
@@ -62,6 +59,9 @@ class Request:
 			soupSearch = self.tagSearch(cnt-1, "tbody").find_all("h3")
 			self.__poly_trade.extend(soupSearch.find_all("h3"))
 			self.__setTable()
+
+		# delete useless large objects
+		del self.__poly_trade
 
 	def tagSearch(self, INDEX: int, TAG: str, CLASS_: str=None, ID: str=None):
 		'''
