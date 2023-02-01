@@ -62,6 +62,8 @@ class Request:
 
 		# delete useless large objects
 		del self.__poly_trade
+		self.__table.compareRows()
+		self.__table.saveRows()
 
 	def tagSearch(self, INDEX: int, TAG: str, CLASS_: str=None, ID: str=None):
 		'''
@@ -106,3 +108,7 @@ class Request:
 
 if __name__ == "__main__":
 	breq = Request("https://www.capitoltrades.com/trades?txType=buy&txDate=30d&page=")
+	pol = breq.table.politician
+
+	for itr in pol:
+		print(pol[itr].issuer)
