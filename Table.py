@@ -2,10 +2,19 @@ class Row:
 	# Politician's name
 	name: str
 	# key = issuer name, value = stock's info
-	issuer: list[str] = []
+	issuer: list[str]
+	__isInit = False
 
 	def __init__(self) -> None:
 		pass
+
+	@property
+	def isInit(self) -> bool:
+		return self.__isInit
+
+	@isInit.setter
+	def isInit(self, val: bool) -> None:
+		self.__isInit = val
 
 class Table:
 	# key = Politician's name, val = Row object
@@ -22,17 +31,24 @@ class Table:
 	def addRow(self, NAME: str, ISSURER: list[str] or str) -> None:
 		row: Row
 
-		if NAME in self.__politician:
+		if (NAME in self.__politician):
 			row = self.__politician[NAME]
 		else:
 			row = Row()
 			row.name = NAME
 			self.__politician[NAME] = row
 
-		if type(ISSURER) == list:
-			row.issuer.extend(ISSURER)
+		if row.isInit:
+			if type(ISSURER) == list:
+				row.issuer.extend(ISSURER)
+			else:
+				row.issuer.append(ISSURER)
 		else:
-			row.issuer.append(ISSURER)
+			row.isInit = True
+			if type(ISSURER) == list:
+				row.issuer = ISSURER
+			else:
+				row.issuer = [ISSURER]
 
 	def removeRow(self, NAME: str) -> None:
 		del self.__politician[NAME]  
@@ -49,6 +65,10 @@ class Table:
 	def getPolitician(self, NAME: str) -> Row:
 		return self.__politician[NAME]
 
+	@property
+	def politician(self) -> None:
+		return self.__politician
+
 	def compareRows(self) -> None:
 		'''
 		Compare the saved rows to the rows downloaded from the internet
@@ -58,7 +78,9 @@ class Table:
 if __name__ == "__main__":
 	table = Table()
 	table.addRow("Jeff", "Google")
-	# table.addRow("Jeff", "Microsoft")
+	table.addRow("Jeff", "Microsoft")
 
 	table.addRow("Jake", "Facebook")
 	table.addRow("Josh", "Amazon")
+
+	print(table.getPolitician("Josh").issuer)
