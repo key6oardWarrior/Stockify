@@ -20,15 +20,19 @@ class Table:
 			self.__file = open("trades.txt", "w")
 
 	def addRow(self, NAME: str, ISSURER: list[str] or str) -> None:
-		row = Row()
-		row.name = NAME
+		row: Row
+
+		if NAME in self.__politician:
+			row = self.__politician[NAME]
+		else:
+			row = Row()
+			row.name = NAME
+			self.__politician[NAME] = row
 
 		if type(ISSURER) == list:
 			row.issuer.extend(ISSURER)
 		else:
 			row.issuer.append(ISSURER)
-
-		self.__politician[NAME] = row
 
 	def removeRow(self, NAME: str) -> None:
 		del self.__politician[NAME]  
@@ -50,3 +54,11 @@ class Table:
 		Compare the saved rows to the rows downloaded from the internet
 		'''
 		pass
+
+if __name__ == "__main__":
+	table = Table()
+	table.addRow("Jeff", "Google")
+	# table.addRow("Jeff", "Microsoft")
+
+	table.addRow("Jake", "Facebook")
+	table.addRow("Josh", "Amazon")
