@@ -1,3 +1,5 @@
+from json import dump, load
+
 class Row:
 	# Politician's name
 	name: str
@@ -19,14 +21,10 @@ class Row:
 class Table:
 	# key = Politician's name, val = Row object
 	__politician: dict[str: Row] = dict({})
+	__newTrades: dict[str: list[str]] = dict({})
 
 	def __init__(self) -> None:
-		from os.path import exists
-
-		if exists("trades.txt"):
-			self.__file = open("trades.txt", "a")
-		else:
-			self.__file = open("trades.txt", "w")
+		pass
 
 	def addRow(self, NAME: str, ISSURER: list[str] or str) -> None:
 		row: Row
@@ -53,34 +51,62 @@ class Table:
 	def removeRow(self, NAME: str) -> None:
 		del self.__politician[NAME]  
 
-	def appendRow(self, NAME: str, ISSUER: list[str] or str) -> None:
-		if type(ISSUER) == list:
-			self.__politician[NAME].issuer.extend(ISSUER)
-		else:
-			self.__politician[NAME].issuer.append(ISSUER)
-
 	def saveRows(self) -> None:
-		self.__file.write(self.__politician)
-
-	def getPolitician(self, NAME: str) -> Row:
-		return self.__politician[NAME]
-
-	@property
-	def politician(self) -> None:
-		return self.__politician
+		with open("trades.json", "w") as file:
+			dump(self.__newTrades, file)
 
 	def compareRows(self) -> None:
 		'''
 		Compare the saved rows to the rows downloaded from the internet
 		'''
-		pass
+		from os.path import exists
+		saved: bool
+		savedRows: dict[str: list[str]]
+
+		if exists("trades.json"):
+			with open('trades.json') as file:
+				savedRows = load(file)
+			saved = False
+		else:
+			saved = True
+
+		if saved:
+			for itr in self.__politician:
+				self.__newTrades[itr] = self.__politician[itr].issuer
+
+			self.saveRows()
+			return
+
+		for itr in self.__politician:
+			if itr in savedRows.keys():
+				if self.__politician[itr].issuer != savedRows[itr]:
+					saved = True
+					self.__newTrades[itr] = self.__politician[itr].issuer
+			else:
+				saved = True
+				self.__newTrades[itr] = self.__politician[itr].issuer
+
+		if saved:
+			self.saveRows()
+
+	def getPolitician(self, NAME: str) -> Row:
+		return self.__politician[NAME]
+
+	@property
+	def politician(self) -> dict[str: Row]:
+		return self.__politician
+
+	@property
+	def newTrades(self) -> dict[str: list[str]]:
+		return self.__newTrades
 
 if __name__ == "__main__":
 	table = Table()
 	table.addRow("Jeff", "Google")
 	table.addRow("Jeff", "Microsoft")
-
 	table.addRow("Jake", "Facebook")
 	table.addRow("Josh", "Amazon")
 
-	print(table.getPolitician("Josh").issuer)
+	table.compareRows()
+	table.saveRows()
+	print(table.newTrades)

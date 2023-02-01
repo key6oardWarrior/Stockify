@@ -131,5 +131,5 @@ dmypy.json
 # browser log files
 geckodriver.log
 
-# generated text files
-*.txt
+# generated trade files
+trades.json
