@@ -62,8 +62,9 @@ class Request:
 
 		# delete useless large objects
 		del self.__poly_trade
+
+		# save the new data
 		self.__table.compareRows()
-		self.__table.saveRows()
 
 	def tagSearch(self, INDEX: int, TAG: str, CLASS_: str=None, ID: str=None):
 		'''

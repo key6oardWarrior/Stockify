@@ -48,16 +48,17 @@ class Table:
 			else:
 				row.issuer = [ISSURER]
 
-	def removeRow(self, NAME: str) -> None:
-		del self.__politician[NAME]  
-
 	def saveRows(self) -> None:
+		'''
+		Save all rows to json file
+		'''
 		with open("trades.json", "w") as file:
 			dump(self.__newTrades, file)
 
 	def compareRows(self) -> None:
 		'''
-		Compare the saved rows to the rows downloaded from the internet
+		Compare the saved rows to the rows downloaded from the internet. Then,
+		save the new data to trades.json
 		'''
 		from os.path import exists
 		saved: bool
