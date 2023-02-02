@@ -41,24 +41,16 @@ class Request:
 		BROWSER_TYPE: Browser = setBrowser()
 
 		self.__moreSoup(pickBrowser(BROWSER_TYPE), SITE + str(cnt))
-		try:
-			self.__NUM_PAGES = int(self.tagSearch(cnt-1, "div", "q-pagination")
-				.find_all("b")[1])
-		except:
-			self.__NUM_PAGES = 1
+		self.__NUM_PAGES = int(self.tagSearch(cnt-1, "div",
+			"q-pagination").find_all("b")[1].string)
 
-		soupSearch = self.tagSearch(cnt-1, "tbody")
-		# make global objects to pass large objects "by ref"
-		self.__poly_trade = soupSearch.find_all("h3") # Politician and their trade
-		self.__setTable()
-
-		while cnt < self.__NUM_PAGES:
+		while cnt <= self.__NUM_PAGES:
+			self.__poly_trade: list = self.tagSearch(cnt-1, "tbody").find_all("h3")  #class_="q-fieldset politition-name"
+			self.__setTable()
 			cnt += 1
 
-			self.__moreSoup(pickBrowser(BROWSER_TYPE), SITE + str(cnt))
-			soupSearch = self.tagSearch(cnt-1, "tbody").find_all("h3")
-			self.__poly_trade.extend(soupSearch.find_all("h3"))
-			self.__setTable()
+			if cnt <= self.__NUM_PAGES:
+				self.__moreSoup(pickBrowser(BROWSER_TYPE), SITE + str(cnt))
 
 		# delete useless large objects
 		del self.__poly_trade
