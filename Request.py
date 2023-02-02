@@ -30,35 +30,7 @@ class Request:
 			self.__table.addRow(self.__poly_trade[ii].string,
 				self.__poly_trade[ii+1].string)
 
-	def __init__(self, SITE: str) -> None:
-		'''
-		Get Request object (aka requests.models.Response object). this contains
-		all data about the site's data
-		'''
-		from Types import Browser, setBrowser, pickBrowser
-
-		cnt = 1
-		BROWSER_TYPE: Browser = setBrowser()
-
-		self.__moreSoup(pickBrowser(BROWSER_TYPE), SITE + str(cnt))
-		self.__NUM_PAGES = int(self.tagSearch(cnt-1, "div",
-			"q-pagination").find_all("b")[1].string)
-
-		while cnt <= self.__NUM_PAGES:
-			self.__poly_trade: list = self.tagSearch(cnt-1, "tbody").find_all("h3")  #class_="q-fieldset politition-name"
-			self.__setTable()
-			cnt += 1
-
-			if cnt <= self.__NUM_PAGES:
-				self.__moreSoup(pickBrowser(BROWSER_TYPE), SITE + str(cnt))
-
-		# delete useless large objects
-		del self.__poly_trade
-
-		# save the new data
-		self.__table.compareRows()
-
-	def tagSearch(self, INDEX: int, TAG: str, CLASS_: str=None, ID: str=None):
+	def __tagSearch(self, INDEX: int, TAG: str, CLASS_: str=None, ID: str=None):
 		'''
 		Find all tags that are grouped under the given tag
 
@@ -73,6 +45,36 @@ class Request:
 		if CLASS_:
 			return self.__soupArr[INDEX].find(TAG, class_=CLASS_)
 		return self.__soupArr[INDEX].find(TAG, id=ID)
+
+	def __init__(self, SITE: str) -> None:
+		'''
+		Get Request object (aka requests.models.Response object). this contains
+		all data about the site's data
+		'''
+		from Types import Browser, setBrowser, pickBrowser
+
+		cnt = 1
+		BROWSER_TYPE: Browser = setBrowser()
+
+		# get all code from site
+		self.__moreSoup(pickBrowser(BROWSER_TYPE), SITE + str(cnt))
+		self.__NUM_PAGES = int(self.__tagSearch(cnt-1, "div",
+			"q-pagination").find_all("b")[1].string)
+
+		# get all politicians and their trades
+		while cnt <= self.__NUM_PAGES:
+			self.__poly_trade: list = self.__tagSearch(cnt-1, "tbody").find_all("h3")
+			self.__setTable()
+			cnt += 1
+
+			if cnt <= self.__NUM_PAGES:
+				self.__moreSoup(pickBrowser(BROWSER_TYPE), SITE + str(cnt))
+
+		# delete useless large objects
+		del self.__poly_trade
+
+		# save the new data
+		self.__table.compareRows()
 
 	def soupArr(self, INDEX: int) -> BeautifulSoup:
 		'''
@@ -93,6 +95,9 @@ class Request:
 
 	@property
 	def pages(self) -> int:
+		'''
+		Number of pages on the site
+		'''
 		return self.__NUM_PAGES
 
 	@property
