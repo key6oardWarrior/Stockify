@@ -7,6 +7,8 @@ class Request:
 	# key = date, value = loaction
 	__house_dbLocations: dict[str: str] = dict({})
 	__senate_dbLocations: dict[str: str] = dict({})
+	__senate_db = "https://senate-stock-watcher-data.s3-us-west-2.amazonaws.com/"
+	__house_db = "https://house-stock-watcher-data.s3-us-west-2.amazonaws.com/"
 
 	def __set_dbLocation(self, soup: BeautifulSoup, isHouse: bool=True) -> None:
 		'''
@@ -31,9 +33,8 @@ class Request:
 		senateDB: str = "https://senate-stock-watcher-data.s3-us-west-2.amazonaws.com/aggregate/filemap.xml"
 
 		# all code in data bases
-		# fix warnnings later
-		houseSoup: BeautifulSoup = BeautifulSoup(get(houseDB).text)
-		senateSoup: BeautifulSoup = BeautifulSoup(get(senateDB).text)
+		houseSoup: BeautifulSoup = BeautifulSoup(get(houseDB).text, features="lxml")
+		senateSoup: BeautifulSoup = BeautifulSoup(get(senateDB).text, features="lxml")
 
 		self.__set_dbLocation(houseSoup)
 		self.__set_dbLocation(senateSoup, False)
