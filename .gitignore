@@ -132,4 +132,4 @@ dmypy.json
 geckodriver.log
 
 # generated trade files
-trades.json
+*.json
