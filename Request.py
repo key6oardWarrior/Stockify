@@ -105,3 +105,7 @@ class Request:
 if __name__ == "__main__":
 	req = Request()
 	req.download()
+
+	from os import remove
+	# remove not needed files
+	remove("geckodriver.log")
