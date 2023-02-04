@@ -52,10 +52,10 @@ class Request:
 		index = 0
 		while index < SIZE: # for _date in dates:
 			STR_DATE: str = next(_date)
-			PAST_DATE: datetime = datetime.strptime(STR_DATE, "%m_%d_%Y")
-			diff = relativedelta.relativedelta(TODAY_DATE, PAST_DATE)
+			pastDate: datetime = datetime.strptime(STR_DATE, "%m_%d_%Y")
+			diff = relativedelta.relativedelta(TODAY_DATE, pastDate)
 
-			if((diff.months < 1) and (diff.years <= 0)):
+			if((diff.months <= 1) and (diff.years <= 0)):
 				if isHouse:
 					self.__housePastDates.append(STR_DATE)
 				else:
@@ -102,9 +102,24 @@ class Request:
 			download(self.__house_db + self.__senate_dbLocations[itr],
 				"senate" + itr + ".json")
 
+	def deleteAll(self) -> None:
+		'''
+		Delete all downloaded JSON files
+		'''
+		from os.path import exists
+		from os import remove
+
+		for itr in self.__house_dbLocations:
+			PATH = "house" + itr + ".json"
+
+			if exists(PATH):
+				remove(PATH)
+			else:
+				break
+
 if __name__ == "__main__":
 	req = Request()
-	req.download()
+	req.deleteAll()
 
 	from os import remove
 	# remove not needed files
