@@ -4,7 +4,7 @@ from wget import download
 from json import load
 
 class Request:
-	# key = date, value = loaction
+	# key = date, value = loaction of datebase
 	__house_dbLocations: dict[str: str] = dict({})
 	__senate_dbLocations: dict[str: str] = dict({})
 	__housePastDates: list = []
@@ -49,8 +49,9 @@ class Request:
 		else:
 			SIZE = len(self.__senate_dbLocations)
 
+		# if there is less than 30 day difference append to list
 		index = 0
-		while index < SIZE: # for _date in dates:
+		while index < SIZE:
 			STR_DATE: str = next(_date)
 			pastDate: datetime = datetime.strptime(STR_DATE, "%m_%d_%Y")
 			diff = relativedelta.relativedelta(TODAY_DATE, pastDate)
