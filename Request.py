@@ -1,7 +1,6 @@
 from bs4 import BeautifulSoup
 from requests import get
 from wget import download
-from numpy import where, delete, array
 
 class Request:
 	# key = date, value = loaction
@@ -29,7 +28,7 @@ class Request:
 			else:
 				self.__senate_dbLocations[itr.string[START: END].replace("_", "/")] = itr.string
 
-	def __findDates(self, dates: list, isHouse: bool=True) -> None:
+	def __findDates(self, _date, isHouse: bool=True) -> None:
 		'''
 		Get all dates that are <= __pastDates ago
 
@@ -41,18 +40,27 @@ class Request:
 		from dateutil import relativedelta
 		from datetime import datetime
 
-		TODAY_DATE: str = date.today().isoformat().replace("-", "/")
-		TODAY_DATE: datetime = datetime.strptime(TODAY_DATE, "%Y/%m/%d")
+		TODAY_DATE: str = date.today().isoformat()
+		TODAY_DATE: datetime = datetime.strptime(TODAY_DATE, "%Y-%m-%d")
 
-		for _date in dates:
-			PAST_DATE: datetime = datetime.strptime(_date, "%m/%d/%Y")
+		if isHouse:
+			SIZE = len(self.__house_dbLocations)
+		else:
+			SIZE = len(self.__senate_dbLocations)
+
+		index = 0
+		while index < SIZE: # for _date in dates:
+			STR_DATE: str = next(_date)
+			PAST_DATE: datetime = datetime.strptime(STR_DATE, "%m/%d/%Y")
 			diff = relativedelta.relativedelta(TODAY_DATE, PAST_DATE)
 
-			if((diff.months < 1) and (diff.years == 0)):
+			if((diff.months < 1) and (diff.years <= 0)):
 				if isHouse:
-					self.__housePastDates.append(_date)
+					self.__housePastDates.append(STR_DATE)
 				else:
-					self.__senatePastDates.append(_date)
+					self.__senatePastDates.append(STR_DATE)
+			else:
+				index = SIZE
 
 	def __init__(self) -> None:
 		# trades data bases
@@ -66,8 +74,8 @@ class Request:
 		self.__set_dbLocation(houseSoup)
 		self.__set_dbLocation(senateSoup, False)
 
-		self.__findDates(self.__house_dbLocations.keys())
-		self.__findDates(self.__senate_dbLocations.keys(), False)
+		self.__findDates(iter(self.__house_dbLocations.keys()))
+		self.__findDates(iter(self.__senate_dbLocations.keys()), False)
 
 if __name__ == "__main__":
 	req = Request()
