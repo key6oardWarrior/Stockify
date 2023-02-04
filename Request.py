@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from requests import get
 from wget import download
+from json import load
 
 class Request:
 	# key = date, value = loaction
@@ -24,16 +25,16 @@ class Request:
 			END: int = itr.string.rfind(".json")
 
 			if isHouse:
-				self.__house_dbLocations[itr.string[START: END].replace("_", "/")] = itr.string
+				self.__house_dbLocations[itr.string[START: END]] = itr.string
 			else:
-				self.__senate_dbLocations[itr.string[START: END].replace("_", "/")] = itr.string
+				self.__senate_dbLocations[itr.string[START: END]] = itr.string
 
 	def __findDates(self, _date, isHouse: bool=True) -> None:
 		'''
 		Get all dates that are <= __pastDates ago
 
 		# Params:
-		dates - List of dates\n
+		dates - An iterator of dict.keys\n
 		isHouse - Are dates for house or senate
 		'''
 		from datetime import date
@@ -51,7 +52,7 @@ class Request:
 		index = 0
 		while index < SIZE: # for _date in dates:
 			STR_DATE: str = next(_date)
-			PAST_DATE: datetime = datetime.strptime(STR_DATE, "%m/%d/%Y")
+			PAST_DATE: datetime = datetime.strptime(STR_DATE, "%m_%d_%Y")
 			diff = relativedelta.relativedelta(TODAY_DATE, PAST_DATE)
 
 			if((diff.months < 1) and (diff.years <= 0)):
@@ -77,5 +78,30 @@ class Request:
 		self.__findDates(iter(self.__house_dbLocations.keys()))
 		self.__findDates(iter(self.__senate_dbLocations.keys()), False)
 
+	def download(self) -> None:
+		'''
+		Download useful data found in house and senate DB
+		'''
+		for itr in self.__housePastDates:
+			download(self.__house_db + self.__house_dbLocations[itr],
+				"house" + itr + ".json")
+
+		for itr in self.__senatePastDates:
+			download(self.__senate_db + self.__senate_dbLocations[itr],
+				"senate" + itr + ".json")
+
+	def downloadAll(self) -> None:
+		'''
+		Download all data found in house and senate DB
+		'''
+		for itr in self.__house_dbLocations:
+			download(self.__house_db + self.__house_dbLocations[itr],
+				"house" + itr + ".json")
+
+		for itr in self.__senate_dbLocations:
+			download(self.__house_db + self.__senate_dbLocations[itr],
+				"senate" + itr + ".json")
+
 if __name__ == "__main__":
 	req = Request()
+	req.download()
