@@ -2,6 +2,10 @@ from bs4 import BeautifulSoup
 from requests import get
 from wget import download
 from json import load
+from os.path import exists, join
+
+class ConnectionError(BaseException):
+	pass
 
 class Request:
 	# key = date, value = loaction of datebase
@@ -9,8 +13,12 @@ class Request:
 	__senate_dbLocations: dict[str: str] = dict({})
 	__housePastDates: list = []
 	__senatePastDates: list = []
+	__loadedSenate = []
+	__loadedHouse = []
 	__senate_db = "https://senate-stock-watcher-data.s3-us-west-2.amazonaws.com/"
 	__house_db = "https://house-stock-watcher-data.s3-us-west-2.amazonaws.com/"
+	__HOUSE_PATH = "house"
+	__SENATE_PATH = "senate"
 
 	def __set_dbLocation(self, soup: BeautifulSoup, isHouse: bool=True) -> None:
 		'''
@@ -56,7 +64,7 @@ class Request:
 			pastDate: datetime = datetime.strptime(STR_DATE, "%m_%d_%Y")
 			diff = relativedelta.relativedelta(TODAY_DATE, pastDate)
 
-			if((diff.months <= 1) and (diff.years <= 0)):
+			if(((diff.months < 1) or (diff.days < 1)) and (diff.years < 1)):
 				if isHouse:
 					self.__housePastDates.append(STR_DATE)
 				else:
@@ -65,13 +73,29 @@ class Request:
 				index = SIZE
 
 	def __init__(self) -> None:
+		from os.path import isdir
+		from os import mkdir
+
+		if isdir(self.__HOUSE_PATH) == False:
+			mkdir(self.__HOUSE_PATH)
+	
+		if isdir(self.__SENATE_PATH) == False:
+			mkdir(self.__SENATE_PATH)
+
 		# trades data bases
 		houseDB: str = "https://house-stock-watcher-data.s3-us-west-2.amazonaws.com/data/filemap.xml"
 		senateDB: str = "https://senate-stock-watcher-data.s3-us-west-2.amazonaws.com/aggregate/filemap.xml"
 
 		# all code in data bases
-		houseSoup: BeautifulSoup = BeautifulSoup(get(houseDB).text, features="lxml")
-		senateSoup: BeautifulSoup = BeautifulSoup(get(senateDB).text, features="lxml")
+		try:
+			houseSoup: BeautifulSoup = BeautifulSoup(get(houseDB).text, features="lxml")
+		except:
+			raise ConnectionError(f"Could not get {houseDB}")
+
+		try:
+			senateSoup: BeautifulSoup = BeautifulSoup(get(senateDB).text, features="lxml")
+		except:
+			raise ConnectionError(f"Could not get {senateDB}")
 
 		self.__set_dbLocation(houseSoup)
 		self.__set_dbLocation(senateSoup, False)
@@ -84,44 +108,100 @@ class Request:
 		Download useful data found in house and senate DB
 		'''
 		for itr in self.__housePastDates:
-			download(self.__house_db + self.__house_dbLocations[itr],
-				"house" + itr + ".json")
+			try:
+				download(self.__house_db + self.__house_dbLocations[itr],
+					join(self.__HOUSE_PATH, "house" + itr + ".json"))
+			except:
+				print("\ncould not download:", itr)
 
 		for itr in self.__senatePastDates:
-			download(self.__senate_db + self.__senate_dbLocations[itr],
-				"senate" + itr + ".json")
+			try:
+				download(self.__senate_db + self.__senate_dbLocations[itr],
+					join(self.__SENATE_PATH, "senate" + itr + ".json"))
+			except:
+				print("\ncould not download :", itr)
 
 	def downloadAll(self) -> None:
 		'''
 		Download all data found in house and senate DB
 		'''
 		for itr in self.__house_dbLocations:
-			download(self.__house_db + self.__house_dbLocations[itr],
-				"house" + itr + ".json")
+			try:
+				download(self.__house_db + self.__house_dbLocations[itr],
+					join(self.__HOUSE_PATH, "house" + itr + ".json"))
+			except:
+				print("\ncould not download:", itr)
 
 		for itr in self.__senate_dbLocations:
-			download(self.__house_db + self.__senate_dbLocations[itr],
-				"senate" + itr + ".json")
+			try:
+				download(self.__house_db + self.__senate_dbLocations[itr],
+					join(self.__SENATE_PATH, "senate" + itr + ".json"))
+			except:
+				print("\ncould not download:", itr)
 
 	def deleteAll(self) -> None:
 		'''
 		Delete all downloaded JSON files
 		'''
-		from os.path import exists
-		from os import remove
+		from os import removedirs
+		removedirs(self.__HOUSE_PATH)
+		removedirs(self.__SENATE_PATH)
 
-		for itr in self.__house_dbLocations:
-			PATH = "house" + itr + ".json"
+	def __load(self, itr, SIZE: int, IS_HOUSE: bool=True) -> None:
+		'''
+		Load all downloaded data into primary memory
 
-			if exists(PATH):
-				remove(PATH)
+		# Params:
+		itr - The dict iter
+		SIZE - Size of object that itr came from
+		'''
+		ii = 0
+		while ii < SIZE:
+			date: str = next(itr)
+
+			if IS_HOUSE:
+				PATH: str = join(self.__HOUSE_PATH, f"house{date}.json")
+
+				if exists(PATH):
+					with open(PATH, "r") as file:
+						self.__loadedHouse.append(load(file))
+				else: # end loop if path not found
+					ii = SIZE
 			else:
-				break
+				PATH: str = join(self.__SENATE_PATH, f"senate{date}.json")
 
+				if exists(PATH):
+					with open(PATH, "r") as file:
+						self.__loadedSenate.append(load(file))
+				else: # end loop if path not found
+					ii = SIZE
+
+			ii += 1
+
+	def load(self) -> None:
+		'''
+		Load each JSON into primary memory
+		'''
+		self.__load(iter(self.__house_dbLocations.keys()),
+			len(self.__house_dbLocations))
+		self.__load(iter(self.__senate_dbLocations.keys()),
+			len(self.__senate_dbLocations), False)
+
+	@property
+	def loadedSenate(self) -> list:
+		return self.__loadedSenate
+
+	@property
+	def loadedHouse(self) -> list:
+		return self.__loadedHouse
+
+# TESTING ONLY
 if __name__ == "__main__":
 	req = Request()
-	req.deleteAll()
+	req.download()
+	req.load()
 
 	from os import remove
 	# remove not needed files
-	remove("geckodriver.log")
+	if exists("geckodriver.log"):
+		remove("geckodriver.log")
