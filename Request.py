@@ -70,7 +70,7 @@ class Request:
 				else:
 					self.__senatePastDates.append(STR_DATE)
 			else:
-				index = SIZE
+				break
 
 	def __init__(self) -> None:
 		from os.path import isdir
