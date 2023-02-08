@@ -1,5 +1,4 @@
-from Request import Request
-from os.path import exists
+from Request import Request, exists
 from os import remove
 
 request = Request()
