@@ -166,7 +166,7 @@ class Request:
 					with open(PATH, "r") as file:
 						self.__loadedHouse.append(load(file))
 				else: # end loop if path not found
-					ii = SIZE
+					return
 			else:
 				PATH: str = join(self.__SENATE_PATH, f"senate{date}.json")
 
@@ -174,7 +174,7 @@ class Request:
 					with open(PATH, "r") as file:
 						self.__loadedSenate.append(load(file))
 				else: # end loop if path not found
-					ii = SIZE
+					return
 
 			ii += 1
 
