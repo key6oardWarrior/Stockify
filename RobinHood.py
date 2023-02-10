@@ -1,6 +1,6 @@
+from getpass import getpass
 from robin_stocks.authentication import login, logout
 from Request import ConnectionError
-from getpass import getpass
 
 def _checkConnection():
 	from socket import create_connection

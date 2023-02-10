@@ -1,8 +1,9 @@
+from json import load
+from os.path import exists, join
+
 from bs4 import BeautifulSoup
 from requests import get
 from wget import download
-from json import load
-from os.path import exists, join
 
 class ConnectionError(BaseException):
 	pass
@@ -45,9 +46,8 @@ class Request:
 		dates - An iterator of dict.keys\n
 		isHouse - Are dates for house or senate
 		'''
-		from datetime import date
+		from datetime import date, datetime
 		from dateutil import relativedelta
-		from datetime import datetime
 
 		TODAY_DATE: str = date.today().isoformat()
 		TODAY_DATE: datetime = datetime.strptime(TODAY_DATE, "%Y-%m-%d")
@@ -73,8 +73,8 @@ class Request:
 				break
 
 	def __init__(self) -> None:
-		from os.path import isdir
 		from os import mkdir
+		from os.path import isdir
 
 		if isdir(self.__HOUSE_PATH) == False:
 			mkdir(self.__HOUSE_PATH)
