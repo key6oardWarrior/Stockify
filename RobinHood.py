@@ -1,5 +1,6 @@
 from robin_stocks.authentication import login, logout
 from Request import ConnectionError
+from getpass import getpass
 
 def _checkConnection():
 	from socket import create_connection
@@ -23,7 +24,7 @@ class UserAuth:
 
 		print("Have your two factor authentication code ready if you have one\n")
 		USER_NAME = input("Enter user name: ")
-		PASSWORD = input("Enter password: ")
+		PASSWORD = getpass("Enter password: ")
 		MFA = input("Enter two factor authentication code. If one is not needed enter \"none\": ")
 
 		# robin_stocks.authentication.login
