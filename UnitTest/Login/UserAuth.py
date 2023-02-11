@@ -3,7 +3,7 @@ from sys import path, argv
 path[0] = path[0][:path[0].rfind("\\")]
 path[0] = path[0][:path[0].rfind("\\")]
 
-from helper import _checkConnection, ConnectionError
+from helper import ConnectionError
 from Login import UserAuth
 
 class UnitTest(UserAuth):
