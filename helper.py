@@ -1,7 +1,7 @@
 class ConnectionError(BaseException):
 	pass
 
-def _checkConnection():
+def checkConnection():
 	from socket import create_connection
 
 	try:

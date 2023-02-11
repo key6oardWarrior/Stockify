@@ -1,13 +1,13 @@
 from getpass import getpass
 from robin_stocks.authentication import login, logout
-from helper import _checkConnection
+from helper import checkConnection
 
 class UserAuth:
 	__isLoggedIn = False
 	__loginInfo = None
 
 	def __init__(self) -> None:
-		_checkConnection()
+		checkConnection()
 
 	def login(self) -> None:
 		# don't login twice
