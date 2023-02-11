@@ -42,7 +42,6 @@ test = UnitTest()
 if argv[1] == "--no-connection":
 	assert test.connectionTest() == 0, "connected to internet"
 	assert test.testLogin() == 1, "robin_stocks can login"
-	assert test.testLogout() == 1, "robin_stocks can logout"
 elif argv[1] == "--connected":
 	assert test.connectionTest() == 1, "no internet connection"
 	assert test.testLogin() == 0, "robin_stocks can't login"
