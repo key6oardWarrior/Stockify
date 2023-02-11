@@ -1,4 +1,4 @@
-from sys import path
+from sys import path, argv
 
 path[0] = path[0][:path[0].rfind("\\")]
 path[0] = path[0][:path[0].rfind("\\")]
@@ -37,6 +37,13 @@ class UnitTest(UserAuth):
 		return 0
 
 test = UnitTest()
-assert test.connectionTest() == 1
-assert test.testLogin() == 0
-assert test.testLogout() == 0
+
+# if testing with no internet connection or with internet connection
+if argv[1] == "--no-connection":
+	assert test.connectionTest() == 0
+	assert test.testLogin() == 1
+	assert test.testLogout() == 1
+elif argv[1] == "--connected":
+	assert test.connectionTest() == 1
+	assert test.testLogin() == 0
+	assert test.testLogout() == 0
