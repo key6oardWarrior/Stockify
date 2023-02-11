@@ -47,3 +47,5 @@ elif argv[1] == "--connected":
 	assert test.connectionTest() == 1, "no internet connection"
 	assert test.testLogin() == 0, "robin_stocks can't login"
 	assert test.testLogout() == 0, "robin_stocks can't logout"
+
+print("passed")
