@@ -5,8 +5,7 @@ from bs4 import BeautifulSoup
 from requests import get
 from wget import download
 
-class ConnectionError(BaseException):
-	pass
+from helper import ConnectionError
 
 class Request:
 	# key = date, value = loaction of datebase
@@ -194,14 +193,3 @@ class Request:
 	@property
 	def loadedHouse(self) -> list:
 		return self.__loadedHouse
-
-# TESTING ONLY
-if __name__ == "__main__":
-	req = Request()
-	req.download()
-	req.load()
-
-	from os import remove
-	# remove not needed files
-	if exists("geckodriver.log"):
-		remove("geckodriver.log")

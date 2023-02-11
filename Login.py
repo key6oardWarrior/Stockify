@@ -1,14 +1,6 @@
 from getpass import getpass
 from robin_stocks.authentication import login, logout
-from Request import ConnectionError
-
-def _checkConnection():
-	from socket import create_connection
-
-	try:
-		create_connection(("1.1.1.1", 443)).close()
-	except:
-		raise ConnectionError("Cannot connect to the internet")
+from helper import _checkConnection
 
 class UserAuth:
 	__isLoggedIn = False
@@ -49,41 +41,3 @@ class UserAuth:
 		if self.__isLoggedIn == False:
 			return None
 		return self.__loginInfo
-
-class _UnitTest(UserAuth):
-	def __init__(self) -> None:
-		pass
-
-	def connectionTest(self) -> int:
-		try:
-			super().__init__()
-		except ConnectionError as ce:
-			print("Connection error occured:", ce)
-			return 0
-
-		return 1
-
-	def testLogin(self) -> int:
-		try:
-			self.login()
-			self.login()
-		except:
-			return 1
-		
-		return 0
-
-	def testLogout(self) -> int:
-		try:
-			self.logout()
-		except:
-			return 1
-
-		return 0
-
-if __name__ == "__main__":
-	unitTest = _UnitTest()
-	assert unitTest.connectionTest() == 1
-	assert unitTest.testLogin() == 0
-
-	print(unitTest.loginInfo)
-	unitTest.testLogout()
