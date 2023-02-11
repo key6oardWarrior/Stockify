@@ -15,17 +15,25 @@ class UserAuth:
 			return
 
 		print("Have your two factor authentication code ready if you have one\n")
-		USER_NAME = input("Enter user name: ")
-		PASSWORD = getpass("Enter password: ")
-		MFA = input("Enter two factor authentication code. If one is not needed enter \"none\": ")
 
 		# robin_stocks.authentication.login
-		if MFA.strip().lower() == "none":
-			self.__loginInfo = login(USER_NAME, PASSWORD)
-		else:
-			self.__loginInfo = login(USER_NAME, PASSWORD, mfa_code=MFA)
+		while self.__isLoggedIn == False:
+			USER_NAME = input("Enter username: ")
+			PASSWORD = getpass("Enter password: ")
+			MFA = input("Enter two factor authentication code. If one is not needed enter \"none\": ")
 
-		self.__isLoggedIn = True
+			if MFA.strip().lower() == "none":
+				try:
+					self.__loginInfo = login(USER_NAME, PASSWORD)
+				except:
+					continue
+			else:
+				try:
+					self.__loginInfo = login(USER_NAME, PASSWORD, mfa_code=MFA)
+				except:
+					continue
+
+			self.__isLoggedIn = True
 
 	def logout(self) -> None:
 		if self.__isLoggedIn:
