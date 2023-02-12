@@ -14,7 +14,7 @@ class UserAuth:
 		if self.__isLoggedIn:
 			return
 
-		print("Have your two factor authentication code ready if you have one\n")
+		print("Login to Robinhood and have your two factor authentication code ready if you have one\n")
 
 		# robin_stocks.authentication.login
 		while self.__isLoggedIn == False:
