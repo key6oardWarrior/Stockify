@@ -1,4 +1,4 @@
-from sys import path, argv
+from sys import argv, path
 
 path[0] = path[0][:path[0].rfind("\\")]
 path[0] = path[0][:path[0].rfind("\\")]
