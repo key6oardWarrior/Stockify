@@ -12,7 +12,6 @@ from pymongo.cursor import Cursor
 from pymongo.database import Database
 from pymongo.results import InsertOneResult
 
-
 class DataBase:
 	__DB_LOCATION: str = "mongodb://localhost:27017/"
 	__oneResults: dict[int: InsertOneResult] = {}
