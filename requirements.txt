@@ -2,4 +2,5 @@ wget
 beautifulsoup4
 requests
 robin-stocks
-pymongo 
+pymongo
+hashlib
