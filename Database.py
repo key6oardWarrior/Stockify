@@ -12,6 +12,9 @@ from pymongo.cursor import Cursor
 from pymongo.database import Database
 from pymongo.results import InsertOneResult
 
+class IncorrectPassword(BaseException):
+	pass
+
 class DataBase:
 	__DB_LOCATION: str = "mongodb://localhost:27017/"
 	__oneResults: dict[int: InsertOneResult] = {}
@@ -145,7 +148,7 @@ class DataBase:
 		query - The query that will be used to search the Collection for a user
 		'''
 		user: Cursor = self.findUsers(query)[0]
-		fileData = ""
+		fileData =""
 
 		# store all the user's data as a string
 		for itr in user:
@@ -160,6 +163,7 @@ class DataBase:
 			fileData += "\n"
 
 		# pad string
+		fileData += "Test this string"
 		fileData = self.__pad(fileData)
 
 		# encrypt the user's data using AES-256-CBC
@@ -189,6 +193,10 @@ class DataBase:
 		plain_text: str = plain_text[:-ord(plain_text[len(plain_text) - 1:])]
 
 		lst: list[str] = plain_text.split("\n")
+
+		if lst[-1] != "Test this string":
+			raise IncorrectPassword("The password entered was incorrect")
+
 		date1_delim = lst[5].find(",")
 		rdate1_delim = lst[5].rfind(",")
 		date2_delim = lst[6].find(",")
