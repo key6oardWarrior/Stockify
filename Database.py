@@ -33,8 +33,10 @@ class DataBase:
 
 	def createUser(self, email: str, password: str, ccn: int, addy: str,
 		cvv: int, exp: datetime, pay_day: datetime,
-		payment_received: bool) -> dict:
+		payment_received: bool, isEnc=True) -> dict:
 		'''
+		Always set isEnc equal to False
+
 		DB Key
 		{
 			"Email": str,
@@ -47,6 +49,19 @@ class DataBase:
 			"Was Last payment recieved": bool
 		}
 		'''
+
+		if isEnc:
+			return {
+					"Email": email,
+					"Password": password.encode(),
+					"Credit Card Number": ccn,
+					"Address": addy,
+					"CVV": str(cvv),
+					"Exp date": exp,
+					"Pay date": pay_day,
+					"Was Last Payment Recieved": payment_received
+				}
+
 		return {
 				"Email": email,
 				"Password": sha3_512(password.encode()).hexdigest(),
