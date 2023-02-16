@@ -3,11 +3,39 @@ from sys import argv, path
 path[0] = path[0][:path[0].rfind("\\")]
 path[0] = path[0][:path[0].rfind("\\")]
 
-from Database import Database
+from Database import DataBase
+from datetime import datetime
+from hashlib import sha3_512
 
-class UnitTest(Database):
-	def __init__(self) -> None:
-		super.__init__()
+class UnitTest(DataBase):
+	def __init__(self, ipAddr) -> None:
+		'''
+		Test if the DB can be initalized
+
+		# Params
+		ipAddr - ip address that the server should return
+		'''
+		super().__init__()
+		assert self.client.HOST == ipAddr, f"host is not {ipAddr}"
+
+	def addUser(self) -> None:
+		'''
+		Ensure that users can be added to the data base and found once added.
+		Also ensure that all users 
+		'''
+		super().addUser(self.createUser(
+			"john_doe@example.com", "1234", 1234567890, "123 Addy Lane", 321,
+			datetime(2025, 3, 5), datetime(2023, 3, 16), True, False
+		))
+
+		user: dict = self.findUsers({"Email": "john_doe@example.com"})[0]
+
+		assert user["Email"] == "john_doe@example.com", "user not added to DB"
+		assert user["Password"] == sha3_512("1234".encode()).hexdigest(), "Passwords does not match"
+		assert user["Credit Card Number"] == 1234567890, "CCN does not match"
+		assert user["CVV"] == sha3_512(str(321).encode()).hexdigest(), "CVV does not match"
 
 if __name__ == "__main__":
-	test = UnitTest()
+	# this is a localhost test
+	test = UnitTest("localhost")
+	test.addUser()
