@@ -38,7 +38,7 @@ class DataBase:
 		cvv: int, exp: datetime, pay_day: datetime,
 		payment_received: bool, isEnc=True) -> dict:
 		'''
-		Always set isEnc equal to False
+		Set isEnc equal to False if password is plain text
 
 		DB Key
 		{
@@ -187,7 +187,7 @@ class DataBase:
 		fileData = self.__pad(fileData)
 
 		# encrypt the user's data using AES-128-CBC
-		iv = rand_new().read(64)
+		iv = rand_new().read(block_size)
 		cipher = new(user["Password"], MODE_CBC, iv)
 		encrypted = cipher.encrypt(fileData.encode())
 
