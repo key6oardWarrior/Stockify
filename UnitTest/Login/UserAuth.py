@@ -1,7 +1,12 @@
-from sys import argv, path
+from sys import argv, path, platform
 
-path[0] = path[0][:path[0].rfind("\\")]
-path[0] = path[0][:path[0].rfind("\\")]
+slash = "\\"
+
+if platform != "win32":
+	slash = "/"
+
+path[0] = path[0][:path[0].rfind(slash)]
+path[0] = path[0][:path[0].rfind(slash)]
 
 from helper import ConnectionError
 from Login import UserAuth

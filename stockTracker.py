@@ -1,4 +1,4 @@
-from Request import Request, exists
+from TradeData.Request import Request, exists
 from os import remove
 
 request = Request()
