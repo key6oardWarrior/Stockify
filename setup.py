@@ -1,5 +1,8 @@
 from os import system
+from os.path import join
+from sys import path, platform
 
-for itr in open("requirements.txt", "r").readlines():
-	if system(f"py -m pip install {itr}") != 0:
-		system(f"python -m pip install {itr}")
+for itr in open(join(join(f"{path[0]}", "Dependencies"), "requirements.txt"),
+	"r").readlines():
+
+	system(f"python -m pip install {itr}")
