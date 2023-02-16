@@ -52,8 +52,4 @@ elif argv[1] == "--connected":
 	assert test.testLogin() == 0, "robin_stocks can't login"
 	assert test.testLogout() == 0, "robin_stocks can't logout"
 
-<<<<<<< HEAD
 print("passed")
-=======
-print("passed")
->>>>>>> eb948c3009dbd65519938e60aac5b1fcb3ea78d6

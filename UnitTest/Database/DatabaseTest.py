@@ -75,6 +75,8 @@ if __name__ == "__main__":
 
 	# test can add user to db
 	test.addUsers()
+
+	# attempt to add the same user more than once
 	try:
 		test.addUsers()
 	except:
