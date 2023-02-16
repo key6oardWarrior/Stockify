@@ -1,4 +1,5 @@
 from datetime import datetime
+from os import remove
 from os.path import join, exists
 
 from base64 import b64decode, b64encode
@@ -55,6 +56,10 @@ class DataBase:
 			"Was Last payment recieved": bool
 		}
 		'''
+
+		# ensure the same user cannot be added twice
+		if exists(email + ".bin"):
+			raise UserAlreadyExist(f"User {email} already exists")
 
 		if isEnc:
 			return {
@@ -242,6 +247,7 @@ class DataBase:
 		date2_delim = lst[6].find(",")
 		rdate2_delim = lst[6].rfind(",")
 
+		remove(join(self.__PATH, email + ".bin"))
 		user = self.createUser(lst[0], lst[1], int(lst[2]), lst[3], lst[4],
 			datetime(int(lst[5][:date1_delim]), int(lst[5][date1_delim+1: rdate1_delim]),
 			int(lst[5][rdate1_delim+1:])),
