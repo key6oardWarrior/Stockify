@@ -1,8 +1,8 @@
 from datetime import datetime
-from os.path import join
+from os.path import join, exists
 
 from base64 import b64decode, b64encode
-from hashlib import sha3_512
+from hashlib import sha256
 from Cryptodome.Cipher.AES import MODE_CBC, block_size, new
 from Cryptodome.Random import new as rand_new
 
@@ -67,10 +67,10 @@ class DataBase:
 
 		return {
 				"Email": email,
-				"Password": sha3_512(password.encode()).hexdigest(),
+				"Password": sha256(password.encode()).hexdigest(),
 				"Credit Card Number": ccn,
 				"Address": addy,
-				"CVV": sha3_512(str(cvv).encode()).hexdigest(),
+				"CVV": sha256(str(cvv).encode()).hexdigest(),
 				"Exp date": exp,
 				"Pay date": pay_day,
 				"Was Last Payment Recieved": payment_received
@@ -98,6 +98,12 @@ class DataBase:
 		# Params:
 		query - The query that will be used to search the Collection for a user
 		'''
+		if self.__size == 0:
+			return
+
+		if self.findUsers(query) == []:
+			return
+
 		self.__usersCollections.delete_one(query)
 		self.__size -= 1
 
@@ -110,6 +116,12 @@ class DataBase:
 		query - The query that will be used to search the Collection for a user\n
 		newValue - The new value(s) that will be put into the database
 		'''
+		if self.__size == 0:
+			return
+
+		if self.findUsers(query) == []:
+			return
+
 		self.__usersCollections.update_one(query, newValue)
 
 	def findUsers(self, query: dict[str, str or int or datetime or 
@@ -147,18 +159,26 @@ class DataBase:
 		# Params:
 		query - The query that will be used to search the Collection for a user
 		'''
+		if self.__size == 0:
+			return
+
+		if self.findUsers(query) == []:
+			return
+
 		user: Cursor = self.findUsers(query)[0]
 		fileData =""
 
 		# store all the user's data as a string
 		for itr in user:
-			if type(user[itr]) == datetime:
+			if type(user[itr]) == str:
+				fileData += user[itr]
+			elif type(user[itr]) == datetime:
 				fileData += str(user[itr].year) + "," + str(user[itr].month) + \
 					"," + str(user[itr].day)
-			elif type(user[itr]) != str:
+			elif((type(user[itr]) == int) or (type(user[itr]) == bool)):
 				fileData += str(user[itr])
 			else:
-				fileData += user[itr]
+				continue
 
 			fileData += "\n"
 
@@ -166,8 +186,8 @@ class DataBase:
 		fileData += "Test this string"
 		fileData = self.__pad(fileData)
 
-		# encrypt the user's data using AES-256-CBC
-		iv = rand_new().read(block_size)
+		# encrypt the user's data using AES-128-CBC
+		iv = rand_new().read(64)
 		cipher = new(user["Password"], MODE_CBC, iv)
 		encrypted = cipher.encrypt(fileData.encode())
 
@@ -186,9 +206,12 @@ class DataBase:
 		email - The user's data that needs to be loaded
 		password - The user's password
 		'''
+		if exists(join(self.__PATH, email + ".txt")) == False:
+			return
+
 		encrypted = b64decode(open(join(self.__PATH, email + ".txt"), "r").read())
 		iv = encrypted[:block_size]
-		cipher = new(sha3_512(password), MODE_CBC, iv)
+		cipher = new(sha256(password), MODE_CBC, iv)
 		plain_text = cipher.decrypt(encrypted[block_size:]).decode("utf-8")
 		plain_text: str = plain_text[:-ord(plain_text[len(plain_text) - 1:])]
 
