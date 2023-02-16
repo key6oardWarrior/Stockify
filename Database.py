@@ -238,5 +238,3 @@ class DataBase:
 			users.append(itr)
 
 		return users
-
-db = DataBase()
