@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from sys import argv, path, platform
 
 slash = "\\"
@@ -7,6 +8,12 @@ if platform != "win32":
 
 path[0] = path[0][:path[0].rfind(slash)]
 path[0] = path[0][:path[0].rfind(slash)]
+=======
+from sys import argv, path
+
+path[0] = path[0][:path[0].rfind("\\")]
+path[0] = path[0][:path[0].rfind("\\")]
+>>>>>>> eb948c3009dbd65519938e60aac5b1fcb3ea78d6
 
 from helper import ConnectionError
 from Login import UserAuth
@@ -52,4 +59,8 @@ elif argv[1] == "--connected":
 	assert test.testLogin() == 0, "robin_stocks can't login"
 	assert test.testLogout() == 0, "robin_stocks can't logout"
 
+<<<<<<< HEAD
 print("passed")
+=======
+print("passed")
+>>>>>>> eb948c3009dbd65519938e60aac5b1fcb3ea78d6
