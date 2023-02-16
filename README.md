@@ -5,12 +5,14 @@
 <h1>StockTracker</h1>
 <p>This page is the offical documentation for downloading and running the code in this code base</p>
 
-<h2>How to Download and Setup the entire code base</h2>
+<h2>How to Download and Setup</h2>
 <ol>
 	<li>Run <code>git clone <a href="https://github.com/key6oardWarrior/StockTracker">https://github.com/key6oardWarrior/StockTracker</a></code></li>
 	<li><code>cd [dir that cloned StockTrader]</code></li>
 	<li><code>python setup.py</code> This will install all the need python dependencies</li>
 </ol>
+
+<p><b>***NOTE***:</b> MongoDB <b>MUST</b> be installed to do System test and any test that will use server side code</p>
 
 <ol>
 	<h3>MongoDB Windows Install</h3>
@@ -29,6 +31,8 @@
 </ol>
 
 <h2>Run MongoDB</h2>
+<p><b>***NOTE***:</b> MongoDB <b>MUST</b> be run to do System test and any test that will use server side code</p>
+
 <ol>
 	<h3>Windows</h3>
 	<li>Click on the MongoDBCompass app</li>
