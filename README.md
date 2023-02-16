@@ -19,6 +19,7 @@
 
 <ol>
 	<h3>MongoDB Linux Install</h3>
+	<li>Run <code>sudo dpkg -i mongodb-org-server_6.0.4_amd64.deb</code></li>
 </ol>
 
 <ol>
@@ -36,8 +37,7 @@
 
 <ol>
 	<h3>Linux</h3>
-	<li>Run <code>sudo dpkg -i mongodb-org-server_6.0.4_amd64.deb</code></li>
-	<li><code>sudo systemctl start mongod.service</code> This will start running Mongo DB</li>
+	<li>Run <code>sudo systemctl start mongod.service</code> This will start running Mongo DB</li>
 	<li>To ensure that the service is running run: <code>sudo systemctl status mongod.service</code></li>
 </ol>
 
