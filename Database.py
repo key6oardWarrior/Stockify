@@ -56,7 +56,7 @@ class DataBase:
 		if isEnc:
 			return {
 					"Email": email,
-					"Password": password.encode(),
+					"Password": password,
 					"Credit Card Number": ccn,
 					"Address": addy,
 					"CVV": str(cvv),
@@ -238,3 +238,5 @@ class DataBase:
 			users.append(itr)
 
 		return users
+
+db = DataBase()
