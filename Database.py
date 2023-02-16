@@ -90,7 +90,7 @@ class DataBase:
 			self.__usersCollections.insert_one(user)
 
 	def removeUser(self, query: dict[str, str or int or datetime or
-		dict[str: str]]) -> list[dict]:
+		dict[str: str]]) -> None:
 		'''
 		Delete a user using a query search against the Collection object.
 		Advanced and Regular expression query search are allowed

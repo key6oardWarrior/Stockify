@@ -34,8 +34,19 @@ class UnitTest(DataBase):
 		assert user["Password"] == sha3_512("1234".encode()).hexdigest(), "Passwords does not match"
 		assert user["Credit Card Number"] == 1234567890, "CCN does not match"
 		assert user["CVV"] == sha3_512(str(321).encode()).hexdigest(), "CVV does not match"
+		assert self.num_users == 1, "Wrong amt of users detected"
+
+	def remove(self) -> None:
+		'''
+		Test removing users and that the correct amt of users is stored.
+		'''
+		query = {"Email": "john_doe@example.com"}
+		self.removeUser(query)
+		assert self.findUsers(query) == [], "User was not removed"
+		assert self.num_users == 0, "Wrong amt of users detected"
 
 if __name__ == "__main__":
 	# this is a localhost test
 	test = UnitTest("localhost")
 	test.addUser()
+	test.remove()
