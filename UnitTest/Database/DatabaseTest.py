@@ -8,7 +8,7 @@ if platform != "win32":
 path[0] = path[0][:path[0].rfind(slash)]
 path[0] = path[0][:path[0].rfind(slash)]
 
-from Database import DataBase
+from ServerSide.DataBase import DataBase
 from datetime import datetime
 from hashlib import sha256
 
