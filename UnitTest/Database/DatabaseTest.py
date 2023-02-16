@@ -23,12 +23,12 @@ class UnitTest(DataBase):
 		super().__init__()
 		assert self.client.HOST == ipAddr, f"host is not {ipAddr}"
 
-	def addUser(self) -> None:
+	def addUsers(self) -> None:
 		'''
 		Ensure that users can be added to the data base and found once added.
 		Also ensure that all users 
 		'''
-		super().addUser(self.createUser(
+		self.addUser(self.createUser(
 			"john_doe@example.com", "1234", 1234567890, "123 Addy Lane", 321,
 			datetime(2025, 3, 5), datetime(2023, 3, 16), True, False
 		))
@@ -54,23 +54,31 @@ class UnitTest(DataBase):
 		query = {"Email": "john_doe@example.com"}
 		super().encrypt(query)
 
-	def decrypt(self) -> None:
-		super().decrypt("john_doe@example.com", "1234")
+	def decrypt(self, password: str) -> None:
+		super().decrypt("john_doe@example.com", password)
 
 		user: dict = self.findUsers({"Email": "john_doe@example.com"})[0]
 
 		assert user["Email"] == "john_doe@example.com", "user not added to DB"
-		assert user["Password"] == sha256("1234".encode()).hexdigest(), "Passwords does not match"
+		assert user["Password"] == sha256(password.encode()).hexdigest(), "Passwords does not match"
 		assert user["Credit Card Number"] == 1234567890, "CCN does not match"
 		assert user["CVV"] == sha256(str(321).encode()).hexdigest(), "CVV does not match"
 		assert self.num_users == 1, "Wrong amt of users detected"
+
+	def update(self) -> None:
+		query = {"Email": "john_doe@example.com"}
+		super().updateUser(query, {"Password": "5678"})
 
 if __name__ == "__main__":
 	# this is a localhost test
 	test = UnitTest("localhost")
 
 	# test can add user to db
-	test.addUser()
+	test.addUsers()
+	try:
+		test.addUsers()
+	except:
+		pass
 
 	# test can encrypt data
 	test.encrypt()
@@ -79,7 +87,15 @@ if __name__ == "__main__":
 	test.remove()
 
 	# test can decrypt data
-	test.decrypt()
+	test.decrypt("1234")
+
+	test.update()
+
+	# ensure can re-encrypt
+	test.encrypt()
+
+	# ensure can re-decrypt
+	test.decrypt("5678")
 
 	# ensure that decrypted user can be removed
 	test.remove()
