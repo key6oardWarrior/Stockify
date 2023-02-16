@@ -1,4 +1,4 @@
-from sys import argv, path, platform
+from sys import path, platform
 
 slash = "\\"
 
@@ -54,10 +54,32 @@ class UnitTest(DataBase):
 		query = {"Email": "john_doe@example.com"}
 		super().encrypt(query)
 
+	def decrypt(self) -> None:
+		super().decrypt("john_doe@example.com", "1234")
+
+		user: dict = self.findUsers({"Email": "john_doe@example.com"})[0]
+
+		assert user["Email"] == "john_doe@example.com", "user not added to DB"
+		assert user["Password"] == sha256("1234".encode()).hexdigest(), "Passwords does not match"
+		assert user["Credit Card Number"] == 1234567890, "CCN does not match"
+		assert user["CVV"] == sha256(str(321).encode()).hexdigest(), "CVV does not match"
+		assert self.num_users == 1, "Wrong amt of users detected"
+
 if __name__ == "__main__":
 	# this is a localhost test
 	test = UnitTest("localhost")
+
+	# test can add user to db
 	test.addUser()
+
+	# test can encrypt data
 	test.encrypt()
+
 	# test if we can remove users from empty db
+	test.remove()
+
+	# test can decrypt data
+	test.decrypt()
+
+	# ensure that decrypted user can be removed
 	test.remove()

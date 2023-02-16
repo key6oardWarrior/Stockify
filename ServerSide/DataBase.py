@@ -187,7 +187,7 @@ class DataBase:
 		fileData = self.__pad(fileData)
 
 		# encrypt the user's data using AES-128-CBC
-		iv = rand_new().read(block_size)
+		iv = rand_new().read(32)
 		cipher = new(user["Password"], MODE_CBC, iv)
 		encrypted = cipher.encrypt(fileData.encode())
 
