@@ -165,7 +165,7 @@ class DataBase:
 	def encrypt(self, query) -> None:
 		'''
 		Store user data in secondary memory. All user data must be encrypted
-		using AES-256-CBC to ensure security. Advanced and Regular expression
+		using AES-128-CBC to ensure security. Advanced and Regular expression
 		query search are allowed. This will remove the user from the DB
 
 		# Params:
@@ -198,7 +198,7 @@ class DataBase:
 		fileData += "Test this string"
 		fileData = self.__pad(fileData)
 
-		# encrypt the user's data using AES
+		# encrypt the user's data using AES-128-CBC
 		iv = rand_new().read(block_size)
 		cipher = new(bytearray.fromhex(user["Password"]), MODE_CBC, iv)
 		encrypted = cipher.encrypt(fileData.encode())
