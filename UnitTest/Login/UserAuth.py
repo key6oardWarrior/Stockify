@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from sys import argv, path, platform
 
 slash = "\\"
@@ -8,12 +7,6 @@ if platform != "win32":
 
 path[0] = path[0][:path[0].rfind(slash)]
 path[0] = path[0][:path[0].rfind(slash)]
-=======
-from sys import argv, path
-
-path[0] = path[0][:path[0].rfind("\\")]
-path[0] = path[0][:path[0].rfind("\\")]
->>>>>>> eb948c3009dbd65519938e60aac5b1fcb3ea78d6
 
 from helper import ConnectionError
 from Login import UserAuth
