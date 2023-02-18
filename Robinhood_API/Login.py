@@ -1,3 +1,6 @@
+from os.path import expanduser, join
+from shutil import rmtree
+
 from getpass import getpass
 from robin_stocks.authentication import login, logout
 from helper import checkConnection
@@ -9,7 +12,11 @@ class UserAuth:
 	def __init__(self) -> None:
 		checkConnection()
 
-	def login(self) -> None:
+	def login(self) -> str:
+		'''
+		# Returns:
+		The user's password
+		'''
 		# don't login twice
 		if self.__isLoggedIn:
 			return
@@ -34,6 +41,9 @@ class UserAuth:
 					continue
 
 			self.__isLoggedIn = True
+
+		rmtree(join(expanduser("~"), ".tokens"), ignore_errors=True)
+		return USER_NAME, PASSWORD
 
 	def logout(self) -> None:
 		if self.__isLoggedIn:

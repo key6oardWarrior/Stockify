@@ -19,6 +19,12 @@ class IncorrectPassword(BaseException):
 class UserAlreadyExist(BaseException):
 	pass
 
+class UserAlreadyLoaded(BaseException):
+	pass
+
+class UserDoesNotExist(BaseException):
+	pass
+
 class DataBase:
 	__DB_LOCATION: str = "mongodb://localhost:27017/"
 	__oneResults: dict[int: InsertOneResult] = {}
@@ -171,7 +177,8 @@ class DataBase:
 		'''
 		Store user data in secondary memory. All user data must be encrypted
 		using AES-128-CBC to ensure security. Advanced and Regular expression
-		query search are allowed. This will remove the user from the DB
+		query search are allowed. This will remove the user from the DB. Before
+		closing a user's connection encrypt their data.
 
 		# Params:
 		query - The query that will be used to search the Collection for a user
@@ -220,11 +227,14 @@ class DataBase:
 		will add a user to the DB
 
 		# Params:
-		email - The user's data that needs to be loaded
+		email - The user's data that needs to be loaded\n
 		password - The user's password
 		'''
+		if self.findUsers({"Email": email}) != []:
+			raise UserAlreadyLoaded("User already loaded into database")
+
 		if exists(join(self.__PATH, email + ".bin")) == False:
-			return
+			raise UserDoesNotExist("User does not exist")
 
 		encrypted = b64decode(open(join(self.__PATH, email + ".bin"), "r").read())
 		iv = encrypted[:block_size]
