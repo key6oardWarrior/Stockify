@@ -1,7 +1,6 @@
-from TradeData.Request import Request, exists
+from os.path import exists
 from os import remove
-
-request = Request()
+from Robinhood_API.Login import UserAuth
 
 # remove not needed log files
 if exists("geckodriver.log"):
