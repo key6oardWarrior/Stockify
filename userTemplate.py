@@ -66,7 +66,35 @@ if sign_up_or_in == "u":
 	except UserAlreadyExist as e:
 		print(e)
 else:
-	dataBase.decrypt(email, password)
+	try:
+		dataBase.decrypt(email, password)
+	except UserAlreadyLoaded as e:
+		print(e)
+	except UserDoesNotExist as e:
+		print(e)
+	except IncorrectPassword as e:
+		if auth.isLoggedIn:
+			print("The password is incorrrect, but Robinhood was successfully logged in. This means your robinhood password was changed.")
+			ans = input("Enter Y to make a new Stockify account, or enter N to update your account").strip().lower()
+
+			if ans == "y":
+				dates: tuple[datetime] = getDates()
+				dataBase.removeUser({"Email": email})
+				dataBase.addUser(dataBase.createUser(
+					email,
+					getpass("Enter password: "),
+					input("Enter credit card number: "),
+					input("Enter addy: "),
+					input("Enter cvv: "),
+					dates[0],
+					dates[1],
+					True,
+					False
+				))
+			else:
+				oldPass = getpass("Enter old password: ")
+				dataBase.decrypt(email, oldPass)
+				dataBase.updateUser({email: oldPass}, {email: getpass("Enter new password: ")})
 
 del password
 dataBase.encrypt({"Emai": email})
