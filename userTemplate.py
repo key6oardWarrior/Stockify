@@ -1,12 +1,10 @@
-from os.path import exists
-from os import remove
-from datetime import datetime, date
-from dateutil import relativedelta
+from datetime import date, datetime
+from getpass import getpass
 
 from Robinhood_API.Login import UserAuth
-from ServerSide.DataBase import DataBase, IncorrectPassword, UserAlreadyExist, \
-	UserAlreadyLoaded, UserDoesNotExist
-from getpass import getpass
+from ServerSide.DataBase import (DataBase, IncorrectPassword, UserAlreadyExist,
+    UserAlreadyLoaded, UserDoesNotExist)
+
 
 def getInt(MSG: str) -> int:
 	while True:
@@ -94,7 +92,7 @@ else:
 			else:
 				oldPass = getpass("Enter old password: ")
 				dataBase.decrypt(email, oldPass)
-				dataBase.updateUser({email: oldPass}, {email: getpass("Enter new password: ")})
+				dataBase.updateUser({email: oldPass}, {email: getpass("Enter new robinhood password: ")})
 
 del password
 dataBase.encrypt({"Emai": email})
