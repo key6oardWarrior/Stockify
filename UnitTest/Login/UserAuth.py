@@ -8,7 +8,6 @@ if platform != "win32":
 path[0] = path[0][:path[0].rfind(slash)]
 path[0] = path[0][:path[0].rfind(slash)]
 
-from Helper.Errors import ConnectionError
 from Robinhood_API.Login import UserAuth
 
 class UnitTest(UserAuth):
@@ -18,8 +17,8 @@ class UnitTest(UserAuth):
 	def connectionTest(self) -> int:
 		try:
 			super().__init__()
-		except ConnectionError as ce:
-			print("Connection error occured:", ce)
+		except:
+			print("Connection error occured")
 			return 0
 
 		return 1

@@ -1,4 +1,4 @@
-from Errors import ConnectionError
+from Helper.Errors import ConnectionError
 
 def checkConnection():
 	from socket import create_connection

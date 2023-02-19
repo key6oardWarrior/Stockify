@@ -1,11 +1,18 @@
 from datetime import date, datetime
 from getpass import getpass
+from sys import path, platform
 
 from Helper.Errors import (IncorrectPassword, UserAlreadyExist,
     UserAlreadyLoaded, UserDoesNotExist)
 from Robinhood_API.Login import UserAuth
 from ServerSide.DataBase import DataBase
 
+if platform == "win32":
+	slash = "\\"
+else:
+	slash = "/"
+
+path.append(path[0][:path[0].rfind(slash)])
 
 def getInt(MSG: str) -> int:
 	while True:
