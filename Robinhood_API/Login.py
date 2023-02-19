@@ -3,7 +3,7 @@ from shutil import rmtree
 
 from getpass import getpass
 from robin_stocks.authentication import login, logout
-from helper import checkConnection
+from Helper.helper import checkConnection
 
 class UserAuth:
 	__isLoggedIn = False

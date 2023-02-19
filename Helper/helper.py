@@ -1,5 +1,4 @@
-class ConnectionError(BaseException):
-	pass
+from Errors import ConnectionError
 
 def checkConnection():
 	from socket import create_connection

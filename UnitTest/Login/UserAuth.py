@@ -8,8 +8,8 @@ if platform != "win32":
 path[0] = path[0][:path[0].rfind(slash)]
 path[0] = path[0][:path[0].rfind(slash)]
 
-from helper import ConnectionError
-from Login import UserAuth
+from Helper.Errors import ConnectionError
+from Robinhood_API.Login import UserAuth
 
 class UnitTest(UserAuth):
 	def __init__(self) -> None:

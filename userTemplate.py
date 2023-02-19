@@ -1,9 +1,10 @@
 from datetime import date, datetime
 from getpass import getpass
 
-from Robinhood_API.Login import UserAuth
-from ServerSide.DataBase import (DataBase, IncorrectPassword, UserAlreadyExist,
+from Helper.Errors import (IncorrectPassword, UserAlreadyExist,
     UserAlreadyLoaded, UserDoesNotExist)
+from Robinhood_API.Login import UserAuth
+from ServerSide.DataBase import DataBase
 
 
 def getInt(MSG: str) -> int:

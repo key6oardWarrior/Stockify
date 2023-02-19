@@ -1,29 +1,19 @@
-from datetime import datetime
-from os import remove
-from os.path import join, exists
-
 from base64 import b64decode, b64encode
+from datetime import datetime
 from hashlib import sha256
+from os import remove
+from os.path import exists, join
+
 from Cryptodome.Cipher.AES import MODE_CBC, block_size, new
 from Cryptodome.Random import new as rand_new
-
 from pymongo import MongoClient
 from pymongo.collection import Collection
 from pymongo.cursor import Cursor
 from pymongo.database import Database
 from pymongo.results import InsertOneResult
 
-class IncorrectPassword(BaseException):
-	pass
-
-class UserAlreadyExist(BaseException):
-	pass
-
-class UserAlreadyLoaded(BaseException):
-	pass
-
-class UserDoesNotExist(BaseException):
-	pass
+from Helper.Errors import (IncorrectPassword, UserAlreadyExist,
+	UserAlreadyLoaded, UserDoesNotExist)
 
 class DataBase:
 	__DB_LOCATION: str = "mongodb://localhost:27017/"
