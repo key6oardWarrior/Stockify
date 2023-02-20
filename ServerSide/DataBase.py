@@ -1,23 +1,19 @@
-from datetime import datetime
-from os import remove
-from os.path import join, exists
-
 from base64 import b64decode, b64encode
+from datetime import datetime
 from hashlib import sha256
+from os import remove
+from os.path import exists, join
+
 from Cryptodome.Cipher.AES import MODE_CBC, block_size, new
 from Cryptodome.Random import new as rand_new
-
 from pymongo import MongoClient
 from pymongo.collection import Collection
 from pymongo.cursor import Cursor
 from pymongo.database import Database
 from pymongo.results import InsertOneResult
 
-class IncorrectPassword(BaseException):
-	pass
-
-class UserAlreadyExist(BaseException):
-	pass
+from Helper.Errors import (IncorrectPassword, UserAlreadyExist,
+	UserAlreadyLoaded, UserDoesNotExist)
 
 class DataBase:
 	__DB_LOCATION: str = "mongodb://localhost:27017/"
@@ -171,7 +167,8 @@ class DataBase:
 		'''
 		Store user data in secondary memory. All user data must be encrypted
 		using AES-128-CBC to ensure security. Advanced and Regular expression
-		query search are allowed. This will remove the user from the DB
+		query search are allowed. This will remove the user from the DB. Before
+		closing a user's connection encrypt their data.
 
 		# Params:
 		query - The query that will be used to search the Collection for a user
@@ -220,11 +217,14 @@ class DataBase:
 		will add a user to the DB
 
 		# Params:
-		email - The user's data that needs to be loaded
+		email - The user's data that needs to be loaded\n
 		password - The user's password
 		'''
+		if self.findUsers({"Email": email}) != []:
+			raise UserAlreadyLoaded("User already loaded into database")
+
 		if exists(join(self.__PATH, email + ".bin")) == False:
-			return
+			raise UserDoesNotExist("User does not exist")
 
 		encrypted = b64decode(open(join(self.__PATH, email + ".bin"), "r").read())
 		iv = encrypted[:block_size]

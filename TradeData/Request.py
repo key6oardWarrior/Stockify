@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from requests import get
 from wget import download
 
-from helper import ConnectionError
+from Helper.Errors import ConnectionError
 
 class Request:
 	# key = date, value = loaction of datebase
