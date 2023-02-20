@@ -51,6 +51,14 @@
 	<li>Click the big green "Connect" button. The server should start running</li>
 </ol>
 
+<h2>Notes about the READMEs</h2>
+<p><b>***NOTE***</b> It is very important that you read all README.md files before attempting a system test, or a unit test of certain systems here is a list of all README files:</p>
+
+<ol>
+ <li><a href="">Program README.md</a</li>
+ <li><a href="">Helper/helper.py README.md</a></li>
+</ol>
+
 <h2>System Testing</h2>
 <p>From here all the code can be unit tested. There currently is no system test to run an entire program</p>
 
