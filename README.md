@@ -5,6 +5,14 @@
 <h1>StockTracker</h1>
 <p>This page is the offical documentation for downloading and running the code in this code base</p>
 
+<h2>Notes about the READMEs</h2>
+<p>It is very important that you read all README.md files before attempting a system test, or a unit test of certain systems here is a list of all README files:</p>
+
+<ol>
+ <li><a href="">Program README.md</a> (the one your reading)</li>
+ <li><a href="">Helper/helper.py README.md</a></li>
+</ol>
+
 <h2>How to Download and Setup</h2>
 <ol>
 	<li>Run <code>git clone <a href="https://github.com/key6oardWarrior/StockTracker">https://github.com/key6oardWarrior/StockTracker</a></code></li>
@@ -49,14 +57,6 @@
 	<h3>macOS</h3>
 	<li>Click on the MongoDBCompass app</li>
 	<li>Click the big green "Connect" button. The server should start running</li>
-</ol>
-
-<h2>Notes about the READMEs</h2>
-<p><b>***NOTE***</b> It is very important that you read all README.md files before attempting a system test, or a unit test of certain systems here is a list of all README files:</p>
-
-<ol>
- <li><a href="">Program README.md</a</li>
- <li><a href="">Helper/helper.py README.md</a></li>
 </ol>
 
 <h2>System Testing</h2>
