@@ -9,7 +9,7 @@
 <p>It is very important that you read all README.md files before attempting a system test, or a unit test of certain systems here is a list of all README files:</p>
 
 <ol>
- <li><a href="">Program README.md</a> (the one your reading)</li>
+ <li><a href="https://github.com/key6oardWarrior/StockTracker/blob/main/README.md">Program README.md</a> (the one your reading)</li>
  <li><a href="">Helper/helper.py README.md</a></li>
 </ol>
 
