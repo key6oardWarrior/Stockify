@@ -10,7 +10,7 @@
 
 <ol>
  <li><a href="https://github.com/key6oardWarrior/StockTracker/blob/main/README.md">/main/README.md</a> (the one your reading)</li>
- <li><a href="https://github.com/key6oardWarrior/StockTracker/blob/main/Helper/README.md">/main/Helper/helper.py/README.md</a> (used for fixing a bug in an imported package)</li>
+ <li><a href="https://github.com/key6oardWarrior/StockTracker/blob/main/Helper/README.md">/main/Helper/helper.py/README.md</a> (used for fixing bugs in imported package)</li>
  <li><a href="https://github.com/key6oardWarrior/StockTracker/blob/main/UnitTest/Login/README.md">/main/UnitTest/Login/README.md</a> (used for unit testing)</li>
  <li><a href="https://github.com/key6oardWarrior/StockTracker/blob/UnitTest/Helper/README.md>">/main/UnitTest/Helper/README.md</a> (used for unit testing)</li>
 </ol>
@@ -27,6 +27,7 @@
 
 <h2>How to Download and Setup</h2>
 <ol>
+	<li>Download <a href="https://www.python.org/downloads/release/python-3111/">Python v3.11.1</a></li>
 	<li>Run <code>git clone <a href="https://github.com/key6oardWarrior/StockTracker">https://github.com/key6oardWarrior/StockTracker</a></code></li>
 	<li><code>cd [dir that cloned StockTrader]</code></li>
 	<li><code>python setup.py</code> This will install all the need python dependencies</li>
