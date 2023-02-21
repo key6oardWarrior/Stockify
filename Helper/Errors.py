@@ -12,3 +12,6 @@ class UserDoesNotExist(BaseException):
 
 class ConnectionError(BaseException):
 	pass
+
+class TransactionFailed(BaseException):
+	pass

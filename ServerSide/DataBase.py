@@ -34,9 +34,10 @@ class DataBase:
 		if exists(self.__PATH) == False:
 			mkdir(self.__PATH)
 
-	def createUser(self, email: str, password: str, ccn: int, addy: str,
-		cvv: int, exp: datetime, pay_day: datetime,
-		payment_received: bool, isEnc=True) -> dict:
+	def createUser(self, email: str, password: str, ccn: str,
+		code: str, state: str, city: str, addy: str, _zip: str, fName: str,
+		lName: str, exp: datetime, pay_day: datetime, payment_received: bool,
+		isEnc=True) -> dict:
 		'''
 		Set isEnc equal to False if password is plain text
 
@@ -44,9 +45,14 @@ class DataBase:
 		{
 			"Email": str,
 			"Password": str,
-			"Credit Card Number": int,
+			"Credit Card Number": str,
+			"Code": str,
+			"State": str,
+			"City": str,
 			"Address": str,
-			"CVV": int,
+			"Zip": str,
+			"First Name": str,
+			"Last Name": str,
 			"Exp Date": datetime,
 			"Pay date": datetime,
 			"Was Last payment recieved": bool
@@ -62,8 +68,13 @@ class DataBase:
 					"Email": email,
 					"Password": password,
 					"Credit Card Number": ccn,
+					"Code": code,
+					"State": state,
+					"City": city,
 					"Address": addy,
-					"CVV": str(cvv),
+					"Zip": _zip,
+					"First Name": fName,
+					"Last Name": lName,
 					"Exp date": exp,
 					"Pay date": pay_day,
 					"Was Last Payment Recieved": payment_received
@@ -73,8 +84,13 @@ class DataBase:
 				"Email": email,
 				"Password": sha256(password.encode()).hexdigest(),
 				"Credit Card Number": ccn,
+				"Code": sha256(code.encode()).hexdigest(),
+				"State": state,
+				"City": city,
 				"Address": addy,
-				"CVV": sha256(str(cvv).encode()).hexdigest(),
+				"Zip": _zip,
+				"First Name": fName,
+				"Last Name": lName,
 				"Exp date": exp,
 				"Pay date": pay_day,
 				"Was Last Payment Recieved": payment_received
@@ -181,23 +197,30 @@ class DataBase:
 
 		user: Cursor = self.findUsers(query)[0]
 		fileData = ""
+		itr = iter(user)
+		next(itr)
+		key: str = next(itr)
 
-		# store all the user's data as a string
-		for itr in user:
-			if type(user[itr]) == str:
-				fileData += user[itr]
-			elif type(user[itr]) == datetime:
-				fileData += str(user[itr].year) + "," + str(user[itr].month) + \
-					"," + str(user[itr].day)
-			elif((type(user[itr]) == int) or (type(user[itr]) == bool)):
-				fileData += str(user[itr])
-			else:
-				continue
+		cnt = 0
 
-			fileData += "\n"
+		# add user's strings to fileData
+		while cnt < 10:
+			cnt += 1
+			fileData += user[key] + "\n"
+			key = next(itr)
+
+		# add remaining data
+		fileData += str(user[key].year) + "," + str(user[key].month) + "\n"
+
+		key = next(itr)
+		fileData += str(user[key].year) + "," + str(user[key].month) + "," + \
+			str(user[key].day) + "\n"
+
+		key = next(itr)
+		fileData += str(user[key]) + "\n"
+		fileData += "Test this string"
 
 		# pad string
-		fileData += "Test this string"
 		fileData = self.__pad(fileData)
 
 		# encrypt the user's data using AES-128-CBC
@@ -236,24 +259,25 @@ class DataBase:
 			raise IncorrectPassword("The password entered was incorrect")
 
 		plain_text: str = plain_text[:-ord(plain_text[len(plain_text) - 1:])]
-
 		lst: list[str] = plain_text.split("\n")
 
 		if lst[-1] != "Test this string":
 			raise IncorrectPassword("The password entered was incorrect")
 
-		date1_delim = lst[5].find(",")
-		rdate1_delim = lst[5].rfind(",")
-		date2_delim = lst[6].find(",")
-		rdate2_delim = lst[6].rfind(",")
+		date1_delim = lst[10].find(",")
+		date2_delim = lst[11].find(",")
+		rdate2_delim = lst[11].rfind(",")
 
 		remove(join(self.__PATH, email + ".bin"))
-		user = self.createUser(lst[0], lst[1], int(lst[2]), lst[3], lst[4],
-			datetime(int(lst[5][:date1_delim]), int(lst[5][date1_delim+1: rdate1_delim]),
-			int(lst[5][rdate1_delim+1:])),
+		user = self.createUser(lst[0], lst[1], lst[2], lst[3], lst[4], lst[5],
+			lst[6], lst[7], lst[8], lst[9],
 
-			datetime(int(lst[6][:date2_delim]), int(lst[6][date2_delim+1: rdate2_delim]),
-			int(lst[6][rdate2_delim+1:])), bool(lst[7]))
+			datetime(int(lst[10][:date1_delim]), int(lst[10][date1_delim+1:]), 1),
+
+			datetime(int(lst[11][:date2_delim]), int(lst[11][date2_delim+1: rdate2_delim]),
+			int(lst[11][rdate2_delim+1:])),
+			
+			bool(lst[12]))
 
 		self.addUser(user)
 

@@ -3,7 +3,8 @@ from getpass import getpass
 from sys import path, platform
 
 from Helper.Errors import (IncorrectPassword, UserAlreadyExist,
-    UserAlreadyLoaded, UserDoesNotExist)
+    UserAlreadyLoaded, UserDoesNotExist, TransactionFailed)
+from Helper.helper import getPayment
 from Robinhood_API.Login import UserAuth
 from ServerSide.DataBase import DataBase
 
@@ -14,19 +15,21 @@ else:
 
 path.append(path[0][:path[0].rfind(slash)])
 
-def getInt(MSG: str) -> int:
+def getInt(MSG: str) -> str:
+	num: int
+
 	while True:
 		try:
-			return int(input(MSG))
+			num = int(input(MSG).strip())
 		except:
 			print("Only enter numbers")
+		else:
+			return str(num)
 
-def getDates() -> tuple[datetime]:
+def getDates(exp: str) -> tuple[datetime]:
 	while True:
-		exp = input("Enter data mm/dd/yyyy: ").strip()
-
 		try:
-			exp: datetime = datetime.strptime(exp, "%m/%d/%Y")
+			exp: datetime = datetime.strptime(exp, "%Y-%m")
 		except:
 			print("Only enter numbers for date in given format")
 			continue
@@ -44,29 +47,55 @@ def getDates() -> tuple[datetime]:
 
 	return (exp, datetime.strptime(tmr, "%Y/%m/%d"))
 
-def getPayment() -> bool: return True
-
 auth = UserAuth()
 dataBase = DataBase()
 sign_up_or_in = input("Do you want to sign up (U) or sign in (I): ").strip().lower()
 email, password = auth.login()
 
 if sign_up_or_in == "u":
-	ccn: int = getInt("Enter credit card number: ")
-	addy: str = input("Enter addresses: ")
-	cvv: int = getInt("Enter CVV: ")
-	dates: tuple[datetime] = getDates()
+	ccn: str = getInt("Enter credit card number: ")
+	code: str = getInt("Enter credit card code: ")
+	state: str = input("Enter your US state: ").strip()
+	city: str = input("Enter your city: ").strip()
+	addy: str = input("Enter addresses: ").strip()
+	_zip: str = input("Enter your zip code: ").strip()
+	exp: str = input("Enter card expire data (YYYY-MM): ").strip()
+	fName: str = input("Enter first name: ").strip()
+	lName: str = input("Enter last name: ").strip()
+
+	gotPayment: tuple[bool, str] = getPayment(
+		email,
+		ccn,
+		code,
+		state,
+		city,
+		addy,
+		_zip,
+		exp,
+		fName,
+		lName
+	)
+
+	if gotPayment[0] == False:
+		raise TransactionFailed(f"Transaction failed with code {gotPayment[1]}")
+
+	dates = getDates(exp)
 
 	try:
 		dataBase.addUser(dataBase.createUser(
 			email,
 			password,
 			ccn,
+			code,
+			state,
+			city,
 			addy,
-			cvv,
+			_zip,
+			fName,
+			lName,
 			dates[0],
 			dates[1],
-			getPayment(),
+			gotPayment[0],
 			False
 		))
 	except UserAlreadyExist as e:
@@ -90,8 +119,13 @@ else:
 					email,
 					getpass("Enter password: "),
 					input("Enter credit card number: "),
+					input("Enter credit card code: "),
+					input("Enter state: "),
+					input("Enter city: "),
 					input("Enter addy: "),
-					input("Enter cvv: "),
+					input("Enter zip: "),
+					input("First name: "),
+					input("Last name: "),
 					dates[0],
 					dates[1],
 					True,
