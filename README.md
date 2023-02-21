@@ -62,7 +62,7 @@
 </ol>
 
 <h2>System Testing</h2>
-<p>From here all the code can be unit tested. There currently is no system test to run an entire program</p>
+<p>The only system test file is: <a href="https://github.com/key6oardWarrior/StockTracker/blob/main/SystemTest/">main/SystemTest/userTemplate.py</a></p>
 
  </body>
 <html>
