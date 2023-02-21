@@ -19,6 +19,10 @@
 <ol>
  <li>Create an Authrize.Net accout at: <a href="https://developer.authorize.net/hello_world/sandbox.html">developer.authorize.net</a></li>
  <li>Save the API key and the transaction key</li>
+ <li>Login to your account</li>
+ <li>Go to account settings</li>
+ <li>Under Security Settings > General Security Settings > click Test Mode</li>
+ <li>Set account to Test</li>
 </ol>
 
 <h2>How to Download and Setup</h2>
