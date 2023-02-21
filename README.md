@@ -15,6 +15,12 @@
  <li><a href="https://github.com/key6oardWarrior/StockTracker/blob/UnitTest/Helper/README.md>">/main/UnitTest/Helper/README.md</a> (used for unit testing)</li>
 </ol>
 
+<h2>Setup Authorize.Net</h2>
+<ol>
+ <li>Create an Authrize.Net accout at: <a href="https://developer.authorize.net/hello_world/sandbox.html">developer.authorize.net</a></li>
+ <li>Save the API key and the transaction key</li>
+</ol>
+
 <h2>How to Download and Setup</h2>
 <ol>
 	<li>Run <code>git clone <a href="https://github.com/key6oardWarrior/StockTracker">https://github.com/key6oardWarrior/StockTracker</a></code></li>
