@@ -5,7 +5,7 @@
 <h1>Requirements for Running</h1>
 
 <ol>
- <li>Create a creds.py file in the Helper directory because creds.py has been placed in the git ignore. In the creds.py file type: <br /> <code>apiLoginId: str = "[API Key Here]"<br />transactionKey: str = "[Transaction Key Here]"</code></li>
+ <li>Create a creds.py file in the Helper directory because creds.py has been placed in the git ignore. In the creds.py file type: <br /> <code>apiLoginId: str = "[API Key Here]"</code><br /><code>transactionKey: str = "[Transaction Key Here]"</code></li>
 
  <li>There is an imported Python package that has an error in one of the files. To fix this:
   <ol>
