@@ -4,3 +4,4 @@ requests
 robin-stocks
 pymongo
 authorizenet
+pycryptodomex
