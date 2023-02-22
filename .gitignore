@@ -134,3 +134,6 @@ geckodriver.log
 # generated files
 *.json
 *.bin
+
+# senitive files
+creds.py

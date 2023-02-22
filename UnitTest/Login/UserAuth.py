@@ -5,8 +5,9 @@ slash = "\\"
 if platform != "win32":
 	slash = "/"
 
-path[0] = path[0][:path[0].rfind(slash)]
-path[0] = path[0][:path[0].rfind(slash)]
+addedPath = path[0][:path[0].rfind(slash)]
+path.append(addedPath[:addedPath.rfind(slash)])
+del slash, addedPath
 
 from Robinhood_API.Login import UserAuth
 

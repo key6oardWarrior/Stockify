@@ -5,8 +5,9 @@ slash = "\\"
 if platform != "win32":
 	slash = "/"
 
-path[0] = path[0][:path[0].rfind(slash)]
-path[0] = path[0][:path[0].rfind(slash)]
+addedPath = path[0][:path[0].rfind(slash)]
+path.append(addedPath[:addedPath.rfind(slash)])
+del slash, addedPath
 
 from ServerSide.DataBase import DataBase
 from datetime import datetime
@@ -29,16 +30,17 @@ class UnitTest(DataBase):
 		Also ensure that all users 
 		'''
 		self.addUser(self.createUser(
-			"john_doe@example.com", "1234", 1234567890, "123 Addy Lane", 321,
-			datetime(2025, 3, 5), datetime(2023, 3, 16), True, False
+			"john_doe@example.com", "1234", "1234567890", "321", "MI", "Dearborn",
+			"123 Addy Lane", "12341", "John", "Doe", datetime(2025, 3, 5),
+			datetime(2023, 3, 16), True, False
 		))
 
 		user: dict = self.findUsers({"Email": "john_doe@example.com"})[0]
 
 		assert user["Email"] == "john_doe@example.com", "user not added to DB"
 		assert user["Password"] == sha256("1234".encode()).hexdigest(), "Passwords does not match"
-		assert user["Credit Card Number"] == 1234567890, "CCN does not match"
-		assert user["CVV"] == sha256(str(321).encode()).hexdigest(), "CVV does not match"
+		assert user["Credit Card Number"] == "1234567890", "CCN does not match"
+		assert user["Code"] == sha256("321".encode()).hexdigest(), "CVV does not match"
 		assert self.num_users == 1, "Wrong amt of users detected"
 
 	def remove(self) -> None:
@@ -61,8 +63,8 @@ class UnitTest(DataBase):
 
 		assert user["Email"] == "john_doe@example.com", "user not added to DB"
 		assert user["Password"] == sha256(password.encode()).hexdigest(), "Passwords does not match"
-		assert user["Credit Card Number"] == 1234567890, "CCN does not match"
-		assert user["CVV"] == sha256(str(321).encode()).hexdigest(), "CVV does not match"
+		assert user["Credit Card Number"] == "1234567890", "CCN does not match"
+		assert user["Code"] == sha256("321".encode()).hexdigest(), "CVV does not match"
 		assert self.num_users == 1, "Wrong amt of users detected"
 
 	def update(self) -> None:
@@ -101,3 +103,5 @@ if __name__ == "__main__":
 
 	# ensure that decrypted user can be removed
 	test.remove()
+
+	print("Passed")
