@@ -12,7 +12,7 @@
  <li><a href="https://github.com/key6oardWarrior/StockTracker/blob/main/README.md">/main/README.md</a> (the one your reading)</li>
  <li><a href="https://github.com/key6oardWarrior/StockTracker/blob/main/Helper/README.md">/main/Helper/helper.py/README.md</a> (used for fixing bugs in imported package)</li>
  <li><a href="https://github.com/key6oardWarrior/StockTracker/blob/main/UnitTest/Login/README.md">/main/UnitTest/Login/README.md</a> (used for unit testing)</li>
- <li><a href="https://github.com/key6oardWarrior/StockTracker/blob/UnitTest/Helper/README.md>">/main/UnitTest/Helper/README.md</a> (used for unit testing)</li>
+ <li><a href="https://github.com/key6oardWarrior/StockTracker/blob/main/UnitTest/Helper/README.md>">/main/UnitTest/Helper/README.md</a> (used for unit testing)</li>
 </ol>
 
 <h2>Setup Authorize.Net</h2>
