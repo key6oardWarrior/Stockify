@@ -32,7 +32,8 @@
 <ol>
  <li><a href="https://developer.authorize.net/api/reference/features/errorandresponsecodes.html">Responce Codes</a> (must press "ctrl/command a" to see all codes and and their definition)</li>
  <li><a href="https://developer.authorize.net/hello_world/testing_guide.html">Hello World</a></li>
- <li><a href="https://developer.authorize.net/api/reference/index.html">Code Docs</a></li>
+ <li><a href="https://developer.authorize.net/api/reference/index.html">Charging Credit Cards Code Docs</a></li>
+ <li><a href="https://developer.authorize.net/api/reference/features/in-app.html">Charing Google and Apple Pay</a></li>
 
  </body>
 </html>
