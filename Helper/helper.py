@@ -40,7 +40,7 @@ def getPayment(email: str, ccn: str, code: str, state: str, city: str,
 	A tuple containing if successful and the status code
 	'''
 	# Create a merchantAuthenticationType object with authentication details
-    # retrieved from the constants file
+	# retrieved from the constants file
 	merchantAuth = merchantAuthenticationType()
 	merchantAuth.name = apiLoginId
 	merchantAuth.transactionKey = transactionKey
@@ -84,7 +84,7 @@ def getPayment(email: str, ccn: str, code: str, state: str, city: str,
 	settings = ArrayOfSetting()
 	settings.setting.append(duplicateWindowSetting)
 
-    # the item the user is buying
+	# the item the user is buying
 	item = lineItemType()
 	item.itemId = "00001"
 	item.name = "Subscription"
