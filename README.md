@@ -3,7 +3,13 @@
 <body>
 
 <h1>StockTracker</h1>
-<p>This page is the offical documentation for downloading and running the code in this code base</p>
+<p>This page is the offical documentation for downloading and running the code in this code base.</p>
+
+<h2>Programming Conventions</h2>
+<ol>
+ <li>All code must use tabs over spaces</li>
+ <li>One tab is equal to four spaces</li>
+</ol>
 
 <h2>Notes about the READMEs</h2>
 <p>It is very important that you read all README.md files before attempting a system test, or a unit test of certain systems here is a list of all README files:</p>
