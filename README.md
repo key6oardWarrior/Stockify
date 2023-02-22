@@ -81,5 +81,8 @@
 <h2>System Testing</h2>
 <p>The only system test file is: <a href="https://github.com/key6oardWarrior/StockTracker/blob/main/SystemTest/">main/SystemTest/userTemplate.py</a></p>
 
+<h2>Compile All Code</h2>
+<p>Run: <code>py compile.py</code></p>
+
  </body>
 <html>
