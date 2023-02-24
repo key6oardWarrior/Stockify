@@ -1,7 +1,7 @@
-wget
-beautifulsoup4
-requests
-robin-stocks
-pymongo
-authorizenet
-pycryptodomex
+authorizenet==1.1.4
+beautifulsoup4==4.11.2
+requests==2.28.2
+robin-stocks==2.1.0
+pycryptodomex==3.17
+pymongo==4.3.3
+wget==3.2
