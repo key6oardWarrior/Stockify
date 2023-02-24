@@ -19,6 +19,7 @@
  <li><a href="https://github.com/key6oardWarrior/StockTracker/blob/main/Helper/README.md">/main/Helper/helper.py/README.md</a> (used for fixing bugs in imported package)</li>
  <li><a href="https://github.com/key6oardWarrior/StockTracker/blob/main/UnitTest/Login/README.md">/main/UnitTest/Login/README.md</a> (used for unit testing)</li>
  <li><a href="https://github.com/key6oardWarrior/StockTracker/blob/main/UnitTest/Helper/README.md">/main/UnitTest/Helper/README.md</a> (used for unit testing)</li>
+ <li><a href="https://github.com/key6oardWarrior/StockTracker/blob/main/Robinhood_API/README.md">/main/Robinhoon_API/README.md</a> (used for find robin_stocks docs)</li>
 </ol>
 
 <h2>Setup Authorize.Net</h2>
@@ -43,7 +44,7 @@
 
 <ol>
 	<h3>MongoDB Windows Install</h3>
-	<li>Click on the downloaded .msi file in the StockTrader folder and follow the install instructions</li>
+	<li>Click on the downloaded Mongo DB file in the StockTrader directory</li>
 </ol>
 
 <ol>
