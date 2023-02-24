@@ -13,8 +13,12 @@ del slash
 from Helper.Errors import (IncorrectPassword, UserAlreadyExist,
     UserAlreadyLoaded, UserDoesNotExist, TransactionFailed)
 from Helper.helper import getPayment
-from Robinhood_API.Login import UserAuth
+
 from ServerSide.DataBase import DataBase
+
+from Robinhood_API.Login import UserAuth
+from Robinhood_API.Account import *
+from TradeData.Request import Request
 
 def getInt(MSG: str) -> str:
 	num: int
@@ -138,4 +142,16 @@ else:
 				dataBase.updateUser({email: oldPass}, {email: getpass("Enter new robinhood password: ")})
 
 del password
-dataBase.encrypt({"Emai": email})
+# dataBase.encrypt({"Emai": email})
+
+# make request to get all trade data
+tradeData = Request()
+
+ans = input("Do you want the last 30 days of trade data (y), or more data (n): ").lower().strip()
+if ans == "y":
+	tradeData.download()
+else:
+	tradeData.downloadAll()
+
+tradeData.load()
+get_open_stock_positions()
