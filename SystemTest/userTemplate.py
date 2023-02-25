@@ -3,12 +3,25 @@ from getpass import getpass
 from sys import path, platform
 
 if platform == "win32":
+	from os.path import expanduser
+
+	dataDir = expanduser("~") + "\\AppData\\Local\\Stockify"
+elif((platform == "linux") or (platform == "linux2")):
+	dataDir = "/usr/local/Stockify"
+else: # darwin
+	dataDir = "/usr/local/bin/Stockify"
+
+path.append(dataDir)
+
+# WON'T GO INTO PRODUCTION
+if platform == "win32":
 	slash = "\\"
 else:
 	slash = "/"
 
 path.append(path[0][:path[0].rfind(slash)])
 del slash
+# WON'T GO INTO PRODUCTION ^
 
 from Helper.Errors import (IncorrectPassword, UserAlreadyExist,
     UserAlreadyLoaded, UserDoesNotExist, TransactionFailed)
@@ -31,7 +44,7 @@ def getInt(MSG: str) -> str:
 		else:
 			return str(num)
 
-def getDates(exp: str) -> tuple[datetime]:
+def getDates(exp: str) -> tuple[datetime, datetime]:
 	while True:
 		try:
 			exp: datetime = datetime.strptime(exp, "%Y-%m")
@@ -84,7 +97,7 @@ if sign_up_or_in == "u":
 	if gotPayment[0] == False:
 		raise TransactionFailed(f"Transaction failed with code {gotPayment[1]}")
 
-	dates = getDates(exp)
+	dates: tuple[datetime, datetime] = getDates(exp)
 
 	try:
 		dataBase.addUser(dataBase.createUser(
