@@ -6,6 +6,7 @@ from requests import get
 from wget import download
 
 from Helper.Errors import ConnectionError
+from Helper.helper import PATH
 
 class Request:
 	# key = date, value = loaction of datebase
@@ -159,18 +160,20 @@ class Request:
 			date: str = next(itr)
 
 			if IS_HOUSE:
-				PATH: str = join(self.__HOUSE_PATH, f"house{date}.json")
+				_PATH: str = join(join(PATH, self.__HOUSE_PATH),
+					f"house{date}.json")
 
-				if exists(PATH):
-					with open(PATH, "r") as file:
+				if exists(_PATH):
+					with open(_PATH, "r") as file:
 						self.__loadedHouse.append(load(file))
 				else: # end loop if path not found
 					return
 			else:
-				PATH: str = join(self.__SENATE_PATH, f"senate{date}.json")
+				_PATH: str = join(join(PATH, self.__SENATE_PATH),
+					f"senate{date}.json")
 
-				if exists(PATH):
-					with open(PATH, "r") as file:
+				if exists(_PATH):
+					with open(_PATH, "r") as file:
 						self.__loadedSenate.append(load(file))
 				else: # end loop if path not found
 					return
