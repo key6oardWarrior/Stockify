@@ -87,9 +87,6 @@ if __name__ == "__main__":
 	# test can encrypt data
 	test.encrypt()
 
-	# test if we can remove users from empty db
-	test.remove()
-
 	# test can decrypt data
 	test.decrypt("1234")
 

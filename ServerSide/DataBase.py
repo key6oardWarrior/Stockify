@@ -1,8 +1,6 @@
 from base64 import b64decode, b64encode
 from datetime import datetime
 from hashlib import sha256
-from os import remove
-from os.path import exists, join
 
 from Cryptodome.Cipher.AES import MODE_CBC, block_size, new
 from Cryptodome.Random import new as rand_new
@@ -14,7 +12,7 @@ from pymongo.database import Database
 from pymongo.results import InsertOneResult
 
 from Helper.Errors import (IncorrectPassword, UserAlreadyExist,
-	UserAlreadyLoaded, UserDoesNotExist)
+	UserAlreadyLoaded, UserDoesNotExist, EncryptedUser)
 from Helper.creds import connectionString
 
 class DataBase:
@@ -22,19 +20,13 @@ class DataBase:
 	__client: MongoClient
 	__users_db: Database
 	__usersCollections: Collection
-	__size: int # number of users
-	__PATH: str = "UserData"
+	__size: int # number of unencrypted users
 
 	def __init__(self) -> None:
 		self.__client = MongoClient(connectionString)
 		self.__users_db: Database = self.__client["Users"]
 		self.__usersCollections = self.__users_db["PaymentData"]
 		self.__size = len(self.all_users)
-
-		from os import mkdir
-		from os.path import exists
-		if exists(self.__PATH) == False:
-			mkdir(self.__PATH)
 
 	def createUser(self, email: str, password: str, ccn: str,
 		code: str, state: str, city: str, addy: str, _zip: str, fName: str,
@@ -62,7 +54,7 @@ class DataBase:
 		'''
 
 		# ensure the same user cannot be added twice
-		if exists(email + ".bin"):
+		if self.findUsers({"Email": email}) != []:
 			raise UserAlreadyExist(f"User {email} already exists")
 
 		if isEnc:
@@ -107,10 +99,6 @@ class DataBase:
 		# Params:
 		user - dict created by createUser
 		'''
-		if self.__size > 0:
-			if self.findUsers({"Email": user["Email"]}) != []:
-				raise UserAlreadyExist(f"User {user['Email']} is already in the database")
-
 		self.__size += 1
 		self.__oneResults[self.__size] = \
 			self.__usersCollections.insert_one(user)
@@ -128,7 +116,7 @@ class DataBase:
 			return
 
 		if self.findUsers(query) == []:
-			return
+			raise UserDoesNotExist("The user is not in the database")
 
 		self.__usersCollections.delete_one(query)
 		self.__size -= 1
@@ -145,8 +133,11 @@ class DataBase:
 		if self.__size == 0:
 			return
 
-		if self.findUsers(query) == []:
-			return
+		user: list[Cursor] = self.findUsers(query)
+		if user == []:
+			raise UserDoesNotExist("The user is not in the database")
+		elif ("Data" in user[0]):
+			raise EncryptedUser("User is encrypted")
 
 		if(("Password" in newValue) or ("CVV" in newValue)):
 			itr = iter(newValue.keys())
@@ -181,7 +172,11 @@ class DataBase:
 		number_of_bytes_to_pad = block_size - len(plain_text) % block_size
 		return plain_text + (number_of_bytes_to_pad * chr(number_of_bytes_to_pad))
 
-	def encrypt(self, query) -> None:
+	def __addEncryptedUser(self, user: dict[str, str]) -> None:
+		self.__usersCollections.insert_one(user)
+		self.__size += 1
+
+	def encrypt(self, query: dict) -> None:
 		'''
 		Store user data in secondary memory. All user data must be encrypted
 		using AES-128-CBC to ensure security. Advanced and Regular expression
@@ -194,10 +189,17 @@ class DataBase:
 		if self.__size == 0:
 			return
 
-		if self.findUsers(query) == []:
+		user: list[Cursor] = self.findUsers(query)
+
+		if user == []:
 			return
 
-		user: Cursor = self.findUsers(query)[0]
+		user: Cursor = user[0]
+
+		# user already encrypted
+		if ("Data" in user):
+			return
+
 		fileData = ""
 		itr = iter(user)
 		next(itr)
@@ -231,10 +233,9 @@ class DataBase:
 		encrypted = cipher.encrypt(fileData.encode())
 
 		# store encrypted data
-		open(join(self.__PATH, user["Email"] + ".bin"), "w").write(
-			b64encode(iv + encrypted).decode("utf-8"))
-
 		self.removeUser(query)
+		query["Data"] = b64encode(iv + encrypted).decode("utf-8")
+		self.__addEncryptedUser(query)
 
 	def decrypt(self, email: str, password: str) -> None:
 		'''
@@ -245,13 +246,17 @@ class DataBase:
 		email - The user's data that needs to be loaded\n
 		password - The user's password
 		'''
-		if self.findUsers({"Email": email}) != []:
-			raise UserAlreadyLoaded("User already loaded into database")
+		if self.__size == 0:
+			raise UserDoesNotExist("User is not in database")
 
-		if exists(join(self.__PATH, email + ".bin")) == False:
-			raise UserDoesNotExist("User does not exist")
+		user: list[Cursor] = self.findUsers({"Email": email})
+		if user == []:
+			raise UserDoesNotExist("User is not in database")
 
-		encrypted = b64decode(open(join(self.__PATH, email + ".bin"), "r").read())
+		if ("Data" in user[0]) == False:
+			raise UserAlreadyLoaded("User is already decrypted")
+
+		encrypted = b64decode(user[0]["Data"])
 		iv = encrypted[:block_size]
 		cipher = new(sha256(password.encode()).digest(), MODE_CBC, iv)
 
@@ -270,7 +275,7 @@ class DataBase:
 		date2_delim = lst[11].find(",")
 		rdate2_delim = lst[11].rfind(",")
 
-		remove(join(self.__PATH, email + ".bin"))
+		self.removeUser({"Email": email})
 		user = self.createUser(lst[0], lst[1], lst[2], lst[3], lst[4], lst[5],
 			lst[6], lst[7], lst[8], lst[9],
 
