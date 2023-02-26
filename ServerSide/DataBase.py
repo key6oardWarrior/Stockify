@@ -4,6 +4,7 @@ from hashlib import sha256
 
 from Cryptodome.Cipher.AES import MODE_CBC, block_size, new
 from Cryptodome.Random import new as rand_new
+
 from pymongo import MongoClient
 from pymongo.collection import Collection
 from pymongo.cursor import Cursor
