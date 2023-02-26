@@ -20,6 +20,7 @@
  <li><a href="https://github.com/key6oardWarrior/StockTracker/blob/main/UnitTest/Login/README.md">/main/UnitTest/Login/README.md</a> (used for unit testing)</li>
  <li><a href="https://github.com/key6oardWarrior/StockTracker/blob/main/UnitTest/Helper/README.md">/main/UnitTest/Helper/README.md</a> (used for unit testing)</li>
  <li><a href="https://github.com/key6oardWarrior/StockTracker/blob/main/Robinhood_API/README.md">/main/Robinhoon_API/README.md</a> (used for find robin_stocks docs)</li>
+ <li><a href="https://github.com/key6oardWarrior/StockTracker/blob/main/UnitTest/Database/README.md">/main/UnitTest/Database/README.md</a> (used for fixing SSL cert error)</li>
 </ol>
 
 <h2>Setup Authorize.Net</h2>
@@ -85,6 +86,8 @@
 <h2>Compile All Code</h2>
 <p>Run: <code>py compile.py</code></p>
 <p>When preforming any kind of test be sure to test both the .py and .pyc files. They both must pass before you can submit a PR. Please note that while running compile.py you may encounter an error that states, "Can't list [directory]." Please ignore this error message.</p>
+
+<p>To run your code on the MongoDB Atlas server talk to key6oardWarrior to be given access</p>
 
  </body>
 <html>
