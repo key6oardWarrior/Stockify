@@ -18,7 +18,6 @@ from Helper.Errors import (IncorrectPassword, UserAlreadyExist,
 from Helper.creds import connectionString
 
 class DataBase:
-	__DB_LOCATION: str = connectionString
 	__oneResults: dict[int: InsertOneResult] = {}
 	__client: MongoClient
 	__users_db: Database
@@ -27,7 +26,7 @@ class DataBase:
 	__PATH: str = "UserData"
 
 	def __init__(self) -> None:
-		self.__client = MongoClient(self.__DB_LOCATION)
+		self.__client = MongoClient(connectionString)
 		self.__users_db: Database = self.__client["Users"]
 		self.__usersCollections = self.__users_db["PaymentData"]
 
