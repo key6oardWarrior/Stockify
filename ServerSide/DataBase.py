@@ -15,9 +15,10 @@ from pymongo.results import InsertOneResult
 
 from Helper.Errors import (IncorrectPassword, UserAlreadyExist,
 	UserAlreadyLoaded, UserDoesNotExist)
+from Helper.creds import connectionString
 
 class DataBase:
-	__DB_LOCATION: str = "mongodb://localhost:27017/"
+	__DB_LOCATION: str = connectionString
 	__oneResults: dict[int: InsertOneResult] = {}
 	__client: MongoClient
 	__users_db: Database
