@@ -15,3 +15,6 @@ class ConnectionError(BaseException):
 
 class TransactionFailed(BaseException):
 	pass
+
+class EncryptedUser(BaseException):
+	pass
