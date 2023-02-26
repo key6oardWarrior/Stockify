@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from getpass import getpass
 from sys import path, platform
+from os.path import exists
 
 if platform == "win32":
 	from os.path import expanduser
@@ -10,6 +11,9 @@ elif((platform == "linux") or (platform == "linux2")):
 	dataDir = "/usr/local/Stockify"
 else: # darwin
 	dataDir = "/usr/local/bin/Stockify"
+
+if exists(dataDir) == False:
+	raise FileExistsError("The necessary app data does not exists. Please reinstall the app.")
 
 path.append(dataDir)
 
