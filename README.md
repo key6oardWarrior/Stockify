@@ -82,12 +82,11 @@
 
 <h2>System Testing</h2>
 <p>The only system test file is: <a href="https://github.com/key6oardWarrior/StockTracker/blob/main/SystemTest/">main/SystemTest/userTemplate.py</a></p>
+<p>To run your code on the MongoDB Atlas server talk to key6oardWarrior to be given access</p>
 
 <h2>Compile All Code</h2>
 <p>Run: <code>py compile.py</code></p>
 <p>When preforming any kind of test be sure to test both the .py and .pyc files. They both must pass before you can submit a PR. Please note that while running compile.py you may encounter an error that states, "Can't list [directory]." Please ignore this error message.</p>
-
-<p>To run your code on the MongoDB Atlas server talk to key6oardWarrior to be given access</p>
 
  </body>
 <html>
