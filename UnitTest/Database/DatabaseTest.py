@@ -41,7 +41,7 @@ class UnitTest(DataBase):
 		assert user["Password"] == sha256("1234".encode()).hexdigest(), "Passwords does not match"
 		assert user["Credit Card Number"] == "1234567890", "CCN does not match"
 		assert user["Code"] == sha256("321".encode()).hexdigest(), "CVV does not match"
-		assert self.num_users == 1, "Wrong amt of users detected"
+		assert self.num_users == len(self.all_users), "Wrong amt of users detected"
 
 	def remove(self) -> None:
 		'''
@@ -50,7 +50,7 @@ class UnitTest(DataBase):
 		query = {"Email": "john_doe@example.com"}
 		self.removeUser(query)
 		assert self.findUsers(query) == [], "User was not removed"
-		assert self.num_users == 0, "Wrong amt of users detected"
+		assert self.num_users == len(self.all_users), "Wrong amt of users detected"
 
 	def encrypt(self) -> None:
 		query = {"Email": "john_doe@example.com"}
@@ -65,7 +65,7 @@ class UnitTest(DataBase):
 		assert user["Password"] == sha256(password.encode()).hexdigest(), "Passwords does not match"
 		assert user["Credit Card Number"] == "1234567890", "CCN does not match"
 		assert user["Code"] == sha256("321".encode()).hexdigest(), "CVV does not match"
-		assert self.num_users == 1, "Wrong amt of users detected"
+		assert self.num_users == len(self.all_users), "Wrong amt of users detected"
 
 	def update(self) -> None:
 		query = {"Email": "john_doe@example.com"}

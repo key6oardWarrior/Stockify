@@ -20,6 +20,7 @@
  <li><a href="https://github.com/key6oardWarrior/StockTracker/blob/main/UnitTest/Login/README.md">/main/UnitTest/Login/README.md</a> (used for unit testing)</li>
  <li><a href="https://github.com/key6oardWarrior/StockTracker/blob/main/UnitTest/Helper/README.md">/main/UnitTest/Helper/README.md</a> (used for unit testing)</li>
  <li><a href="https://github.com/key6oardWarrior/StockTracker/blob/main/Robinhood_API/README.md">/main/Robinhoon_API/README.md</a> (used for find robin_stocks docs)</li>
+ <li><a href="https://github.com/key6oardWarrior/StockTracker/blob/main/UnitTest/Database/README.md">/main/UnitTest/Database/README.md</a> (used for fixing SSL cert error and set <code>connectionString</code>)</li>
 </ol>
 
 <h2>Setup Authorize.Net</h2>
@@ -81,6 +82,7 @@
 
 <h2>System Testing</h2>
 <p>The only system test file is: <a href="https://github.com/key6oardWarrior/StockTracker/blob/main/SystemTest/">main/SystemTest/userTemplate.py</a></p>
+<p>To run your code on the MongoDB Atlas server talk to key6oardWarrior to be given access</p>
 
 <h2>Compile All Code</h2>
 <p>Run: <code>py compile.py</code></p>

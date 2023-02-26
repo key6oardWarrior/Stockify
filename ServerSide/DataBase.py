@@ -15,20 +15,21 @@ from pymongo.results import InsertOneResult
 
 from Helper.Errors import (IncorrectPassword, UserAlreadyExist,
 	UserAlreadyLoaded, UserDoesNotExist)
+from Helper.creds import connectionString
 
 class DataBase:
-	__DB_LOCATION: str = "mongodb://localhost:27017/"
 	__oneResults: dict[int: InsertOneResult] = {}
 	__client: MongoClient
 	__users_db: Database
 	__usersCollections: Collection
-	__size: int = 0 # number of users
+	__size: int # number of users
 	__PATH: str = "UserData"
 
 	def __init__(self) -> None:
-		self.__client = MongoClient(self.__DB_LOCATION)
+		self.__client = MongoClient(connectionString)
 		self.__users_db: Database = self.__client["Users"]
 		self.__usersCollections = self.__users_db["PaymentData"]
+		self.__size = len(self.all_users)
 
 		from os import mkdir
 		from os.path import exists
