@@ -3,18 +3,6 @@ from sys import platform
 from os import mkdir
 from os.path import join
 
-PATH: str
-
-if platform == "win32":
-	from os.path import expanduser
-	PATH = expanduser("~") + "\\AppData\\Local"
-elif((platform == "linux") or (platform == "linux2")):
-	PATH = "/usr/local/Stockify"
-else: # darwin
-	PATH = "/usr/local/bin/Stockify"
-
-mkdir(join(PATH, "Downl"))
-
 def checkConnection():
 	from socket import create_connection
 
