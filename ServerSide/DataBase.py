@@ -310,8 +310,4 @@ class DataBase:
 
 	@property
 	def all_users(self) -> list[dict]:
-		users = []
-		for itr in self.__usersCollections.find():
-			users.append(itr)
-
-		return users
+		return self.all_users
