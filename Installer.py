@@ -23,6 +23,8 @@ elif((platform == "linux") or (platform == "linux2")):
 	mkdir(dataDir)
 
 	# create a needed missing directory
+	pyPackages = "/usr/lib/python3/dist-packages/"
+	copytree(pyPackages + "lxml", pyPackages + "src/lxml")
 else: # darwin
 	# create Stockify dir
 	dataDir = "/usr/local/bin/Stockify"
