@@ -11,9 +11,9 @@ from pymongo.cursor import Cursor
 from pymongo.database import Database
 from pymongo.results import InsertOneResult
 
-from Helper.Errors import (IncorrectPassword, UserAlreadyExist,
-	UserAlreadyLoaded, UserDoesNotExist, EncryptedUser)
 from Helper.creds import connectionString
+from Helper.Errors import (EncryptedUser, IncorrectPassword, UserAlreadyExist,
+    UserAlreadyLoaded, UserDoesNotExist)
 
 class DataBase:
 	__oneResults: dict[int: InsertOneResult] = {}
