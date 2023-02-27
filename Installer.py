@@ -2,11 +2,10 @@ from os import mkdir, system
 from shutil import copytree, move
 from sys import platform
 
-'''
 system(f"python -m pip install --upgrade pip")
 for itr in open("Dependencies/requirements.txt", "r").readlines():
 	system(f"python -m pip install {itr}")
-'''
+
 if platform == "win32":
 	from os.path import expanduser
 
