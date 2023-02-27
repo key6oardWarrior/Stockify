@@ -1,5 +1,6 @@
 authorizenet==1.1.4
 beautifulsoup4==4.11.2
+lxml==4.9.2 
 requests==2.28.2
 robin-stocks==2.1.0
 pycryptodomex==3.17
