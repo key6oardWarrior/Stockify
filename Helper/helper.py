@@ -1,4 +1,7 @@
 from Helper.Errors import ConnectionError
+from sys import platform
+from os import mkdir
+from os.path import join
 
 def checkConnection():
 	from socket import create_connection
