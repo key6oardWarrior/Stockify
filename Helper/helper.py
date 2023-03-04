@@ -1,7 +1,4 @@
 from Helper.Errors import ConnectionError
-from sys import platform
-from os import mkdir
-from os.path import join
 
 def checkConnection():
 	from socket import create_connection
@@ -18,6 +15,9 @@ customerDataType, lineItemType, merchantAuthenticationType, orderType,
 paymentType, settingType, transactionRequestType)
 from authorizenet.apicontrollers import createTransactionController
 from Helper.creds import apiLoginId, transactionKey
+
+from PySimpleGUI.PySimpleGUI import WIN_CLOSED, Window
+from sys import exit
 
 def getPayment(email: str, ccn: str, code: str, state: str, city: str,
 	address: str, _zip: str, exp: str, fName: str, lName: str) -> tuple[bool, str]:
@@ -119,3 +119,16 @@ def getPayment(email: str, ccn: str, code: str, state: str, city: str,
 	# return true if success
 	code: str = responce.messages.message.code.text
 	return (True, code) if code == "I00001" else (False, code)
+
+def exitApp(event, window: Window) -> None:
+	'''
+	Will kill the app if the event want app to die
+
+	# Params:
+	event - If the user clicked exit or clicked the exit at the top left of
+	app\n
+	window - The window to close
+	'''
+	if((event == "Exit") or (event == WIN_CLOSED)):
+		window.close()
+		exit(0)
