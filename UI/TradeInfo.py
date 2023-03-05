@@ -33,7 +33,8 @@ def dataScreen() -> None:
 
 	houseTrades = request.loadedHouse
 	senateTrades = request.loadedSenate
-	col = Column([[Text("House Trades:")]], scrollable=True)
+	col = Column([[Text("House Trades:")]], size=(None, 500), scrollable=True,
+		vertical_scroll_only=True)
 
 	for itr in houseTrades:
 		for trader in itr:
