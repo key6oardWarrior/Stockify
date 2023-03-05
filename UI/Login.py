@@ -19,6 +19,7 @@ def loginScreen() -> None:
 
 		if event == "Submit":
 			login.close()
+			break
 
 def signUpScreen() -> None:
 	layout = [
@@ -46,3 +47,4 @@ def signUpScreen() -> None:
 		exitApp(event, signUp)
 
 		signUp.close()
+		break

@@ -1,10 +1,10 @@
 from sys import path
-
 path.append(path[0][:path[0].rfind("\\")])
 
 from PySimpleGUI.PySimpleGUI import Button, Window
 
 from Login import loginScreen, signUpScreen
+from TradeInfo import dataScreen
 from Helper.helper import exitApp
 from Helper.creds import winName
 
@@ -25,4 +25,7 @@ def landing():
 		else:
 			signUpScreen()
 
+		break
+
 landing()
+dataScreen()
