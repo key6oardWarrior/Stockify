@@ -33,12 +33,11 @@ def dataScreen() -> None:
 
 	houseTrades = request.loadedHouse
 	senateTrades = request.loadedSenate
-	col = Column([[Text("House Trades:")]], size=(None, 500), scrollable=True,
-		vertical_scroll_only=True)
+	leftCol = Column([[Text("House Trades:")]], size=(500, 500), scrollable=True)
 
 	for itr in houseTrades:
 		for trader in itr:
-			col.add_row(Text("Name: " + trader["name"]))
+			leftCol.add_row(Text("Name: " + trader["name"]))
 			trades = trader["transactions"]
 
 			if trades:
@@ -46,24 +45,24 @@ def dataScreen() -> None:
 				SIZE = len(trades)
 
 				for trade in trades:
-					col.add_row(Text("\tOwner: " + str(trade["owner"])))
-					col.add_row(Text("\tTicker: " + trade["ticker"]))
-					col.add_row(Text("\tDescription: " + trade["description"]))
-					col.add_row(Text("\tTransaction Type: " + trade["transaction_type"]))
-					col.add_row(Text("\tAmount: " + trade["amount"]))
-					col.add_row(Text("\tCap Gains Over 200: " + str(trade["cap_gains_over_200"])))
-					col.add_row(Button("Trade This Stock"))
+					leftCol.add_row(Text("\tOwner: " + str(trade["owner"])))
+					leftCol.add_row(Text("\tTicker: " + trade["ticker"]))
+					leftCol.add_row(Text("\tDescription: " + trade["description"]))
+					leftCol.add_row(Text("\tTransaction Type: " + trade["transaction_type"]))
+					leftCol.add_row(Text("\tAmount: " + trade["amount"]))
+					leftCol.add_row(Text("\tCap Gains Over 200: " + str(trade["cap_gains_over_200"])))
+					leftCol.add_row(Button("Trade This Stock"))
 
 					if cnt != SIZE:
-						col.add_row(Text("\t------------------"))
+						leftCol.add_row(Text("\t------------------"))
 						cnt += 1
 
-			col.add_row(Text("------------------"))
+			leftCol.add_row(Text("------------------"))
 
-	col.add_row(Text("\nSenate Trades:"))
+	rightCol = Column([[Text("\nSenate Trades:")]], size=(500, 500), scrollable=True)
 	for itr in senateTrades:
 		for trader in itr:
-			col.add_row(Text(trader["first_name"] + " " + trader["last_name"]))
+			rightCol.add_row(Text("Name: " + trader["first_name"] + " " + trader["last_name"]))
 			trades = trader["transactions"]
 
 			if trades:
@@ -71,27 +70,26 @@ def dataScreen() -> None:
 				SIZE = len(trades)
 
 				for trade in trades:
-					col.add_row(Text("Transaction Date: " +
+					rightCol.add_row(Text("\tTransaction Date: " +
 						trade["transaction_date"]))
-					col.add_row(Text("Owner: " + trade["owner"]))
-					col.add_row(Text("Asset Description: " + trade["asset_description"]))
-					col.add_row(Text("Asset Type: " + trade["asset_type"]))
-					col.add_row(Text("Type: " + trade["type"]))
-					col.add_row(Text("Amount: " + trade["amount"]))
-					col.add_row(Text("Comment: " + trade["comment"]))
-
-					if cnt != SIZE:
-						col.add_row(Text("\t------------------"))
-						cnt += 1
+					rightCol.add_row(Text("\tOwner: " + trade["owner"]))
+					rightCol.add_row(Text("\tAsset Description: " + trade["asset_description"]))
+					rightCol.add_row(Text("\tAsset Type: " + trade["asset_type"]))
+					rightCol.add_row(Text("\tType: " + trade["type"]))
+					rightCol.add_row(Text("\tAmount: " + trade["amount"]))
+					rightCol.add_row(Text("\tComment: " + trade["comment"]))
 
 					if trade["asset_type"] == "Stock":
-						col.add_row(Button("Trade This Stock"))
+						rightCol.add_row(Button("Trade This Stock"))
 
-				col.add_row(Text("------------------"))
+					if cnt != SIZE:
+						rightCol.add_row(Text("\t------------------"))
+						cnt += 1
 
-	col.add_row(Button("Exit"))
+				rightCol.add_row(Text("------------------"))
+
 	data.close()
-	data = Window(winName, [[col]], resizable=True, finalize=True)
+	data = Window(winName, [[leftCol, rightCol]], resizable=True, finalize=True)
 
 	while True:
 		event, values = data.read()
