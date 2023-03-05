@@ -6,7 +6,6 @@ from requests import get
 from wget import download
 
 from Helper.Errors import ConnectionError
-from Helper.helper import PATH
 
 class Request:
 	# key = date, value = loaction of datebase
@@ -64,7 +63,7 @@ class Request:
 			pastDate: datetime = datetime.strptime(STR_DATE, "%m_%d_%Y")
 			diff = relativedelta.relativedelta(TODAY_DATE, pastDate)
 
-			if(((diff.months < 1) or (diff.days < 1)) and (diff.years < 1)):
+			if(((diff.months == 0) or (diff.days < 5)) and (diff.years == 0)):
 				if isHouse:
 					self.__housePastDates.append(STR_DATE)
 				else:
@@ -143,9 +142,9 @@ class Request:
 		'''
 		Delete all downloaded JSON files
 		'''
-		from os import removedirs
-		removedirs(self.__HOUSE_PATH)
-		removedirs(self.__SENATE_PATH)
+		from shutil import rmtree
+		rmtree(self.__HOUSE_PATH)
+		rmtree(self.__SENATE_PATH)
 
 	def __load(self, itr, SIZE: int, IS_HOUSE: bool=True) -> None:
 		'''
@@ -160,8 +159,7 @@ class Request:
 			date: str = next(itr)
 
 			if IS_HOUSE:
-				_PATH: str = join(join(PATH, self.__HOUSE_PATH),
-					f"house{date}.json")
+				_PATH: str = join(self.__HOUSE_PATH, f"house{date}.json")
 
 				if exists(_PATH):
 					with open(_PATH, "r") as file:
@@ -169,8 +167,7 @@ class Request:
 				else: # end loop if path not found
 					return
 			else:
-				_PATH: str = join(join(PATH, self.__SENATE_PATH),
-					f"senate{date}.json")
+				_PATH: str = join(self.__SENATE_PATH, f"senate{date}.json")
 
 				if exists(_PATH):
 					with open(_PATH, "r") as file:
