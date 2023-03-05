@@ -56,7 +56,7 @@ def dataScreen() -> None:
 
 					if cnt != SIZE:
 						col.add_row(Text("\t------------------"))
-						cnt += 1			
+						cnt += 1
 
 			col.add_row(Text("------------------"))
 
