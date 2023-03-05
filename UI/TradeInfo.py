@@ -53,6 +53,7 @@ def dataScreen() -> None:
 					col.add_row(Text("\tTransaction Type: " + trade["transaction_type"]))
 					col.add_row(Text("\tAmount: " + trade["amount"]))
 					col.add_row(Text("\tCap Gains Over 200: " + str(trade["cap_gains_over_200"])))
+					col.add_row(Button("Trade this stock"))
 
 					if cnt != SIZE:
 						col.add_row(Text("\t------------------"))
