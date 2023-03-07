@@ -245,7 +245,6 @@ def dataScreen() -> None:
 	]
 
 	data = Window(winName, layout, modal=True)
-	data.key_dict
 
 	while True:
 		event, values = data.read()
@@ -268,6 +267,10 @@ def dataScreen() -> None:
 
 	createLeftSide.join()
 	createRightSide.join()
+
+	del createLeftSide
+	del createRightSide
+	del request
 
 	data.close()
 	repPage = 0
@@ -292,6 +295,8 @@ def dataScreen() -> None:
 				else:
 					repPage -= 1
 
+				del temp
+
 		elif event == "nxt_sen":
 			if senPage < SENATE_SIZE:
 				senPage += 1
@@ -302,6 +307,8 @@ def dataScreen() -> None:
 					data = temp
 				else:
 					senPage -= 1
+
+				del temp
 
 		# click prev page button
 		elif event == "prev_rep":
@@ -315,6 +322,8 @@ def dataScreen() -> None:
 				else:
 					repPage += 1
 
+				del temp
+
 		elif event == "prev_sen":
 			if senPage < SENATE_SIZE:
 				senPage -= 1
@@ -325,6 +334,8 @@ def dataScreen() -> None:
 					data = temp
 				else:
 					senPage += 1
+
+				del temp
 
 		# if user runs a search
 		elif event == "rep_search":
@@ -337,6 +348,7 @@ def dataScreen() -> None:
 				temp = Window(winName, [[temp, data.Rows[0][1]]])
 				data.close()
 				data = temp
+			del temp
 
 		elif event == "sen_search":
 			temp = pages.search("Name: " + values["sen_name"], False)
@@ -345,6 +357,7 @@ def dataScreen() -> None:
 				temp = Window(winName, [[data.Rows[0][0], temp]])
 				data.close()
 				data = temp
+			del temp
 
 		# if user exits the search
 		elif((event == "rep_back") or (event == "sen_back")):
