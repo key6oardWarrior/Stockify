@@ -10,7 +10,7 @@ from Helper.creds import winName
 
 def landing():
 	layout = [
-		[Button("Login"), Button("Sign Up"), Button("Exit")]
+		[Button("Login"), Button("Sign Up"), Button("How to Use")]
 	]
 
 	landingPage = Window(winName, layout, modal=True)
@@ -27,5 +27,5 @@ def landing():
 
 		break
 
-landing()
+# landing()
 dataScreen()
