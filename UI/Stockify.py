@@ -1,5 +1,14 @@
-from sys import path
-path.append(path[0][:path[0].rfind("\\")])
+from sys import path, platform
+path.append(path[0][:path[0].rfind("\\")]) # not production
+
+# add path to needed libs
+if platform == "win32":
+	from os.path import expanduser
+	path.append(expanduser("~") + "\\AppData\\Local\\Stockify")
+elif((platform == "linux") or (platform == "linux2")):
+	path.append("/usr/local/Stockify")
+else: # darwin
+	path.append("/usr/local/bin/Stockify")
 
 from PySimpleGUI.PySimpleGUI import Button, Window
 
