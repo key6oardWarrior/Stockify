@@ -170,7 +170,7 @@ def rightSide(senateTrades) -> None:
 							[assetType], [_type], [amt], [comment], [line]], False)
 
 					if cnt != SIZE:
-						rightCol.add_row()
+						rightCol.add_row(line)
 						cnt += 1
 
 				rightCol.add_row(Text("------------------"))
