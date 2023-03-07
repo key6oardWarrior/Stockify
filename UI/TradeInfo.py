@@ -1,4 +1,4 @@
-from PySimpleGUI.PySimpleGUI import Button, Window, Text, Column, Input
+from PyGUI import Button, Window, Text, Column, Input
 from threading import Thread
 
 from TradeData.Request import Request
@@ -23,7 +23,7 @@ class Pages:
 			self.__houseSize += 1
 
 			if self.__houseSize > 1:
-				col.append([Text(f"Page: {self.__houseSize}"), Button("Next Page", key="nxt_rep"), Button("Prev Page", key="prev_rep")])
+				col.append([Text(f"Page: {self.__houseSize}"), Button("Prev Page", key="prev_rep"), Button("Next Page", key="nxt_rep")])
 			else:
 				col.append([Text(f"Page: {self.__houseSize}"), Button("Next Page", key="nxt_rep")])
 
@@ -32,7 +32,7 @@ class Pages:
 			self.__senateSize += 1
 
 			if self.__senateSize > 1:
-				col.append([Text(f"Page: {self.__senateSize}"), Button("Next Page", key="nxt_sen"), Button("Prev Page", key="prev_sen")])
+				col.append([Text(f"Page: {self.__senateSize}"), Button("Prev Page", key="prev_sen"), Button("Next Page", key="nxt_sen")])
 			else:		
 				col.append([Text(f"Page: {self.__senateSize}"), Button("Next Page", key="nxt_sen")])
 
@@ -166,15 +166,15 @@ def dataScreen() -> None:
 	while True:
 		event, values = data.read()
 		exitApp(event, data)
-		'''if event == "30d":
+		if event == "30d":
 			request.download()
 		else:
-			request.downloadAll()'''
+			request.downloadAll()
 
 		break
 
 	request.load()
-	# Thread(target=delete, args=(request,)).start()
+	Thread(target=delete, args=(request,)).start()
 
 	createLeftSide = Thread(target=leftSide, args=(request.loadedHouse,))
 	createRightSide = Thread(target=rightSide, args=(request.loadedSenate,))

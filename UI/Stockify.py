@@ -27,5 +27,5 @@ def landing():
 
 		break
 
-# landing()
+landing()
 dataScreen()
