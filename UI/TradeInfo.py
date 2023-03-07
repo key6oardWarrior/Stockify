@@ -6,18 +6,55 @@ from Helper.creds import winName
 from Helper.helper import exitApp
 
 def delete(request: Request) -> None:
+	'''
+	A child thread that deletes directory trees
+
+	# Params:
+	request - The object that knows where the trees are
+	'''
 	request.deleteAll()
 
 class Pages:
-	__housePages = dict({})
+	__housePages: dict[int, Column] = dict({})
 	__houseSize = 0
-	__senatePages = dict({})
+	__senatePages: dict[int, Column] = dict({})
 	__senateSize = 0
+
+	__houseMap: dict[str, Column] = dict({})
+	__senateMap: dict[str, Column] = dict({})
 
 	def __init__(self) -> None:
 		pass
 
+	def updateMap(self, lst: list[list], isHouse) -> None:
+		if isHouse:
+			lst.append([Button("Back", key="rep_back")])
+
+			if (lst[0][0].DisplayText in self.__houseMap) == False:
+				self.__houseMap[lst[0][0].DisplayText] = Column(lst, size=(500, 500), scrollable=True)
+			else:
+				del self.__houseMap[lst[0][0].DisplayText].Rows[-1]
+				for row in lst[1:]:
+					self.__houseMap[lst[0][0].DisplayText].add_row(row[0])
+		else:
+			lst.append([Button("Back", key="sen_back")])
+
+			if (lst[0][0].DisplayText in self.__senateMap) == False:
+				self.__senateMap[lst[0][0].DisplayText] = Column(lst, size=(500, 500), scrollable=True)
+			else:
+				del self.__senateMap[lst[0][0].DisplayText].Rows[-1]
+				for row in lst[1:]:
+					self.__senateMap[lst[0][0].DisplayText].add_row(row[0])
+
 	def addPage(self, col: Column, isHouse: bool) -> None:
+		'''
+		Since PyGUI can only hold a maxium number of rows once it cannot hold
+		anymore the overflow data is sent to another page.
+
+		# Params:
+		col - Column object for containing all the page's data\n
+		isHouse - True if house of rep else false
+		'''
 		if isHouse:
 			self.__housePages[self.__houseSize] = col
 			self.__houseSize += 1
@@ -42,6 +79,14 @@ class Pages:
 
 		return self.__senatePages[pageNum]
 
+	def search(self, name: str, isHouse: bool) -> Column:
+		if isHouse:
+			if (name in self.__houseMap):
+				return self.__houseMap[name]
+		else:
+			if (name in self.__senateMap):
+				return self.__senateMap[name]
+
 	@property
 	def houseSize(self) -> int:
 		return self.__houseSize
@@ -58,7 +103,7 @@ def createHeadLine(isHouse: bool) -> Column:
 		return Column(
 			[
 				[Text("House of Representives' Trades:", pad=(200, 0))],
-				[Button("Search"), Text("Enter House Rep's full name:"), Input(key="rep_name", size=(33, None))],
+				[Button("Search", key="rep_search"), Text("Enter House Rep's full name:"), Input(key="rep_name", size=(33, None))],
 				[Text("-------------------------------------------------------------------------------------------------------------------------")]
 			],
 			size=(500, 500), scrollable=True
@@ -67,7 +112,7 @@ def createHeadLine(isHouse: bool) -> Column:
 	return Column(
 		[
 			[Text("Senate's Trades:", pad=(200, 0))],
-			[Button("Search"), Text("Enter Senator's full name:"), Input(key="sen_name", size=(33, None))],
+			[Button("Search", key="sen_search"), Text("Enter Senator's full name:"), Input(key="sen_name", size=(33, None))],
 			[Text("-------------------------------------------------------------------------------------------------------------------------")]
 		],
 		size=(500, 500), scrollable=True
@@ -87,7 +132,8 @@ def rightSide(senateTrades) -> None:
 
 	for day in senateTrades:
 		for trader in day:
-			rightCol.add_row(Text("Name: " + trader["first_name"] + " " + trader["last_name"]))
+			name = Text("Name: " + trader["first_name"] + " " + trader["last_name"], key="name")
+			rightCol.add_row(name)
 			trades = trader["transactions"]
 
 			if trades:
@@ -95,20 +141,36 @@ def rightSide(senateTrades) -> None:
 				SIZE = len(trades)
 
 				for trade in trades:
-					rightCol.add_row(Text("\tTransaction Date: " +
-						trade["transaction_date"]))
-					rightCol.add_row(Text("\tOwner: " + trade["owner"]))
-					rightCol.add_row(Text("\tAsset Description: " + trade["asset_description"]))
-					rightCol.add_row(Text("\tAsset Type: " + trade["asset_type"]))
-					rightCol.add_row(Text("\tType: " + trade["type"]))
-					rightCol.add_row(Text("\tAmount: " + trade["amount"]))
-					rightCol.add_row(Text("\tComment: " + trade["comment"]))
+					transDate = Text("\tTransaction Date: " + trade["transaction_date"])
+					rightCol.add_row(transDate)
+					owner = Text("\tOwner: " + trade["owner"])
+					rightCol.add_row(owner)
+					assetDesc = Text("\tAsset Description: " + trade["asset_description"])
+					rightCol.add_row(assetDesc)
+					assetType = Text("\tAsset Type: " + trade["asset_type"])
+					rightCol.add_row(assetType)
+					_type = Text("\tType: " + trade["type"])
+					rightCol.add_row(_type)
+					amt = Text("\tAmount: " + trade["amount"])
+					rightCol.add_row(amt)
+					comment = Text("\tComment: " + trade["comment"])
+					rightCol.add_row(comment)
 
+					button = None
 					if trade["asset_type"] == "Stock":
-						rightCol.add_row(Button("Trade This Stock"))
+						button = Button("Trade This Stock")
+						rightCol.add_row(button)
+
+					line = Text("\t------------------")
+					if button:
+						pages.updateMap([[name], [transDate], [owner], [assetDesc],
+							[assetType], [_type], [amt], [comment], [button], [line]], False)
+					else:
+						pages.updateMap([[name], [transDate], [owner], [assetDesc],
+							[assetType], [_type], [amt], [comment], [line]], False)
 
 					if cnt != SIZE:
-						rightCol.add_row(Text("\t------------------"))
+						rightCol.add_row()
 						cnt += 1
 
 				rightCol.add_row(Text("------------------"))
@@ -128,7 +190,8 @@ def leftSide(houseTrades) -> None:
 
 	for day in houseTrades:
 		for trader in day:
-			leftCol.add_row(Text("Name: " + trader["name"]))
+			name = Text("Name: " + trader["name"], key="name")
+			leftCol.add_row(name)
 			trades = trader["transactions"]
 
 			if trades:
@@ -136,17 +199,30 @@ def leftSide(houseTrades) -> None:
 				SIZE = len(trades)
 
 				for trade in trades:
-					leftCol.add_row(Text("\tOwner: " + str(trade["owner"])))
-					leftCol.add_row(Text("\tTicker: " + trade["ticker"]))
-					leftCol.add_row(Text("\tDescription: " + trade["description"]))
-					leftCol.add_row(Text("\tTransaction Date: " + trade["transaction_date"]))
-					leftCol.add_row(Text("\tTransaction Type: " + trade["transaction_type"]))
-					leftCol.add_row(Text("\tAmount: " + trade["amount"]))
-					leftCol.add_row(Text("\tCap Gains Over 200: " + str(trade["cap_gains_over_200"])))
-					leftCol.add_row(Button("Trade This Stock"))
+					owner = Text("\tOwner: " + str(trade["owner"]))
+					leftCol.add_row(owner)
+					ticker = Text("\tTicker: " + trade["ticker"])
+					leftCol.add_row(ticker)
+					desc = Text("\tDescription: " + trade["description"])
+					leftCol.add_row(desc)
+					transDate = Text("\tTransaction Date: " + trade["transaction_date"])
+					leftCol.add_row(transDate)
+					transType = Text("\tTransaction Type: " + trade["transaction_type"])
+					leftCol.add_row(transType)
+					amt = Text("\tAmount: " + trade["amount"])
+					leftCol.add_row(amt)
+					cap = Text("\tCap Gains Over 200: " + str(trade["cap_gains_over_200"]))
+					leftCol.add_row(cap)
+					button = Button("Trade This Stock")
+					leftCol.add_row(button)
+
+					line = Text("\t------------------")
+					pages.updateMap([[name], [owner], [ticker], [desc],
+						[transDate], [transType], [amt], [cap], [button],
+						[line]], True)
 
 					if cnt != SIZE:
-						leftCol.add_row(Text("\t------------------"))
+						leftCol.add_row(line)
 						cnt += 1
 
 			leftCol.add_row(Text("------------------"))
@@ -249,4 +325,28 @@ def dataScreen() -> None:
 					data = temp
 				else:
 					senPage += 1
-				
+
+		# if user runs a search
+		elif event == "rep_search":
+			if ("Hon. " not in values["rep_name"]):
+				temp = pages.search("Name: Hon. " + values["rep_name"], True)
+			else:
+				temp = pages.search("Name: " + values["rep_name"], True)
+
+			if temp:
+				temp = Window(winName, [[temp, data.Rows[0][1]]])
+				data.close()
+				data = temp
+
+		elif event == "sen_search":
+			temp = pages.search("Name: " + values["sen_name"], False)
+
+			if temp:
+				temp = Window(winName, [[data.Rows[0][0], temp]])
+				data.close()
+				data = temp
+
+		# if user exits the search
+		elif((event == "rep_back") or (event == "sen_back")):
+			data.close()
+			data = displayPage(repPage, senPage, HOUSE_SIZE, True)
