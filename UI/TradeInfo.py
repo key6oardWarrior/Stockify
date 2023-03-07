@@ -57,16 +57,18 @@ def createHeadLine(isHouse: bool) -> Column:
 	if isHouse:
 		return Column(
 			[
-				[Button("Search"), Text("Enter House Rep's full name:"), Input(key="rep_name")],
-				[Text("House of Representives Trades:", pad=(200, 0))],
+				[Text("House of Representives' Trades:", pad=(200, 0))],
+				[Button("Search"), Text("Enter House Rep's full name:"), Input(key="rep_name", size=(33, None))],
+				[Text("-------------------------------------------------------------------------------------------------------------------------")]
 			],
 			size=(500, 500), scrollable=True
 		)
 
 	return Column(
 		[
-			[Button("Search"), Text("Enter Senator's full name:"), Input(key="sen_name")],
-			[Text("Senate's Trades:", pad=(200, 0))]
+			[Text("Senate's Trades:", pad=(200, 0))],
+			[Button("Search"), Text("Enter Senator's full name:"), Input(key="sen_name", size=(33, None))],
+			[Text("-------------------------------------------------------------------------------------------------------------------------")]
 		],
 		size=(500, 500), scrollable=True
 	)
