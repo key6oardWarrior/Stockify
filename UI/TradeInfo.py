@@ -17,26 +17,26 @@ class Pages:
 	def __init__(self) -> None:
 		pass
 
-	def addPage(self, col: list, isHouse: bool) -> None:
+	def addPage(self, col: Column, isHouse: bool) -> None:
 		if isHouse:
 			self.__housePages[self.__houseSize] = col
 			self.__houseSize += 1
 
 			if self.__houseSize > 1:
-				col.append([Text(f"Page: {self.__houseSize}"), Button("Prev Page", key="prev_rep"), Button("Next Page", key="nxt_rep")])
+				col.add_row(Text(f"Page: {self.__houseSize}"), Button("Prev Page", key="prev_rep"), Button("Next Page", key="nxt_rep"))
 			else:
-				col.append([Text(f"Page: {self.__houseSize}"), Button("Next Page", key="nxt_rep")])
+				col.add_row(Text(f"Page: {self.__houseSize}"), Button("Next Page", key="nxt_rep"))
 
 		else:
 			self.__senatePages[self.__senateSize] = col
 			self.__senateSize += 1
 
 			if self.__senateSize > 1:
-				col.append([Text(f"Page: {self.__senateSize}"), Button("Prev Page", key="prev_sen"), Button("Next Page", key="nxt_sen")])
+				col.add_row(Text(f"Page: {self.__senateSize}"), Button("Prev Page", key="prev_sen"), Button("Next Page", key="nxt_sen"))
 			else:		
-				col.append([Text(f"Page: {self.__senateSize}"), Button("Next Page", key="nxt_sen")])
+				col.add_row(Text(f"Page: {self.__senateSize}"), Button("Next Page", key="nxt_sen"))
 
-	def getPage(self, pageNum: int, isHouse: bool) -> list:
+	def getPage(self, pageNum: int, isHouse: bool) -> Column:
 		if isHouse:
 			return self.__housePages[pageNum]
 
@@ -53,33 +53,39 @@ class Pages:
 pages = Pages()
 MAX_TRADE_CNT = 5
 
-def createHeadLine(isHouse: bool) -> list:
+def createHeadLine(isHouse: bool) -> Column:
 	if isHouse:
-		return [
+		return Column(
+			[
 				[Button("Search"), Text("Enter House Rep's full name:"), Input(key="rep_name")],
-				[Text("House of Representives Trades:", pad=(200, 0))]
-			]
+				[Text("House of Representives Trades:", pad=(200, 0))],
+			],
+			size=(500, 500), scrollable=True
+		)
 
-	return [
+	return Column(
+		[
 			[Button("Search"), Text("Enter Senator's full name:"), Input(key="sen_name")],
 			[Text("Senate's Trades:", pad=(200, 0))]
-		]
+		],
+		size=(500, 500), scrollable=True
+	)
 
 def displayPage(repPage: int, senPage: int, SIZE: int, isHouse: bool) -> Window | None:
 	if isHouse:
 		if((repPage < SIZE) and (repPage >= 0)):
-			return Window(winName, [[Column(pages.getPage(repPage, True), size=(500, 500), scrollable=True), Column(pages.getPage(senPage, False), size=(500, 500), scrollable=True)]])
+			return Window(winName, [[pages.getPage(repPage, True), pages.getPage(senPage, False)]])
 	else:
 		if((senPage < SIZE) and (senPage >= 0)):
-			return Window(winName, [[Column(pages.getPage(repPage, True), size=(500, 500), scrollable=True), Column(pages.getPage(senPage, False), size=(500, 500), scrollable=True)]])
+			return Window(winName, [[pages.getPage(repPage, True), pages.getPage(senPage, False)]])
 
 def rightSide(senateTrades) -> None:
-	rightCol: list = createHeadLine(False)
+	rightCol: Column = createHeadLine(False)
 	tradeCnt = 0
 
 	for day in senateTrades:
 		for trader in day:
-			rightCol.append([Text("Name: " + trader["first_name"] + " " + trader["last_name"])])
+			rightCol.add_row(Text("Name: " + trader["first_name"] + " " + trader["last_name"]))
 			trades = trader["transactions"]
 
 			if trades:
@@ -87,23 +93,23 @@ def rightSide(senateTrades) -> None:
 				SIZE = len(trades)
 
 				for trade in trades:
-					rightCol.append([Text("\tTransaction Date: " +
-						trade["transaction_date"])])
-					rightCol.append([Text("\tOwner: " + trade["owner"])])
-					rightCol.append([Text("\tAsset Description: " + trade["asset_description"])])
-					rightCol.append([Text("\tAsset Type: " + trade["asset_type"])])
-					rightCol.append([Text("\tType: " + trade["type"])])
-					rightCol.append([Text("\tAmount: " + trade["amount"])])
-					rightCol.append([Text("\tComment: " + trade["comment"])])
+					rightCol.add_row(Text("\tTransaction Date: " +
+						trade["transaction_date"]))
+					rightCol.add_row(Text("\tOwner: " + trade["owner"]))
+					rightCol.add_row(Text("\tAsset Description: " + trade["asset_description"]))
+					rightCol.add_row(Text("\tAsset Type: " + trade["asset_type"]))
+					rightCol.add_row(Text("\tType: " + trade["type"]))
+					rightCol.add_row(Text("\tAmount: " + trade["amount"]))
+					rightCol.add_row(Text("\tComment: " + trade["comment"]))
 
 					if trade["asset_type"] == "Stock":
-						rightCol.append([Button("Trade This Stock")])
+						rightCol.add_row(Button("Trade This Stock"))
 
 					if cnt != SIZE:
-						rightCol.append([Text("\t------------------")])
+						rightCol.add_row(Text("\t------------------"))
 						cnt += 1
 
-				rightCol.append([Text("------------------")])
+				rightCol.add_row(Text("------------------"))
 				tradeCnt += 1
 
 				if tradeCnt >= MAX_TRADE_CNT:
@@ -115,12 +121,12 @@ def rightSide(senateTrades) -> None:
 		pages.addPage(rightCol, False)
 
 def leftSide(houseTrades) -> None:
-	leftCol: list = createHeadLine(True)
+	leftCol: Column = createHeadLine(True)
 	tradeCnt = 0
 
 	for day in houseTrades:
 		for trader in day:
-			leftCol.append([Text("Name: " + trader["name"])])
+			leftCol.add_row(Text("Name: " + trader["name"]))
 			trades = trader["transactions"]
 
 			if trades:
@@ -128,20 +134,20 @@ def leftSide(houseTrades) -> None:
 				SIZE = len(trades)
 
 				for trade in trades:
-					leftCol.append([Text("\tOwner: " + str(trade["owner"]))])
-					leftCol.append([Text("\tTicker: " + trade["ticker"])])
-					leftCol.append([Text("\tDescription: " + trade["description"])])
-					leftCol.append([Text("\tTransaction Date: " + trade["transaction_date"])])
-					leftCol.append([Text("\tTransaction Type: " + trade["transaction_type"])])
-					leftCol.append([Text("\tAmount: " + trade["amount"])])
-					leftCol.append([Text("\tCap Gains Over 200: " + str(trade["cap_gains_over_200"]))])
-					leftCol.append([Button("Trade This Stock")])
+					leftCol.add_row(Text("\tOwner: " + str(trade["owner"])))
+					leftCol.add_row(Text("\tTicker: " + trade["ticker"]))
+					leftCol.add_row(Text("\tDescription: " + trade["description"]))
+					leftCol.add_row(Text("\tTransaction Date: " + trade["transaction_date"]))
+					leftCol.add_row(Text("\tTransaction Type: " + trade["transaction_type"]))
+					leftCol.add_row(Text("\tAmount: " + trade["amount"]))
+					leftCol.add_row(Text("\tCap Gains Over 200: " + str(trade["cap_gains_over_200"])))
+					leftCol.add_row(Button("Trade This Stock"))
 
 					if cnt != SIZE:
-						leftCol.append([Text("\t------------------")])
+						leftCol.add_row(Text("\t------------------"))
 						cnt += 1
 
-			leftCol.append([Text("------------------")])
+			leftCol.add_row(Text("------------------"))
 			tradeCnt += 1
 
 			if tradeCnt >= MAX_TRADE_CNT:
@@ -190,7 +196,7 @@ def dataScreen() -> None:
 	senPage = 0
 	HOUSE_SIZE = pages.houseSize
 	SENATE_SIZE = pages.senateSize
-	data = Window(winName, [[Column(pages.getPage(repPage, True), scrollable=True, size=(500, 500)), Column(pages.getPage(senPage, False), scrollable=True, size=(500, 500))]])
+	data = Window(winName, [[pages.getPage(repPage, True), pages.getPage(senPage, False)]])
 
 	while True:
 		event, values = data.read()
