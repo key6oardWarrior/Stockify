@@ -207,7 +207,7 @@ def dataScreen() -> None:
 					data = temp
 				else:
 					repPage -= 1
-	
+
 		elif event == "nxt_sen":
 			if senPage < SENATE_SIZE:
 				senPage += 1
