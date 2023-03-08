@@ -3,6 +3,7 @@ from os.path import exists, join
 
 from bs4 import BeautifulSoup
 from requests import get
+from threading import Lock, Thread
 from wget import download
 
 from Helper.Errors import ConnectionError
@@ -19,6 +20,9 @@ class Request:
 	__house_db = "https://house-stock-watcher-data.s3-us-west-2.amazonaws.com/"
 	__HOUSE_PATH = "house"
 	__SENATE_PATH = "senate"
+	# A mutex is needed to access this resource from inside the class
+	__downloadFailed = []
+	__mutex: Lock = Lock()
 
 	def __set_dbLocation(self, soup: BeautifulSoup, isHouse: bool=True) -> None:
 		'''
@@ -63,13 +67,32 @@ class Request:
 			pastDate: datetime = datetime.strptime(STR_DATE, "%m_%d_%Y")
 			diff = relativedelta.relativedelta(TODAY_DATE, pastDate)
 
-			if(((diff.months == 0) or (diff.days < 5)) and (diff.years == 0)):
+			if(((diff.months == 0) and (diff.days <= 30)) or 
+				((diff.month == 1) and (diff.days == 0)) and
+				(diff.years == 0)
+			):
 				if isHouse:
 					self.__housePastDates.append(STR_DATE)
 				else:
 					self.__senatePastDates.append(STR_DATE)
 			else:
 				break
+
+	def __orgnizeHouse(self) -> None:
+		'''
+		Child thread to download and orgnize house data
+		'''
+		houseDB: str = "https://house-stock-watcher-data.s3-us-west-2.amazonaws.com/data/filemap.xml"
+
+		# all code in data bases
+		try:
+			houseSoup: BeautifulSoup = BeautifulSoup(get(houseDB).text,
+				features="lxml")
+		except:
+			raise ConnectionError(f"Could not get {houseDB}")
+
+		self.__set_dbLocation(houseSoup)
+		self.__findDates(iter(self.__house_dbLocations.keys()))
 
 	def __init__(self) -> None:
 		from os import mkdir
@@ -81,62 +104,82 @@ class Request:
 		if isdir(self.__SENATE_PATH) == False:
 			mkdir(self.__SENATE_PATH)
 
-		# trades data bases
-		houseDB: str = "https://house-stock-watcher-data.s3-us-west-2.amazonaws.com/data/filemap.xml"
+		thread = Thread(target=self.__orgnizeHouse)
+		thread.start()
+
 		senateDB: str = "https://senate-stock-watcher-data.s3-us-west-2.amazonaws.com/aggregate/filemap.xml"
 
-		# all code in data bases
 		try:
-			houseSoup: BeautifulSoup = BeautifulSoup(get(houseDB).text, features="lxml")
-		except:
-			raise ConnectionError(f"Could not get {houseDB}")
-
-		try:
-			senateSoup: BeautifulSoup = BeautifulSoup(get(senateDB).text, features="lxml")
+			senateSoup: BeautifulSoup = BeautifulSoup(get(senateDB).text,
+				features="lxml")
 		except:
 			raise ConnectionError(f"Could not get {senateDB}")
 
-		self.__set_dbLocation(houseSoup)
 		self.__set_dbLocation(senateSoup, False)
-
-		self.__findDates(iter(self.__house_dbLocations.keys()))
 		self.__findDates(iter(self.__senate_dbLocations.keys()), False)
+		thread.join()
 
-	def download(self) -> None:
+	def __senateDownload(self) -> None:
 		'''
-		Download useful data found in house and senate DB
+		A child thread to speed up the process of downloading all the data
 		'''
-		for itr in self.__housePastDates:
-			try:
-				download(self.__house_db + self.__house_dbLocations[itr],
-					join(self.__HOUSE_PATH, "house" + itr + ".json"))
-			except:
-				print("\ncould not download:", itr)
-
 		for itr in self.__senatePastDates:
 			try:
 				download(self.__senate_db + self.__senate_dbLocations[itr],
 					join(self.__SENATE_PATH, "senate" + itr + ".json"))
 			except:
-				print("\ncould not download :", itr)
+				self.__mutex.acquire(True)
+				self.__downloadFailed.append(itr)
+				self.__mutex.release()
 
-	def downloadAll(self) -> None:
+	def download(self) -> None:
 		'''
-		Download all data found in house and senate DB
+		Download useful data found in house and senate DB
 		'''
-		for itr in self.__house_dbLocations:
+		thread = Thread(target=self.__senateDownload)
+		thread.start()
+
+		for itr in self.__housePastDates:
 			try:
 				download(self.__house_db + self.__house_dbLocations[itr],
 					join(self.__HOUSE_PATH, "house" + itr + ".json"))
 			except:
-				print("\ncould not download:", itr)
+				self.__mutex.acquire(True)
+				self.__downloadFailed.append(itr)
+				self.__mutex.release()
 
+		thread.join()
+
+	def __senateDownloadAll(self) -> None:
+		'''
+		A child thread to speed up the process of downloading all the data
+		'''
 		for itr in self.__senate_dbLocations:
 			try:
 				download(self.__house_db + self.__senate_dbLocations[itr],
 					join(self.__SENATE_PATH, "senate" + itr + ".json"))
 			except:
-				print("\ncould not download:", itr)
+				self.__mutex.acquire(True)
+				self.__downloadFailed.append(itr)
+				self.__mutex.release()
+
+	def downloadAll(self) -> None:
+		'''
+		Download all data found in house and senate DB
+		'''
+		thread = Thread(target=self.__senateDownloadAll)
+		thread.start()
+
+		for itr in self.__house_dbLocations:
+			try:
+				download(self.__house_db + self.__house_dbLocations[itr],
+					join(self.__HOUSE_PATH, "house" + itr + ".json"))
+			except:
+				self.__mutex.acquire(True)
+				self.__downloadFailed.append(itr)
+				self.__mutex.release()
+
+		thread.join()
 
 	def deleteAll(self) -> None:
 		'''
@@ -181,10 +224,14 @@ class Request:
 		'''
 		Load each JSON into primary memory
 		'''
+		thread = Thread(target=self.__load, args=(iter(self.__senate_dbLocations.keys()),
+			len(self.__senate_dbLocations), False))
+		thread.start()
+
 		self.__load(iter(self.__house_dbLocations.keys()),
 			len(self.__house_dbLocations))
-		self.__load(iter(self.__senate_dbLocations.keys()),
-			len(self.__senate_dbLocations), False)
+
+		thread.join()
 
 	@property
 	def loadedSenate(self) -> list:
@@ -193,3 +240,7 @@ class Request:
 	@property
 	def loadedHouse(self) -> list:
 		return self.__loadedHouse
+
+	@property
+	def downloadFailed(self) -> list:
+		return self.__downloadFailed
