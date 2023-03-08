@@ -1,4 +1,4 @@
-from PySimpleGUI.PySimpleGUI import Button, Input, InputText, Text, Window
+from PySimpleGUI.PySimpleGUI import Button, Input, Text, Window
 
 from Helper.creds import winName
 from Helper.helper import exitApp
@@ -6,7 +6,7 @@ from Helper.helper import exitApp
 def loginScreen() -> None:
 	layout = [
 		[Text("Enter your robinhood email address: "), Input(key="email", size=(30, 1))],
-		[Text("Enter your robinhood password: "), InputText("",
+		[Text("Enter your robinhood password: "), Input("",
 			key="password", password_char="*", size=(15, 1), do_not_clear=False)],
 		[Button("Submit"), Button("Exit")]
 	]

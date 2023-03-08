@@ -26,7 +26,16 @@ class Pages:
 	def __init__(self) -> None:
 		pass
 
-	def updateMap(self, lst: list[list], isHouse) -> None:
+	def updateMap(self, lst: list[list], isHouse: bool) -> None:
+		'''
+		Update the houseMap and senateMap to make searching for a given
+		congress person easier
+
+		# Params:
+		lst - A 2D list that contains all the elements that are needed to
+		create all the UI elements for a given congress person\n
+		isHouse - True if lst is from house member else False
+		'''
 		if isHouse:
 			lst.append([Button("Back", key="rep_back")])
 
@@ -49,7 +58,8 @@ class Pages:
 	def addPage(self, col: Column, isHouse: bool) -> None:
 		'''
 		Since PyGUI can only hold a maxium number of rows once it cannot hold
-		anymore the overflow data is sent to another page.
+		anymore the overflow data is sent to another page. A page in this
+		sense is another Column object that will be used to display more data
 
 		# Params:
 		col - Column object for containing all the page's data\n
@@ -74,12 +84,34 @@ class Pages:
 				col.add_row(Text(f"Page: {self.__senateSize}"), Button("Next Page", key="nxt_sen"))
 
 	def getPage(self, pageNum: int, isHouse: bool) -> Column:
+		'''
+		# Params:
+		pageNum - Which page to return. This method does not check if pageNum
+		is referencing a page that does not exists. UI should always pass
+		valid page numbers to this method. This method is not error handled\n
+		isHouse - True if returning house page else False
+
+		# Returns:
+		A Column object that will represent a page with all trade data relevant
+		to that page
+		'''
 		if isHouse:
 			return self.__housePages[pageNum]
 
 		return self.__senatePages[pageNum]
 
-	def search(self, name: str, isHouse: bool) -> Column:
+	def search(self, name: str, isHouse: bool) -> Column or None:
+		'''
+		Search for a congress person via their name
+
+		# Params:
+		name - The name of the congress person\n
+		isHouse - True if the congress person is in the house else False
+
+		# Returns:
+		A Column object that contains all the trade data of that congress
+		person. If that congress person cannot be found return None
+		'''
 		if isHouse:
 			if (name in self.__houseMap):
 				return self.__houseMap[name]
@@ -89,16 +121,33 @@ class Pages:
 
 	@property
 	def houseSize(self) -> int:
+		'''
+		# Returns:
+		How many pages the house of representives have
+		'''
 		return self.__houseSize
 
 	@property
 	def senateSize(self) -> int:
+		'''
+		# Returns:
+		How many pages the senate has
+		'''
 		return self.__senateSize
 
 pages = Pages()
 MAX_TRADE_CNT = 5
 
 def createHeadLine(isHouse: bool) -> Column:
+	'''
+	Every page needs to have the same header
+
+	# Params:
+	isHouse - True if creating header for the house dataset else False
+
+	# Returns:
+	A Column object that will contain the header
+	'''
 	if isHouse:
 		return Column(
 			[
@@ -119,6 +168,19 @@ def createHeadLine(isHouse: bool) -> Column:
 	)
 
 def displayPage(repPage: int, senPage: int, SIZE: int, isHouse: bool) -> Window | None:
+	'''
+	Create a Window object that will display both house and senate Column objs
+
+	# Params:
+	repPage - Which house page to display\n
+	senPage - Which senate page to display\n
+	SIZE - The max number of pages that house or senate pages can have\n
+	isHouse - True if changing house page else False
+
+	# Returns:
+	A Window object to display all data. If the Window cannot be created return
+	None
+	'''
 	if isHouse:
 		if((repPage < SIZE) and (repPage >= 0)):
 			return Window(winName, [[pages.getPage(repPage, True), pages.getPage(senPage, False)]])
@@ -127,6 +189,14 @@ def displayPage(repPage: int, senPage: int, SIZE: int, isHouse: bool) -> Window 
 			return Window(winName, [[pages.getPage(repPage, True), pages.getPage(senPage, False)]])
 
 def rightSide(senateTrades) -> None:
+	'''
+	A child thread that creates and stores all pages that will be displayed on
+	the right side of the screen.
+
+	# Params:
+	senateTrades - All the trades that were loaded from json files. See Request
+	class
+	'''
 	rightCol: Column = createHeadLine(False)
 	tradeCnt = 0
 
@@ -185,6 +255,14 @@ def rightSide(senateTrades) -> None:
 		pages.addPage(rightCol, False)
 
 def leftSide(houseTrades) -> None:
+	'''
+	A child thread that creates and stores all pages that will be displayed on
+	the left side of the screen.
+
+	# Params:
+	houseTrades - All the trades that were loaded from json files. See Request
+	class
+	'''
 	leftCol: Column = createHeadLine(True)
 	tradeCnt = 0
 
@@ -237,6 +315,9 @@ def leftSide(houseTrades) -> None:
 		pages.addPage(leftCol, True)
 
 def dataScreen() -> None:
+	'''
+	Display all congress trade data
+	'''
 	request = Request()
 	layout = [
 		[Button("View last 30 days of trading", key="30d"),
@@ -246,15 +327,13 @@ def dataScreen() -> None:
 
 	data = Window(winName, layout, modal=True)
 
-	while True:
-		event, values = data.read()
-		exitApp(event, data)
-		if event == "30d":
-			request.download()
-		else:
-			request.downloadAll()
+	event, values = data.read()
+	exitApp(event, data)
 
-		break
+	if event == "30d":
+		request.download()
+	else:
+		request.downloadAll()
 
 	request.load()
 	Thread(target=delete, args=(request,)).start()

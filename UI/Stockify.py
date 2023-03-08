@@ -24,17 +24,14 @@ def landing():
 
 	landingPage = Window(winName, layout, modal=True)
 
-	while True:
-		event, values = landingPage.read()
-		exitApp(event, landingPage)
-		landingPage.close()
+	event, values = landingPage.read()
+	exitApp(event, landingPage)
+	landingPage.close()
 
-		if event == "Login":
-			loginScreen()
-		else:
-			signUpScreen()
-
-		break
+	if event == "Login":
+		loginScreen()
+	else:
+		signUpScreen()
 
 landing()
 dataScreen()
