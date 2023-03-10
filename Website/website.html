@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html style="background-color: wheat;">
+<head>
+<title>Stockify</title>
+</head>
+<style>
+   * {box-sizing: border-box;}
+    h1 {font-size:75px; text-align: center; color:saddlebrown; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif}
+    h2 {font-size:50px; text-align: center;}
+    h3 {font-size:50px; text-align: center;}
+    h4 {font-size:50px; text-align: center;}
+    p {border-style:double; text-align: center;font-size: 30px; font-family:Arial, Helvetica, sans-serif}
+    a {text-align: center; font-size: 30px; font-family:Arial, Helvetica, sans-serif}
+    /* Create two columns/boxes that floats next to each other */
+nav {
+  float: left;
+  width: 30%;
+  height: 300px; /* only for demonstration, should be removed */
+  padding: 20px;
+}
+
+/* Style the list inside the menu */
+nav ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+article {
+  float: left;
+  padding: 20px;
+  width: 70%;
+  height: 300px; /* only for demonstration, should be removed */
+}
+
+/* Clear floats after the columns */
+section::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* Style the footer */
+footer {
+  background-color: #777;
+  padding: 10px;
+  text-align: center;
+  color: white;
+}
+
+.button {
+  border: none;
+  color: saddlebrown;
+  padding: 16px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 40px;
+  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 180px 55px;
+  transition-duration: 0.4s;
+  cursor: pointer;
+}
+
+.button1 {
+  background-color: white;
+  color: black;
+  border: 2px solid saddlebrown;
+}
+
+.button1:hover {
+  background-color: saddlebrown;
+  color: black;
+}
+
+/* Responsive layout - makes the two columns/boxes stack on top of each other instead of next to each other, on small screens */
+@media (max-width: 600px) {
+  nav, article {
+    width: 100%;
+    height: auto;
+  }
+}
+</style>
+<body>
+
+<h1><strong>Stockify</strong></h1>
+<section>
+    <nav>
+        <ul>
+           <h4><b><i>Community</i></b></h4> 
+            <a href="https://discord.gg/NfQ3rbT7Hg">Click here to join Discord</a>
+            <p>Discord is the easiest way to talk over voice, video, and text. Talk, chat, hang out, and stay close with your friends and communities.</p>  
+            <button class="button button1" onclick="window.location.href='https://www.linkedin.com/in/bocar-jallow-jr-386704193/';">DOWNLOAD</button>  
+        </ul>
+    </nav>    
+    <article>
+<h2><b><i>Vision</i></b></h2>
+            <p>In today's world, there are various options available for personal wealth growth,
+                including both IRAs, saving accounts, Mutual funds and more. However, many of
+                these options have a great deal of risk associated with them, and their return are
+                often not significant. For instance, while IRAs and saving account avoid the risk of
+                stock market, they also have a very small return. On the other hand, mutual fund
+                requires the investors to trust the fund managers expertise, which might not
+                always lead to favorable outcomes. while the average return from a broker's IRA
+                is around 4%. Congressperson on the other hand performs way better than IRAs
+                saving accounts and mutual funds.</p>
+                <h3><b><i>Solution</i></b></h3>       
+        <p>How can we solve this problem? We brainstormed on the ideal to create a app
+    called STOKIFY. This app aims to cater to the need of people who are involved in
+    the stock market by ensuring that their trades, calls, options and more are sound
+    and more likely to succeed. Today, around 53% of Americans own stocks and this
+    number is up from 1989, where only 32% of Americans owned stocks. It is
+    evidence that Americans have a significant interest in stock market. This app is
+    the business venture that can have a significant effect on millions of people.</p>
+    </article>    
+        
+    
+</section>
+</body>
+</html>
