@@ -1,17 +1,39 @@
-from os import walk, system
-from os.path import join
+from os import walk, system, mkdir
+from os.path import join, isdir, isfile
+from shutil import copy2
 
 # compile main dir
-dirTree: tuple = next(walk("."))[1]
 system("py -m compileall -b")
 
-# compile sub dirs
-for itr in dirTree:
-	system(f"cd {itr} && py -m compileall -b")
-
-# compile unit test
-dirTree: list = [join("UnitTest", "DataBase"), join("UnitTest", "Helper"),
+dirTree: tuple = next(walk("."))
+testTree: list = [join("UnitTest", "DataBase"), join("UnitTest", "Helper"),
 	join("UnitTest", "Login")]
 
-for itr in dirTree:
+if isdir("App") == False:
+	mkdir("App")
+
+# compile sub dirs
+for itr in dirTree[1]:
+	system(f"cd {itr} && py -m compileall -b")
+
+	# copy all compiled (non-unit test) files into App folder
+	if((itr != ".git") and (itr != "App") and (itr != "Dependencies") and
+		(itr != ".vscode") and (itr != "UnitTest")):
+		dirName = join("App", itr)
+
+		if isdir(dirName) == False:
+			mkdir(dirName)
+
+		for file in next(walk(itr))[2]:
+			if file[-4:] == ".pyc":
+				copy2(join(itr, file), dirName)
+
+# copy main compiled files to App folder
+for itr in dirTree[2]:
+	if itr[-4:] == ".pyc":
+		if((itr != "compile.pyc") and (itr != "setup.pyc")):
+			copy2(itr, "App")
+
+# compile unit test
+for itr in testTree:
 	system(f"cd {itr} && py -m compileall -b")
