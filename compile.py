@@ -1,5 +1,5 @@
-from os import walk, system, mkdir
-from os.path import join, isdir, isfile
+from os import walk, system, mkdir, rename
+from os.path import join, isdir
 from shutil import copy2
 
 # compile main dir
@@ -37,3 +37,7 @@ for itr in dirTree[2]:
 # compile unit test
 for itr in testTree:
 	system(f"cd {itr} && py -m compileall -b")
+
+# convert the main .pyc file to a .pyw
+PATH = join("UI", "Stockify.py")
+rename(join("App", PATH + "c"), join("App", PATH + "w"))
