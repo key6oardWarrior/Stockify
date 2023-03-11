@@ -140,3 +140,6 @@ creds.py
 
 # certs
 *.pem
+
+# Generated compiled python folder for local testing
+App/

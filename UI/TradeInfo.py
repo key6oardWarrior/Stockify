@@ -20,8 +20,13 @@ class Pages:
 	__senatePages: dict[int, Column] = dict({})
 	__senateSize = 0
 
+	# used to search by congress person
 	__houseMap: dict[str, Column] = dict({})
 	__senateMap: dict[str, Column] = dict({})
+
+	# used to search by stock
+	__stocksName: dict[str, Column] = dict({})
+	__stocksTicker: dict[str, Column] = dict({})
 
 	def __init__(self) -> None:
 		pass
@@ -229,6 +234,10 @@ def rightSide(senateTrades) -> None:
 					button = None
 					if trade["asset_type"] == "Stock":
 						button = Button("Trade This Stock")
+						rightCol.add_row(button)
+
+					if trade["asset_type"] == "Stock Option":
+						button = Button("Trade This Option")
 						rightCol.add_row(button)
 
 					line = Text("\t------------------")
