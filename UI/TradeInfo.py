@@ -19,6 +19,8 @@ class Pages:
 	__stocksName: dict[str, Column] = dict({})
 	__stocksTicker: dict[str, Column] = dict({})
 
+	__days = 0
+
 	def __init__(self) -> None:
 		pass
 
@@ -122,10 +124,11 @@ class Pages:
 		days
 		'''
 		if not self.__houseMap:
-			self.__housePages[0].add_row(Text("There were no trades during the last 30 days. Do you want to download more data?"))
+			self.__housePages[0].add_row(Text(f"There were no trades during the last {self.__days} days. Do you want to download more data?"))
 			self.__housePages[0].add_row(Button("Yes", key="rep_yes", pad=(121, None)))
-		elif not self.__senateMap:
-			self.__senatePages[0].add_row(Text("There were no trades during the last 30 days. Do you want to download more data?"))
+
+		if not self.__senateMap:
+			self.__senatePages[0].add_row(Text(f"There were no trades during the last {self.__days} days. Do you want to download more data?"))
 			self.__senatePages[0].add_row(Button("Yes", key="sen_yes", pad=(242, None)))
 
 	@property
@@ -143,6 +146,14 @@ class Pages:
 		How many pages the senate has
 		'''
 		return self.__senateSize
+
+	@property
+	def days(self) -> int:
+		return self.__days
+
+	@days.setter
+	def days(self, days: int) -> None:
+		self.__days = days
 
 pages = Pages()
 MAX_TRADE_CNT = 5
@@ -356,6 +367,7 @@ def dataScreen() -> None:
 				data = Window(winName, layout, modal=True)
 				continue
 			else:
+				pages.days = days
 				request = Request(days)
 		except:
 			layout.append([Text("Please only type numbers", text_color="red")])

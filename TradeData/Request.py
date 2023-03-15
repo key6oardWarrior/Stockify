@@ -19,6 +19,7 @@ class Request:
 	# A mutex is needed to access this resource from inside the class
 	__downloadFailed = []
 	__mutex: Lock = Lock()
+	__days: int
 
 	def __set_dbLocation(self, soup: BeautifulSoup, isHouse: bool=True) -> None:
 		'''
@@ -57,22 +58,23 @@ class Request:
 			SIZE = len(self.__senate_dbLocations)
 
 		# if there is less than 30 day difference append to list
-		index = 0
-		while index < SIZE:
+		idx = 0
+		YEARS, MONTHS = int(self.__days / 365), int(self.__days / 30)
+		while idx < self.__days:
 			STR_DATE: str = next(_date)
 			pastDate: datetime = datetime.strptime(STR_DATE, "%m_%d_%Y")
 			diff = relativedelta.relativedelta(TODAY_DATE, pastDate)
 
-			if(((diff.months == 0) and (diff.days <= 30)) or 
-				((diff.month == 1) and (diff.days == 0)) and
-				(diff.years == 0)
-			):
-				if isHouse:
-					self.__housePastDates.append(STR_DATE)
-				else:
-					self.__senatePastDates.append(STR_DATE)
+			if self.__days != 1095:
+				if((diff.years - YEARS >= 0) and (diff.months - MONTHS >= 0) and (self.__days - diff.days >= 0)):
+					break
+
+			if isHouse:
+				self.__housePastDates.append(STR_DATE)
 			else:
-				break
+				self.__senatePastDates.append(STR_DATE)
+
+			idx += 1
 
 	def __orgnizeHouse(self) -> None:
 		'''
@@ -91,6 +93,7 @@ class Request:
 		self.__findDates(iter(self.__house_dbLocations.keys()))
 
 	def __init__(self, days: int) -> None:
+		self.__days = days
 		thread = Thread(target=self.__orgnizeHouse)
 		thread.start()
 
