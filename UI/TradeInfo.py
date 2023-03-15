@@ -331,22 +331,40 @@ def dataScreen() -> None:
 	'''
 	Display all congress trade data
 	'''
-	request = Request()
+	request: Request
 	layout = [
-		[Button("View last 30 days of trading", key="30d"),
-		Button("View last 3 years of trading", key="3y")],
-		[Text("Depending on your internet speed this could take a few seconds, or a few mins. The app may go to sleep, so please wait")]
+		[Text("How many past days of congress stock trading do you want to see (up to 1095 days ago):"), Input(key="days")],
+		[Text("Depending on your internet speed this could take a few seconds, or a few mins. The app may go to sleep, so please wait")],
+		[Button("Submit", key="sub")]
 	]
 
 	data = Window(winName, layout, modal=True)
 
-	event, values = data.read()
-	exitApp(event, data)
+	while True:
+		event, values = data.read()
+		exitApp(event, data)
 
-	if event == "30d":
-		request.download()
-	else:
-		request.downloadAll()
+		if len(layout) > 3:
+			del layout[3]
+
+		try:
+			days = int(values["days"].strip())
+
+			if days > 1095:
+				layout.append([Text("Cannot enter a value that is greater than 1095", text_color="red")])
+				data.close()
+				data = Window(winName, layout, modal=True)
+				continue
+			else:
+				request = Request(days)
+		except:
+			layout.append([Text("Please only type numbers", text_color="red")])
+			data.close()
+			data = Window(winName, layout, modal=True)
+		else:
+			break
+
+	request.download()
 
 	createLeftSide = Thread(target=leftSide, args=(request.loadedHouse,))
 	createRightSide = Thread(target=rightSide, args=(request.loadedSenate,))

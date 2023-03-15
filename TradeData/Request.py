@@ -90,7 +90,7 @@ class Request:
 		self.__set_dbLocation(houseSoup)
 		self.__findDates(iter(self.__house_dbLocations.keys()))
 
-	def __init__(self) -> None:
+	def __init__(self, days: int) -> None:
 		thread = Thread(target=self.__orgnizeHouse)
 		thread.start()
 
