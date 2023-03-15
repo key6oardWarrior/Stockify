@@ -1,5 +1,5 @@
-from os import walk, system, mkdir, rename
-from os.path import join, isdir
+from os import walk, system, mkdir, rename, remove
+from os.path import join, isdir, exists
 from shutil import copy2
 
 # compile main dir
@@ -40,4 +40,8 @@ for itr in testTree:
 
 # convert the main .pyc file to a .pyw
 PATH = join("UI", "Stockify.py")
-rename(join("App", PATH + "c"), join("App", PATH + "w"))
+FINAL_PATH = join("App", PATH + "w")
+
+if exists(FINAL_PATH):
+	remove(FINAL_PATH)
+	rename(join("App", PATH + "c"), FINAL_PATH)
