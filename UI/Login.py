@@ -1,7 +1,7 @@
 from PySimpleGUI.PySimpleGUI import Button, Input, Text, Window
 
 from Helper.creds import winName
-from Helper.helper import exitApp
+from Helper.helper import exitApp, exit
 
 def loginScreen() -> None:
 	layout = [
@@ -15,7 +15,8 @@ def loginScreen() -> None:
 
 	while True:
 		event, values = login.read()
-		exitApp(event, login)
+		if exitApp(event, login):
+			exit(0)
 
 		if event == "Submit":
 			login.close()
@@ -44,7 +45,8 @@ def signUpScreen() -> None:
 
 	while True:
 		event, values = signUp.read()
-		exitApp(event, signUp)
+		if exitApp(event, signUp):
+			exit(0)
 
 		signUp.close()
 		break

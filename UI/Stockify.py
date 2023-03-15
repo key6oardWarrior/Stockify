@@ -14,7 +14,7 @@ from PySimpleGUI.PySimpleGUI import Button, Window
 
 from Login import loginScreen, signUpScreen
 from TradeInfo import dataScreen
-from Helper.helper import exitApp
+from Helper.helper import exitApp, exit
 from Helper.creds import winName
 
 def landing():
@@ -25,7 +25,8 @@ def landing():
 	landingPage = Window(winName, layout, modal=True)
 
 	event, values = landingPage.read()
-	exitApp(event, landingPage)
+	if exitApp(event, landingPage):
+		exit(0)
 	landingPage.close()
 
 	if event == "Login":

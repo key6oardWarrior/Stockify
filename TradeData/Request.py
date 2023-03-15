@@ -52,21 +52,19 @@ class Request:
 		TODAY_DATE: str = date.today().isoformat()
 		TODAY_DATE: datetime = datetime.strptime(TODAY_DATE, "%Y-%m-%d")
 
-		if isHouse:
-			SIZE = len(self.__house_dbLocations)
-		else:
-			SIZE = len(self.__senate_dbLocations)
-
 		# if there is less than 30 day difference append to list
 		idx = 0
 		YEARS, MONTHS = int(self.__days / 365), int(self.__days / 30)
+		if MONTHS > 0:
+			DAYS = self.__days % 30
+
 		while idx < self.__days:
 			STR_DATE: str = next(_date)
 			pastDate: datetime = datetime.strptime(STR_DATE, "%m_%d_%Y")
 			diff = relativedelta.relativedelta(TODAY_DATE, pastDate)
 
 			if self.__days != 1095:
-				if((diff.years - YEARS >= 0) and (diff.months - MONTHS >= 0) and (self.__days - diff.days >= 0)):
+				if((YEARS - diff.years < 0) and (MONTHS - diff.months < 0) and (DAYS - diff.days < 0)):
 					break
 
 			if isHouse:
@@ -116,7 +114,7 @@ class Request:
 		for itr in self.__senatePastDates:
 			try:
 				self.__loadedSenate.append(loads(get(
-					self.__senate_db + self.__senate_dbLocations[itr])))
+					self.__senate_db + self.__senate_dbLocations[itr]).text))
 			except:
 				self.__mutex.acquire(True)
 				self.__downloadFailed.append(itr)
