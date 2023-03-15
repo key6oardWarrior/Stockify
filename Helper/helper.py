@@ -1,3 +1,4 @@
+from sys import exit
 from Helper.Errors import ConnectionError
 
 def checkConnection():
@@ -17,7 +18,6 @@ from authorizenet.apicontrollers import createTransactionController
 from Helper.creds import apiLoginId, transactionKey
 
 from PySimpleGUI.PySimpleGUI import WIN_CLOSED, Window
-from sys import exit
 
 def getPayment(email: str, ccn: str, code: str, state: str, city: str,
 	address: str, _zip: str, exp: str, fName: str, lName: str) -> tuple[bool, str]:
@@ -120,15 +120,19 @@ def getPayment(email: str, ccn: str, code: str, state: str, city: str,
 	code: str = responce.messages.message.code.text
 	return (True, code) if code == "I00001" else (False, code)
 
-def exitApp(event, window: Window) -> None:
+def exitApp(event, window: Window) -> bool:
 	'''
-	Will kill the app if the event want app to die
+	Determin if the event wants app to die
 
 	# Params:
 	event - If the user clicked exit or clicked the exit at the top left of
 	app\n
 	window - The window to close
+
+	# Returns:
+	True if event = Exit or WIN_CLOSED (see PyGUI) else False
 	'''
 	if((event == "Exit") or (event == WIN_CLOSED)):
 		window.close()
-		exit(0)
+		return True
+	return False

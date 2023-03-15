@@ -3,16 +3,7 @@ from threading import Thread
 
 from TradeData.Request import Request
 from Helper.creds import winName
-from Helper.helper import exitApp
-
-def delete(request: Request) -> None:
-	'''
-	A child thread that deletes directory trees
-
-	# Params:
-	request - The object that knows where the trees are
-	'''
-	request.deleteAll()
+from Helper.helper import exitApp, exit
 
 class Pages:
 	__housePages: dict[int, Column] = dict({})
@@ -27,6 +18,8 @@ class Pages:
 	# used to search by stock
 	__stocksName: dict[str, Column] = dict({})
 	__stocksTicker: dict[str, Column] = dict({})
+
+	__days = 0
 
 	def __init__(self) -> None:
 		pass
@@ -88,6 +81,9 @@ class Pages:
 			else:		
 				col.add_row(Text(f"Page: {self.__senateSize}"), Button("Next Page", key="nxt_sen"))
 
+		col.add_row(Text("------------------"))
+		col.add_row(Text("Do you want to see more, or less days of trading data"), Button("Yes", key="rep_yes"))
+
 	def getPage(self, pageNum: int, isHouse: bool) -> Column:
 		'''
 		# Params:
@@ -124,6 +120,36 @@ class Pages:
 			if (name in self.__senateMap):
 				return self.__senateMap[name]
 
+	def clearRep(self) -> None:
+		'''
+		Clear all data about House members
+		'''
+		self.__houseMap.clear()
+		self.__housePages.clear()
+		self.__houseSize = 0
+
+	def clearSen(self) -> None:
+		'''
+		Clear all data about Senate members
+		'''
+		self.__senateMap.clear()
+		self.__senatePages.clear()
+		self.__senateSize = 0
+
+	def emptyCheck(self) -> None:
+		'''
+		Add a line of text asking the user if they want to download more data
+		from either house and or senate DB if there have been no trades in 30
+		days
+		'''
+		if not self.__houseMap:
+			self.__housePages[0].add_row(Text(f"There were no trades during the last {self.__days} days. Do you want to download more data?"))
+			self.__housePages[0].add_row(Button("Yes", key="rep_yes", pad=(121, None)))
+
+		if not self.__senateMap:
+			self.__senatePages[0].add_row(Text(f"There were no trades during the last {self.__days} days. Do you want to download more data?"))
+			self.__senatePages[0].add_row(Button("Yes", key="sen_yes", pad=(242, None)))
+
 	@property
 	def houseSize(self) -> int:
 		'''
@@ -140,8 +166,17 @@ class Pages:
 		'''
 		return self.__senateSize
 
+	@property
+	def days(self) -> int:
+		return self.__days
+
+	@days.setter
+	def days(self, days: int) -> None:
+		self.__days = days
+
 pages = Pages()
 MAX_TRADE_CNT = 5
+MAX_DAYS = 1095
 
 def createHeadLine(isHouse: bool) -> Column:
 	'''
@@ -323,30 +358,8 @@ def leftSide(houseTrades) -> None:
 	if tradeCnt < MAX_TRADE_CNT:
 		pages.addPage(leftCol, True)
 
-def dataScreen() -> None:
-	'''
-	Display all congress trade data
-	'''
-	request = Request()
-	layout = [
-		[Button("View last 30 days of trading", key="30d"),
-		Button("View last 3 years of trading", key="3y")],
-		[Text("Depending on your internet speed this could take a few seconds, or a few mins. The app may go to sleep, so please wait")]
-	]
-
-	data = Window(winName, layout, modal=True)
-
-	event, values = data.read()
-	exitApp(event, data)
-
-	if event == "30d":
-		request.download()
-	else:
-		request.downloadAll()
-
-	request.load()
-	Thread(target=delete, args=(request,)).start()
-
+def dataVisulization(request: Request) -> None:
+	request.download()
 	createLeftSide = Thread(target=leftSide, args=(request.loadedHouse,))
 	createRightSide = Thread(target=rightSide, args=(request.loadedSenate,))
 
@@ -356,26 +369,66 @@ def dataScreen() -> None:
 	createLeftSide.join()
 	createRightSide.join()
 
-	del createLeftSide
-	del createRightSide
-	del request
+def dataScreen() -> None:
+	'''
+	Display all congress trade data
+	'''
+	request: Request
+	layout = [
+		[Text("How many past days of congress stock trading do you want to see (up to 1095 days ago):"), Input(key="days")],
+		[Text("Depending on your internet speed this could take a few seconds, or a few mins. The app may go to sleep, so please wait")],
+		[Button("Submit", key="sub")]
+	]
+
+	data = Window(winName, layout, modal=True)
+
+	while True:
+		event, values = data.read()
+		if exitApp(event, data):
+			exit(0)
+
+		if len(layout) > 3:
+			del layout[3]
+
+		try:
+			days = int(values["days"].strip())
+
+			if days > MAX_DAYS:
+				layout.append([Text("Cannot enter a value that is greater than 1095", text_color="red")])
+				data.close()
+				data = Window(winName, layout, modal=True)
+				continue
+			else:
+				pages.days = days
+				request = Request(days)
+		except:
+			layout.append([Text("Please only type numbers", text_color="red")])
+			data.close()
+			data = Window(winName, layout, modal=True)
+		else:
+			break
+
+	dataVisulization(request)
 
 	data.close()
 	repPage = 0
 	senPage = 0
-	HOUSE_SIZE = pages.houseSize
-	SENATE_SIZE = pages.senateSize
+	_houseSize = pages.houseSize
+	_senateSize = pages.senateSize
+
+	pages.emptyCheck()
 	data = Window(winName, [[pages.getPage(repPage, True), pages.getPage(senPage, False)]])
 
 	while True:
 		event, values = data.read()
-		exitApp(event, data)
+		if exitApp(event, data):
+			exit(0)
 
 		# click next page button
 		if event == "nxt_rep":
-			if repPage < HOUSE_SIZE:
+			if repPage < _houseSize:
 				repPage += 1
-				temp = displayPage(repPage, senPage, HOUSE_SIZE, True)
+				temp = displayPage(repPage, senPage, _houseSize, True)
 
 				if temp:
 					data.close()
@@ -386,9 +439,9 @@ def dataScreen() -> None:
 				del temp
 
 		elif event == "nxt_sen":
-			if senPage < SENATE_SIZE:
+			if senPage < _senateSize:
 				senPage += 1
-				temp = displayPage(repPage, senPage, SENATE_SIZE, False)
+				temp = displayPage(repPage, senPage, _senateSize, False)
 
 				if temp:
 					data.close()
@@ -400,9 +453,9 @@ def dataScreen() -> None:
 
 		# click prev page button
 		elif event == "prev_rep":
-			if repPage < HOUSE_SIZE:
+			if repPage < _houseSize:
 				repPage -= 1
-				temp = displayPage(repPage, senPage, HOUSE_SIZE, True)
+				temp = displayPage(repPage, senPage, _houseSize, True)
 
 				if temp:
 					data.close()
@@ -413,9 +466,9 @@ def dataScreen() -> None:
 				del temp
 
 		elif event == "prev_sen":
-			if senPage < SENATE_SIZE:
+			if senPage < _senateSize:
 				senPage -= 1
-				temp = displayPage(repPage, senPage, SENATE_SIZE, False)
+				temp = displayPage(repPage, senPage, _senateSize, False)
 
 				if temp:
 					data.close()
@@ -450,4 +503,49 @@ def dataScreen() -> None:
 		# if user exits the search
 		elif((event == "rep_back") or (event == "sen_back")):
 			data.close()
-			data = displayPage(repPage, senPage, HOUSE_SIZE, True)
+			data = displayPage(repPage, senPage, _houseSize, True)
+
+		# if user wants more data
+		elif((event == "rep_yes") or (event == "sen_yes")):
+			del request
+			
+			while True:
+				o_layout = [[Text("Enter how many days of trading data you want:"), Input(key="retype")], [Button("Submit"), Button("Exit")]]
+				overlayed = Window(winName, o_layout)
+				o_event, o_values = overlayed.read()
+				exited = False
+
+				if exitApp(o_event, overlayed):
+					break
+
+				if len(o_layout) > 3:
+					del o_layout[3]
+
+				try:
+					days = int(o_values["retype"].strip())
+
+					if days > MAX_DAYS:
+						o_layout.append([Text("Cannot enter a value that is greater than 1095", text_color="red")])
+						overlayed.close()
+						overlayed = Window(winName, o_layout, modal=True)
+						continue
+					else:
+						pages.days = days
+						request = Request(days)
+				except:
+					o_layout.append([Text("Please only type numbers", text_color="red")])
+					overlayed.close()
+					overlayed = Window(winName, o_layout, modal=True)
+				else:
+					if exited == False:
+						pages.clearRep()
+						pages.clearSen()
+						dataVisulization(request)
+						pages.emptyCheck()
+						data.close()
+						_houseSize = pages.houseSize
+						_senateSize = pages.senateSize
+						data = Window(winName, [[pages.getPage(repPage, True), pages.getPage(senPage, False)]])
+
+					overlayed.close()
+					break
