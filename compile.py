@@ -44,4 +44,5 @@ FINAL_PATH = join("App", PATH + "w")
 
 if exists(FINAL_PATH):
 	remove(FINAL_PATH)
-	rename(join("App", PATH + "c"), FINAL_PATH)
+
+rename(join("App", PATH + "c"), FINAL_PATH)
