@@ -89,7 +89,7 @@
 <p>When preforming any kind of test be sure to test both the .py and .pyc files. They both must pass before you can submit a PR. Please note that while running compile.py you may encounter an error that states, "Can't list [directory]." Please ignore this error message.</p>
 
 <h1>Running the App</h1>
-<p>After completing all the steps in this README and the other READMEs you can run this code. Go into the app directory and in the subdirectory UI click on Stockify.pyc. This will run the entire application for the user's perspective.</p>
+<p>After completing all the steps in this README and the other READMEs you can run this code. Go into the app directory and in the subdirectory UI click on Stockify.pyw. This will run the entire application for the user's perspective.</p>
 
  </body>
 <html>
