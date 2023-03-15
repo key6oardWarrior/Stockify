@@ -1,10 +1,8 @@
-from json import load
-from os.path import exists, join
+from json import loads
 
 from bs4 import BeautifulSoup
 from requests import get
 from threading import Lock, Thread
-from wget import download
 
 from Helper.Errors import ConnectionError
 
@@ -18,8 +16,6 @@ class Request:
 	__loadedHouse = []
 	__senate_db = "https://senate-stock-watcher-data.s3-us-west-2.amazonaws.com/"
 	__house_db = "https://house-stock-watcher-data.s3-us-west-2.amazonaws.com/"
-	__HOUSE_PATH = "house"
-	__SENATE_PATH = "senate"
 	# A mutex is needed to access this resource from inside the class
 	__downloadFailed = []
 	__mutex: Lock = Lock()
@@ -95,15 +91,6 @@ class Request:
 		self.__findDates(iter(self.__house_dbLocations.keys()))
 
 	def __init__(self) -> None:
-		from os import mkdir
-		from os.path import isdir
-
-		if isdir(self.__HOUSE_PATH) == False:
-			mkdir(self.__HOUSE_PATH)
-	
-		if isdir(self.__SENATE_PATH) == False:
-			mkdir(self.__SENATE_PATH)
-
 		thread = Thread(target=self.__orgnizeHouse)
 		thread.start()
 
@@ -125,8 +112,8 @@ class Request:
 		'''
 		for itr in self.__senatePastDates:
 			try:
-				download(self.__senate_db + self.__senate_dbLocations[itr],
-					join(self.__SENATE_PATH, "senate" + itr + ".json"))
+				self.__loadedSenate.append(loads(get(
+					self.__senate_db + self.__senate_dbLocations[itr])))
 			except:
 				self.__mutex.acquire(True)
 				self.__downloadFailed.append(itr)
@@ -141,95 +128,12 @@ class Request:
 
 		for itr in self.__housePastDates:
 			try:
-				download(self.__house_db + self.__house_dbLocations[itr],
-					join(self.__HOUSE_PATH, "house" + itr + ".json"))
+				self.__loadedHouse.append(loads(get(
+					self.__house_db + self.__house_dbLocations[itr]).text))
 			except:
 				self.__mutex.acquire(True)
 				self.__downloadFailed.append(itr)
 				self.__mutex.release()
-
-		thread.join()
-
-	def __senateDownloadAll(self) -> None:
-		'''
-		A child thread to speed up the process of downloading all the data
-		'''
-		for itr in self.__senate_dbLocations:
-			try:
-				download(self.__house_db + self.__senate_dbLocations[itr],
-					join(self.__SENATE_PATH, "senate" + itr + ".json"))
-			except:
-				self.__mutex.acquire(True)
-				self.__downloadFailed.append(itr)
-				self.__mutex.release()
-
-	def downloadAll(self) -> None:
-		'''
-		Download all data found in house and senate DB
-		'''
-		thread = Thread(target=self.__senateDownloadAll)
-		thread.start()
-
-		for itr in self.__house_dbLocations:
-			try:
-				download(self.__house_db + self.__house_dbLocations[itr],
-					join(self.__HOUSE_PATH, "house" + itr + ".json"))
-			except:
-				self.__mutex.acquire(True)
-				self.__downloadFailed.append(itr)
-				self.__mutex.release()
-
-		thread.join()
-
-	def deleteAll(self) -> None:
-		'''
-		Delete all downloaded JSON files
-		'''
-		from shutil import rmtree
-		rmtree(self.__HOUSE_PATH)
-		rmtree(self.__SENATE_PATH)
-
-	def __load(self, itr, SIZE: int, IS_HOUSE: bool=True) -> None:
-		'''
-		Load all downloaded data into primary memory
-
-		# Params:
-		itr - The dict iter
-		SIZE - Size of object that itr came from
-		'''
-		ii = 0
-		while ii < SIZE:
-			date: str = next(itr)
-
-			if IS_HOUSE:
-				_PATH: str = join(self.__HOUSE_PATH, f"house{date}.json")
-
-				if exists(_PATH):
-					with open(_PATH, "r") as file:
-						self.__loadedHouse.append(load(file))
-				else: # end loop if path not found
-					return
-			else:
-				_PATH: str = join(self.__SENATE_PATH, f"senate{date}.json")
-
-				if exists(_PATH):
-					with open(_PATH, "r") as file:
-						self.__loadedSenate.append(load(file))
-				else: # end loop if path not found
-					return
-
-			ii += 1
-
-	def load(self) -> None:
-		'''
-		Load each JSON into primary memory
-		'''
-		thread = Thread(target=self.__load, args=(iter(self.__senate_dbLocations.keys()),
-			len(self.__senate_dbLocations), False))
-		thread.start()
-
-		self.__load(iter(self.__house_dbLocations.keys()),
-			len(self.__house_dbLocations))
 
 		thread.join()
 

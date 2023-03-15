@@ -5,15 +5,6 @@ from TradeData.Request import Request
 from Helper.creds import winName
 from Helper.helper import exitApp
 
-def delete(request: Request) -> None:
-	'''
-	A child thread that deletes directory trees
-
-	# Params:
-	request - The object that knows where the trees are
-	'''
-	request.deleteAll()
-
 class Pages:
 	__housePages: dict[int, Column] = dict({})
 	__houseSize = 0
@@ -123,6 +114,19 @@ class Pages:
 		else:
 			if (name in self.__senateMap):
 				return self.__senateMap[name]
+
+	def emptyCheck(self) -> None:
+		'''
+		Add a line of text asking the user if they want to download more data
+		from either house and or senate DB if there have been no trades in 30
+		days
+		'''
+		if not self.__houseMap:
+			self.__housePages[0].add_row(Text("There were no trades during the last 30 days. Do you want to download more data?"))
+			self.__housePages[0].add_row(Button("Yes", key="rep_yes", pad=(121, None)))
+		elif not self.__senateMap:
+			self.__senatePages[0].add_row(Text("There were no trades during the last 30 days. Do you want to download more data?"))
+			self.__senatePages[0].add_row(Button("Yes", key="sen_yes", pad=(242, None)))
 
 	@property
 	def houseSize(self) -> int:
@@ -344,9 +348,6 @@ def dataScreen() -> None:
 	else:
 		request.downloadAll()
 
-	request.load()
-	Thread(target=delete, args=(request,)).start()
-
 	createLeftSide = Thread(target=leftSide, args=(request.loadedHouse,))
 	createRightSide = Thread(target=rightSide, args=(request.loadedSenate,))
 
@@ -365,6 +366,8 @@ def dataScreen() -> None:
 	senPage = 0
 	HOUSE_SIZE = pages.houseSize
 	SENATE_SIZE = pages.senateSize
+
+	pages.emptyCheck()
 	data = Window(winName, [[pages.getPage(repPage, True), pages.getPage(senPage, False)]])
 
 	while True:
