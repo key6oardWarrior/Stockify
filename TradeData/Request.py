@@ -46,33 +46,11 @@ class Request:
 		dates - An iterator of dict.keys\n
 		isHouse - Are dates for house or senate
 		'''
-		from datetime import date, datetime
-		from dateutil import relativedelta
-
-		TODAY_DATE: str = date.today().isoformat()
-		TODAY_DATE: datetime = datetime.strptime(TODAY_DATE, "%Y-%m-%d")
-
-		# if there is less than 30 day difference append to list
-		idx = 0
-		YEARS, MONTHS = int(self.__days / 365), int(self.__days / 30)
-		if MONTHS > 0:
-			DAYS = self.__days % 30
-
-		while idx < self.__days:
-			STR_DATE: str = next(_date)
-			pastDate: datetime = datetime.strptime(STR_DATE, "%m_%d_%Y")
-			diff = relativedelta.relativedelta(TODAY_DATE, pastDate)
-
-			if self.__days != 1095:
-				if((YEARS - diff.years < 0) and (MONTHS - diff.months < 0) and (DAYS - diff.days < 0)):
-					break
-
+		for ii in range(self.__days):
 			if isHouse:
-				self.__housePastDates.append(STR_DATE)
+				self.__housePastDates.append(next(_date))
 			else:
-				self.__senatePastDates.append(STR_DATE)
-
-			idx += 1
+				self.__senatePastDates.append(next(_date))
 
 	def __orgnizeHouse(self) -> None:
 		'''
