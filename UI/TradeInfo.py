@@ -16,8 +16,8 @@ class Pages:
 	__senateMap: dict[str, Column] = dict({})
 
 	# used to search by stock
-	__stocksName: dict[str, Column] = dict({})
-	__stocksTicker: dict[str, Column] = dict({})
+	__houseTickers: dict[str, Column] = dict({})
+	__senateTickers: dict[str, Column] = dict({})
 
 	__days = 0
 
@@ -35,23 +35,44 @@ class Pages:
 		isHouse - True if lst is from house member else False
 		'''
 		if isHouse:
-			lst.append([Button("Back", key="rep_back")])
+			button = Button("Back", key="rep_back")
 
+			name: str = lst[0][0].DisplayText.lower()
 			if (lst[0][0].DisplayText in self.__houseMap) == False:
-				self.__houseMap[lst[0][0].DisplayText] = Column(lst, size=(500, 500), scrollable=True)
+				self.__houseMap[name] = Column(lst, size=(500, 500), scrollable=True)
+				self.__houseMap[name].add_row(button)
 			else:
-				del self.__houseMap[lst[0][0].DisplayText].Rows[-1]
+				del self.__houseMap[name].Rows[-1]
 				for row in lst[1:]:
-					self.__houseMap[lst[0][0].DisplayText].add_row(row[0])
+					self.__houseMap[name].add_row(row[0])
+
+				self.__houseMap[name].add_row(button)
+ 
+			# add the stock's ticker name to the map
+			tickerName: str = lst[2][0].DisplayText
+			tickerName = tickerName[tickerName.find(" ")+1:]
+			low = tickerName.lower()
+
+			if (tickerName in self.__houseTickers) == False:
+				self.__houseTickers[low] = Column(lst, size=(500, 500), scrollable=True)
+				self.__houseTickers[low].add_row(button)
+			else:
+				del self.__houseTickers[low].Rows[-1]
+				for row in lst:
+					self.__houseTickers[low].add_row(row[0])
+
+				self.__houseTickers[low].add_row(button)
+
 		else:
 			lst.append([Button("Back", key="sen_back")])
 
-			if (lst[0][0].DisplayText in self.__senateMap) == False:
-				self.__senateMap[lst[0][0].DisplayText] = Column(lst, size=(500, 500), scrollable=True)
+			name: str = lst[0][0].DisplayText.lower()
+			if (name in self.__senateMap) == False:
+				self.__senateMap[name] = Column(lst, size=(500, 500), scrollable=True)
 			else:
-				del self.__senateMap[lst[0][0].DisplayText].Rows[-1]
+				del self.__senateMap[name].Rows[-1]
 				for row in lst[1:]:
-					self.__senateMap[lst[0][0].DisplayText].add_row(row[0])
+					self.__senateMap[name].add_row(row[0])
 
 	def addPage(self, col: Column, isHouse: bool) -> None:
 		'''
@@ -113,6 +134,7 @@ class Pages:
 		A Column object that contains all the trade data of that congress
 		person. If that congress person cannot be found return None
 		'''
+		name = name.lower().strip()
 		if isHouse:
 			if (name in self.__houseMap):
 				return self.__houseMap[name]
@@ -120,12 +142,32 @@ class Pages:
 			if (name in self.__senateMap):
 				return self.__senateMap[name]
 
+	def searchTickers(self, name: str, isHouse: bool) -> Column or None:
+		'''
+		Find all stocks that have the same name
+
+		# Params:
+		name - The tickers name\n
+		isHouse - True if the congress person is in the house else False
+
+		# Return:
+		A Column object that contains all the trades of a given stock
+		'''
+		name = name.lower().strip()
+		if isHouse:
+			if (name in self.__houseTickers.keys()) == True:
+				return self.__houseTickers[name]
+		else:
+			if (name in self.__senateTickers.keys()):
+				return self.__senateTickers[name]
+
 	def clearRep(self) -> None:
 		'''
 		Clear all data about House members
 		'''
 		self.__houseMap.clear()
 		self.__housePages.clear()
+		self.__houseTickers.clear()
 		self.__houseSize = 0
 
 	def clearSen(self) -> None:
@@ -134,6 +176,7 @@ class Pages:
 		'''
 		self.__senateMap.clear()
 		self.__senatePages.clear()
+		self.__senateTickers.clear()
 		self.__senateSize = 0
 
 	def emptyCheck(self) -> None:
@@ -193,6 +236,7 @@ def createHeadLine(isHouse: bool) -> Column:
 			[
 				[Text("House of Representives' Trades:", pad=(200, 0))],
 				[Button("Search", key="rep_search"), Text("Enter House Rep's full name:"), Input(key="rep_name", size=(33, None))],
+				[Button("Search", key="houseTicker"), Text("Enter the ticker name of the stock:"), Input(key="rep_ticker", size=(27, None))],
 				[Text("-------------------------------------------------------------------------------------------------------------------------")]
 			],
 			size=(500, 500), scrollable=True
@@ -265,6 +309,8 @@ def rightSide(senateTrades) -> None:
 					rightCol.add_row(amt)
 					comment = Text("\tComment: " + trade["comment"])
 					rightCol.add_row(comment)
+					ticker = Text("\tTicker: " + trade["ticker"])
+					rightCol.add_row(ticker)
 
 					button = None
 					if trade["asset_type"] == "Stock":
@@ -278,22 +324,22 @@ def rightSide(senateTrades) -> None:
 					line = Text("\t------------------")
 					if button:
 						pages.updateMap([[name], [transDate], [owner], [assetDesc],
-							[assetType], [_type], [amt], [comment], [button], [line]], False)
+							[assetType], [_type], [amt], [comment], [ticker], [button], [line]], False)
 					else:
 						pages.updateMap([[name], [transDate], [owner], [assetDesc],
-							[assetType], [_type], [amt], [comment], [line]], False)
+							[assetType], [_type], [amt], [comment], [ticker], [line]], False)
 
 					if cnt != SIZE:
 						rightCol.add_row(line)
 						cnt += 1
 
-				rightCol.add_row(Text("------------------"))
-				tradeCnt += 1
+			rightCol.add_row(Text("------------------"))
+			tradeCnt += 1
 
-				if tradeCnt >= MAX_TRADE_CNT:
-					pages.addPage(rightCol, False)
-					rightCol = createHeadLine(False)
-					tradeCnt = 0
+			if tradeCnt >= MAX_TRADE_CNT:
+				pages.addPage(rightCol, False)
+				rightCol = createHeadLine(False)
+				tradeCnt = 0
 
 	if tradeCnt < MAX_TRADE_CNT:
 		pages.addPage(rightCol, False)
@@ -549,3 +595,17 @@ def dataScreen() -> None:
 
 					overlayed.close()
 					break
+
+		elif event == "houseTicker":
+			temp = pages.searchTickers(values["rep_ticker"], True)
+
+			if temp:
+				tempWin = Window(winName, [[temp, data.Rows[0][1]]])
+				data.close()
+				data = tempWin
+
+		elif event == "senateTicker":
+			temp = pages.searchTickers(values["sen_ticker"], False)
+			tempWin = Window(winName, [[data.Rows[0][0], temp]])
+			data.close()
+			data = tempWin
