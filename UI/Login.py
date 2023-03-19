@@ -5,6 +5,9 @@ from Helper.helper import exitApp, exit
 
 from Robinhood_API.Login import UserAuth
 
+from shutil import rmtree
+from os.path import join, expanduser
+
 def loginScreen() -> bool:
 	'''
 	# Returns:
@@ -23,6 +26,7 @@ def loginScreen() -> bool:
 	SIZE = len(layout)
 
 	while userAuth.isLoggedIn == False:
+		rmtree(join(expanduser("~"), ".tokens"), ignore_errors=True)
 		event, values = login.read()
 		if exitApp(event, login):
 			exit(0)
@@ -37,12 +41,12 @@ def loginScreen() -> bool:
 				login = Window(winName, layout)
 				continue
 
-			try:
-				userAuth.login(values["email"], values["password"], values["mfa"])
-			except Exception as e:
-				layout.append([Text(e, text_color="red")])
+			userAuth.login(values["email"], values["password"], values["mfa"])
+			if userAuth.isLoggedIn == False:
+				layout.append([Text(userAuth.loginInfo, text_color="red")])
 
 			login.close()
+			login = Window(winName, layout, modal=True)
 		elif event == "back":
 			login.close()
 			return True

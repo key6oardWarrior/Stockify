@@ -153,10 +153,10 @@ def login(username=None, password=None, expiresIn=86400, scope='internal', by_sm
 						'refresh_token': data['refresh_token'],
 						'device_token': device_token}, f)
 		else:
-			raise Exception(data['detail'])
+			return data['detail'], False
 	else:
-		raise ConnectionError('Error: Trouble connecting to robinhood API. Check internet connection.')
-	return(data)
+		return "Check Internet Connection", False
+	return data, True
 
 class UserAuth:
 	__isLoggedIn = False
@@ -172,19 +172,9 @@ class UserAuth:
 
 		# robin_stocks.authentication.login
 		if mfa == "":
-			try:
-				self.__loginInfo = login(uName, passwd)
-			except:
-				rmtree(join(expanduser("~"), ".tokens"), ignore_errors=True)
-				return
+			self.__loginInfo, self.__isLoggedIn = login(uName, passwd)
 		else:
-			try:
-				self.__loginInfo = login(uName, passwd, mfa_code=mfa)
-			except:
-				rmtree(join(expanduser("~"), ".tokens"), ignore_errors=True)
-				return
-
-		self.__isLoggedIn = True
+			self.__loginInfo, self.__isLoggedIn = login(uName, passwd, mfa_code=mfa)
 
 	def logout(self) -> None:
 		if self.__isLoggedIn:
@@ -197,6 +187,4 @@ class UserAuth:
 
 	@property
 	def loginInfo(self) -> dict | None:
-		if self.__isLoggedIn == False:
-			return None
 		return self.__loginInfo
