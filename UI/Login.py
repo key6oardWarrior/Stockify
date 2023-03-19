@@ -3,26 +3,57 @@ from PySimpleGUI.PySimpleGUI import Button, Input, Text, Window
 from Helper.creds import winName
 from Helper.helper import exitApp, exit
 
-def loginScreen() -> None:
+from Robinhood_API.Login import UserAuth
+
+def loginScreen() -> bool:
+	'''
+	# Returns:
+	True if user has logged in successfuly. False if user clicks back button
+	'''
 	layout = [
-		[Text("Enter your robinhood email address: "), Input(key="email", size=(30, 1))],
-		[Text("Enter your robinhood password: "), Input("",
+		[Text("Enter your robinhood email address:"), Input(key="email", size=(30, 1))],
+		[Text("Enter your robinhood password:"), Input("",
 			key="password", password_char="*", size=(15, 1), do_not_clear=False)],
-		[Button("Submit"), Button("Exit")]
+		[Text("Enter two factor authentication code. If one is not needed leave blank:"), Input(key="mfa")],
+		[Button("Submit", key="submit"), Button("Back", key="back")]
 	]
 
 	login = Window(winName, layout, modal=True)
+	userAuth = UserAuth()
+	SIZE = len(layout)
 
-	while True:
+	while userAuth.isLoggedIn == False:
 		event, values = login.read()
 		if exitApp(event, login):
 			exit(0)
 
-		if event == "Submit":
-			login.close()
-			break
+		if len(layout) > SIZE:
+			del layout[-1]
 
-def signUpScreen() -> None:
+		if event == "submit":
+			if((values["email"] == "") or (values["password"] == "")):
+				layout.append([Text("Enter your email and password to login", text_color="red")])
+				login.close()
+				login = Window(winName, layout)
+				continue
+
+			try:
+				userAuth.login(values["email"], values["password"], values["mfa"])
+			except Exception as e:
+				layout.append([Text(e, text_color="red")])
+
+			login.close()
+		elif event == "back":
+			login.close()
+			return True
+
+	return False
+
+def signUpScreen() -> bool:
+	'''
+	# Returns:
+	True if user has signed up successfuly. False if user clicks back button
+	'''
 	layout = [
 		[Text("Enter your robinhood email address: "), Input(key="email")],
 		[Text("Enter your robinhood password: "), Input("", key="password",
