@@ -52,6 +52,7 @@ def createPath(dataDir: str, pyPackages: str) -> None:
 	except:
 		fixFile(join(pyPackages, "pyxb\\binding\\content.py"))
 
+# upgrade pip and install all required dependencies
 main(["install", "--upgrade", "pip"])
 for package in open(join("Dependencies", "requirements.txt"), "r").readlines():
 	main(["install", package])
