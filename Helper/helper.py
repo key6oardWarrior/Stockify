@@ -1,4 +1,6 @@
 from sys import exit
+from os.path import expanduser, join
+from shutil import rmtree
 from Helper.Errors import ConnectionError
 
 def checkConnection():
@@ -134,5 +136,6 @@ def exitApp(event, window: Window) -> bool:
 	'''
 	if((event == "Exit") or (event == WIN_CLOSED)):
 		window.close()
+		rmtree(join(expanduser("~"), ".tokens"), ignore_errors=True)
 		return True
 	return False

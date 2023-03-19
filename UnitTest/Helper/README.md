@@ -11,7 +11,7 @@
 &emsp;"program": "${file}",<br />
 &emsp;"console": "integratedTerminal",<br />
 &emsp;"justMyCode": false,<br />
-&emsp;"args": ["john_doe@gmail.com", "4007000000027", "321", "MI", "Dearborn", "123 Lane St", "12345", "2025-03", "John", "Doe"]<br />
+&emsp;"args": ["examplePerson@example.com", "4007000000027", "321", "MI", "Dearborn", "123 Lane St", "12345", "2025-03", "John", "Doe"]<br />
 },
 </code>
 

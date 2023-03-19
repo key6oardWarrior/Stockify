@@ -143,3 +143,5 @@ creds.py
 
 # Generated compiled python folder for local testing
 App/
+*.pyw
+bins/

@@ -1,6 +1,6 @@
 from os import walk, system, mkdir, rename, remove
 from os.path import join, isdir, exists
-from shutil import copy2
+from shutil import copy2, move
 
 # compile main dir
 system("py -m compileall -b")
@@ -17,8 +17,8 @@ for itr in dirTree[1]:
 	system(f"cd {itr} && py -m compileall -b")
 
 	# copy all compiled (non-unit test) files into App folder
-	if((itr != ".git") and (itr != "App") and (itr != "Dependencies") and
-		(itr != ".vscode") and (itr != "UnitTest")):
+	if((itr != ".git") and (itr != "App") and (itr != ".vscode") and
+		(itr != "UnitTest")):
 		dirName = join("App", itr)
 
 		if isdir(dirName) == False:
@@ -45,4 +45,6 @@ FINAL_PATH = join("App", PATH + "w")
 if exists(FINAL_PATH):
 	remove(FINAL_PATH)
 
+copy2(join("Dependencies", "requirements.txt"), join("App", "Dependencies"))
 rename(join("App", PATH + "c"), FINAL_PATH)
+move(FINAL_PATH, "Stockify.pyw")
