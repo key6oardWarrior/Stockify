@@ -1,6 +1,6 @@
-from os import mkdir
-from os.path import isdir, join
-from shutil import copytree, move
+from os import mkdir, getcwd
+from os.path import isdir, join, expanduser
+from shutil import copytree, move, rmtree
 from sys import platform
 from pip._internal import main
 
@@ -54,11 +54,10 @@ def createPath(dataDir: str, pyPackages: str) -> None:
 
 # upgrade pip and install all required dependencies
 main(["install", "--upgrade", "pip"])
-for package in open(join("Dependencies", "requirements.txt"), "r").readlines():
+for package in open(join(getcwd(), join("bins", join("Dependencies", "requirements.txt"))), "r").readlines():
 	main(["install", package])
 
 if platform == "win32":
-	from os.path import expanduser
 	# create Stockify dir
 	usr = expanduser("~")
 	dataDir = usr + "\\AppData\\Local\\Stockify"
@@ -75,5 +74,8 @@ else: # darwin
 	# create Stockify dir
 	dataDir = "/usr/local/bin/Stockify"
 	# create a needed missing directory
+
+if isdir(dataDir):
+	rmtree(dataDir, True)
 
 move("bins", dataDir)

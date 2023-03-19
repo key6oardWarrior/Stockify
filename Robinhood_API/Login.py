@@ -170,8 +170,6 @@ class UserAuth:
 		if self.__isLoggedIn:
 			return
 
-		print("Login to Robinhood and have your two factor authentication code ready if you have one\n")
-
 		# robin_stocks.authentication.login
 		if mfa == "":
 			try:
