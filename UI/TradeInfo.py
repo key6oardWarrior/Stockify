@@ -122,7 +122,7 @@ class Pages:
 
 		return self.__senatePages[pageNum]
 
-	def search(self, name: str, isHouse: bool) -> Column or None:
+	def search(self, name: str, isHouse: bool) -> Column or list[list]:
 		'''
 		Search for a congress person via their name
 
@@ -142,6 +142,11 @@ class Pages:
 			if (name in self.__senateMap):
 				return self.__senateMap[name]
 
+		if self.__days > 1:
+			return [Text(f"Either that congress person has not made a trade in {self.__days} days, or he/she does not exist", text_color="red")]
+		else:
+			return [Text(f"Either that congress person has not made a trade in {self.__days} day, or he/she does not exist", text_color="red")]
+
 	def searchTickers(self, name: str, isHouse: bool) -> Column or None:
 		'''
 		Find all stocks that have the same name
@@ -160,6 +165,11 @@ class Pages:
 		else:
 			if (name in self.__senateTickers.keys()):
 				return self.__senateTickers[name]
+
+		if self.__days > 1:
+			return [Text(f"Either that ticker has not been traded in {self.__days} days, or it does not exist", text_color="red")]
+		else:
+			return [Text(f"Either that ticker has not been traded in {self.__days} day, or it does not exist", text_color="red")]
 
 	def clearRep(self) -> None:
 		'''
@@ -182,8 +192,8 @@ class Pages:
 	def emptyCheck(self) -> None:
 		'''
 		Add a line of text asking the user if they want to download more data
-		from either house and or senate DB if there have been no trades in 30
-		days
+		from either house and or senate DB if there have been no trades in the
+		time selected
 		'''
 		if not self.__houseMap:
 			self.__housePages[0].add_row(Text(f"There were no trades during the last {self.__days} days. Do you want to download more data?"))
@@ -192,6 +202,13 @@ class Pages:
 		if not self.__senateMap:
 			self.__senatePages[0].add_row(Text(f"There were no trades during the last {self.__days} days. Do you want to download more data?"))
 			self.__senatePages[0].add_row(Button("Yes", key="sen_yes", pad=(242, None)))
+
+	def removeLastNextButton(self) -> None:
+		'''
+		Removes the "Next Page" button from the last page.
+		'''
+		del self.__housePages[self.__houseSize-1].Rows[-3][-1]
+		del self.__senatePages[self.__senateSize-1].Rows[-3][-1]
 
 	@property
 	def houseSize(self) -> int:
@@ -439,8 +456,8 @@ def dataScreen() -> None:
 		try:
 			days = int(values["days"].strip())
 
-			if days > MAX_DAYS:
-				layout.append([Text("Cannot enter a value that is greater than 1095", text_color="red")])
+			if((days > MAX_DAYS) or (days < 1)):
+				layout.append([Text("Cannot enter a value that is greater than 1095, or less than 1", text_color="red")])
 				data.close()
 				data = Window(winName, layout, modal=True)
 				continue
@@ -461,14 +478,25 @@ def dataScreen() -> None:
 	senPage = 0
 	_houseSize = pages.houseSize
 	_senateSize = pages.senateSize
+	pages.removeLastNextButton()
 
 	pages.emptyCheck()
 	data = Window(winName, [[pages.getPage(repPage, True), pages.getPage(senPage, False)]])
+	# if an error has been added to either left or right side of Window
+	isAdded: list[bool] = [False, False]
 
 	while True:
 		event, values = data.read()
 		if exitApp(event, data):
 			exit(0)
+
+		if isAdded[0]:
+			del data.Rows[0][0].Rows[0]
+			isAdded[0] = False
+
+		if isAdded[1]:
+			del data.Rows[0][1].Rows[0]
+			isAdded[1] = False
 
 		# click next page button
 		if event == "nxt_rep":
@@ -531,19 +559,34 @@ def dataScreen() -> None:
 			else:
 				temp = pages.search("Name: " + values["rep_name"], True)
 
-			if temp:
+			if type(temp) == Column:
 				temp = Window(winName, [[temp, data.Rows[0][1]]])
 				data.close()
 				data = temp
+			else:
+				data.Rows[0][0].Rows.insert(0, temp)
+				tempWin = Window(winName, [[data.Rows[0][0], data.Rows[0][1]]])
+				data.close()
+				data = tempWin
+				del tempWin
+				isAdded[0] = True
+
 			del temp
 
 		elif event == "sen_search":
 			temp = pages.search("Name: " + values["sen_name"], False)
 
-			if temp:
+			if type(temp) == Column:
 				temp = Window(winName, [[data.Rows[0][0], temp]])
 				data.close()
 				data = temp
+			else:
+				data.Rows[0][1].Rows.insert(0, temp)
+				tempWin = Window(winName, [[data.Rows[0][0], data.Rows[0][1]]])
+				data.close()
+				data = tempWin
+				del tempWin
+				isAdded[1] = True
 			del temp
 
 		# if user exits the search
@@ -553,13 +596,20 @@ def dataScreen() -> None:
 
 		# if user wants more data
 		elif((event == "rep_yes") or (event == "sen_yes")):
-			del request
+			try: # just incase it has already been garbage collected
+				del request
+			except:
+				pass
 			
+			o_layout = [[Text("Enter how many days of trading data you want:"), Input(key="retype")], [Button("Submit"), Button("Exit")]]
+			O_SIZE = len(o_layout)
 			while True:
-				o_layout = [[Text("Enter how many days of trading data you want:"), Input(key="retype")], [Button("Submit"), Button("Exit")]]
 				overlayed = Window(winName, o_layout)
 				o_event, o_values = overlayed.read()
 				exited = False
+
+				if len(o_layout) > O_SIZE:
+					del o_layout[-1]
 
 				if exitApp(o_event, overlayed):
 					break
@@ -570,8 +620,8 @@ def dataScreen() -> None:
 				try:
 					days = int(o_values["retype"].strip())
 
-					if days > MAX_DAYS:
-						o_layout.append([Text("Cannot enter a value that is greater than 1095", text_color="red")])
+					if((days > MAX_DAYS) or (days < 1)):
+						o_layout.append([Text("Cannot enter a value that is greater than 1095, or less than 1", text_color="red")])
 						overlayed.close()
 						overlayed = Window(winName, o_layout, modal=True)
 						continue
@@ -591,18 +641,30 @@ def dataScreen() -> None:
 						data.close()
 						_houseSize = pages.houseSize
 						_senateSize = pages.senateSize
+						repPage = 0
+						senPage = 0
 						data = Window(winName, [[pages.getPage(repPage, True), pages.getPage(senPage, False)]])
 
 					overlayed.close()
 					break
 
+			pages.removeLastNextButton()
+
+		# if user wants to do a ticker search
 		elif event == "houseTicker":
 			temp = pages.searchTickers(values["rep_ticker"], True)
 
-			if temp:
+			if type(temp) == Column:
 				tempWin = Window(winName, [[temp, data.Rows[0][1]]])
 				data.close()
 				data = tempWin
+			else:
+				data.Rows[0][0].Rows.insert(0, temp)
+				tempWin = Window(winName, [[data.Rows[0][0], data.Rows[0][1]]])
+				data.close()
+				data = tempWin
+				del tempWin
+				isAdded[0] = True
 
 		elif event == "senateTicker":
 			temp = pages.searchTickers(values["sen_ticker"], False)

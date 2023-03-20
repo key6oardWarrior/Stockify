@@ -35,16 +35,19 @@ def loginScreen() -> bool:
 			del layout[-1]
 
 		if event == "submit":
+			values["email"] = values["email"].strip()
+			values["mfa"] = values["mfa"].strip()
+
 			if((values["email"] == "") or (values["password"] == "")):
 				layout.append([Text("Enter your email and password to login", text_color="red")])
 				login.close()
 				login = Window(winName, layout)
 				continue
 
-			login.close()
 			userAuth.login(values["email"], values["password"], values["mfa"])
 			if userAuth.isLoggedIn == False:
 				layout.append([Text(userAuth.loginInfo, text_color="red")])
+			login.close()
 			login = Window(winName, layout, modal=True)
 		elif event == "back":
 			login.close()
