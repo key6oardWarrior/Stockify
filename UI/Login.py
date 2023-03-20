@@ -41,10 +41,10 @@ def loginScreen() -> bool:
 				login = Window(winName, layout)
 				continue
 
-			login.close()
 			userAuth.login(values["email"], values["password"], values["mfa"])
 			if userAuth.isLoggedIn == False:
 				layout.append([Text(userAuth.loginInfo, text_color="red")])
+			login.close()
 			login = Window(winName, layout, modal=True)
 		elif event == "back":
 			login.close()

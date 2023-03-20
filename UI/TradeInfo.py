@@ -182,8 +182,8 @@ class Pages:
 	def emptyCheck(self) -> None:
 		'''
 		Add a line of text asking the user if they want to download more data
-		from either house and or senate DB if there have been no trades in 30
-		days
+		from either house and or senate DB if there have been no trades in the
+		time selected
 		'''
 		if not self.__houseMap:
 			self.__housePages[0].add_row(Text(f"There were no trades during the last {self.__days} days. Do you want to download more data?"))
@@ -192,6 +192,13 @@ class Pages:
 		if not self.__senateMap:
 			self.__senatePages[0].add_row(Text(f"There were no trades during the last {self.__days} days. Do you want to download more data?"))
 			self.__senatePages[0].add_row(Button("Yes", key="sen_yes", pad=(242, None)))
+
+	def removeLastNextButton(self) -> None:
+		'''
+		Removes the "Next Page" button from the last page.
+		'''
+		del self.__housePages[self.__houseSize-1].Rows[-3][-1]
+		del self.__senatePages[self.__senateSize-1].Rows[-3][-1]
 
 	@property
 	def houseSize(self) -> int:
@@ -461,6 +468,7 @@ def dataScreen() -> None:
 	senPage = 0
 	_houseSize = pages.houseSize
 	_senateSize = pages.senateSize
+	pages.removeLastNextButton()
 
 	pages.emptyCheck()
 	data = Window(winName, [[pages.getPage(repPage, True), pages.getPage(senPage, False)]])
@@ -553,7 +561,10 @@ def dataScreen() -> None:
 
 		# if user wants more data
 		elif((event == "rep_yes") or (event == "sen_yes")):
-			del request
+			try: # just incase it has already been garbage collected
+				del request
+			except:
+				pass
 			
 			while True:
 				o_layout = [[Text("Enter how many days of trading data you want:"), Input(key="retype")], [Button("Submit"), Button("Exit")]]
@@ -591,10 +602,14 @@ def dataScreen() -> None:
 						data.close()
 						_houseSize = pages.houseSize
 						_senateSize = pages.senateSize
+						repPage = 0
+						senPage = 0
 						data = Window(winName, [[pages.getPage(repPage, True), pages.getPage(senPage, False)]])
 
 					overlayed.close()
 					break
+
+			pages.removeLastNextButton()
 
 		elif event == "houseTicker":
 			temp = pages.searchTickers(values["rep_ticker"], True)
