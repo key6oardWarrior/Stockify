@@ -74,6 +74,8 @@ else: # darwin
 	# create Stockify dir
 	dataDir = "/usr/local/bin/Stockify"
 	# create a needed missing directory
+	pyPackages = ""
+	createPath(dataDir, pyPackages)
 
 if isdir(dataDir):
 	rmtree(dataDir, True)
