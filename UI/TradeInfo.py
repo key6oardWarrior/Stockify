@@ -166,6 +166,11 @@ class Pages:
 			if (name in self.__senateTickers.keys()):
 				return self.__senateTickers[name]
 
+		if self.__days > 1:
+			return [Text(f"Either that ticker has not been traded in {self.__days} days, or it does not exist", text_color="red")]
+		else:
+			return [Text(f"Either that ticker has not been traded in {self.__days} day, or it does not exist", text_color="red")]
+
 	def clearRep(self) -> None:
 		'''
 		Clear all data about House members
@@ -477,11 +482,21 @@ def dataScreen() -> None:
 
 	pages.emptyCheck()
 	data = Window(winName, [[pages.getPage(repPage, True), pages.getPage(senPage, False)]])
+	# if an error has been added to either left or right side of Window
+	isAdded: list[bool] = [False, False]
 
 	while True:
 		event, values = data.read()
 		if exitApp(event, data):
 			exit(0)
+
+		if isAdded[0]:
+			del data.Rows[0][0].Rows[0]
+			isAdded[0] = False
+
+		if isAdded[1]:
+			del data.Rows[0][1].Rows[0]
+			isAdded[1] = False
 
 		# click next page button
 		if event == "nxt_rep":
@@ -554,6 +569,7 @@ def dataScreen() -> None:
 				data.close()
 				data = tempWin
 				del tempWin
+				isAdded[0] = True
 
 			del temp
 
@@ -570,6 +586,7 @@ def dataScreen() -> None:
 				data.close()
 				data = tempWin
 				del tempWin
+				isAdded[1] = True
 			del temp
 
 		# if user exits the search
@@ -633,13 +650,21 @@ def dataScreen() -> None:
 
 			pages.removeLastNextButton()
 
+		# if user wants to do a ticker search
 		elif event == "houseTicker":
 			temp = pages.searchTickers(values["rep_ticker"], True)
 
-			if temp:
+			if type(temp) == Column:
 				tempWin = Window(winName, [[temp, data.Rows[0][1]]])
 				data.close()
 				data = tempWin
+			else:
+				data.Rows[0][0].Rows.insert(0, temp)
+				tempWin = Window(winName, [[data.Rows[0][0], data.Rows[0][1]]])
+				data.close()
+				data = tempWin
+				del tempWin
+				isAdded[0] = True
 
 		elif event == "senateTicker":
 			temp = pages.searchTickers(values["sen_ticker"], False)
