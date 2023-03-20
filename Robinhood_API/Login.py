@@ -99,7 +99,7 @@ def login(username=None, password=None, expiresIn=86400, scope='internal', by_sm
 	# Handle case where mfa or challenge is required.
 	if data:
 		if 'mfa_required' in data:
-			win = Window(winName, [[Text("Please type in the MFA code:"), Button("Submit"), Input(key="code")]])
+			win = Window(winName, [[Text("Please type in the MFA code:"), Input(key="code"), Button("Submit")]])
 			event, values = win.read()
 
 			if exitApp(event, win):
@@ -110,7 +110,7 @@ def login(username=None, password=None, expiresIn=86400, scope='internal', by_sm
 
 			while (res.status_code != 200):
 				win.close()
-				win = Window(winName, [[Text("That MFA code was not correct. Please type in another MFA code:"), Button("Submit"), Input(key="code")]])
+				win = Window(winName, [[Text("That MFA code was not correct. Please type in another MFA code:"), Input(key="code"), Button("Submit")]])
 				event, values = win.read()
 
 				if exitApp(event, win):
@@ -123,14 +123,14 @@ def login(username=None, password=None, expiresIn=86400, scope='internal', by_sm
 			data = res.json()
 		elif 'challenge' in data:
 			challenge_id = data['challenge']['id']
-			win = Window(winName, [[Text("Enter Robinhood code for validation:"), Button("Submit"), Input(key="code")]])
+			win = Window(winName, [[Text("Enter Robinhood code for validation:"), Input(key="code"), Button("Submit")]])
 			event, values = win.read()
 			res = respond_to_challenge(challenge_id, values["code"])
 
 			while 'challenge' in res and res['challenge']['remaining_attempts'] > 0:
 				win.close()
 				win = Window(winName, [[Text("That code was not correct. {0} tries remaining. Please type in another code:".format(
-					res['challenge']['remaining_attempts'])), Input(key="code")]])
+					res['challenge']['remaining_attempts'])), Input(key="code"), Button("Submit")]])
 				event, values = win.read()
 				res = respond_to_challenge(challenge_id, values["code"])
 
