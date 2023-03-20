@@ -7,9 +7,11 @@ if platform == "win32":
 	path.append(expanduser("~") + "\\AppData\\Local\\Stockify\\UI")
 	path.append(expanduser("~") + "\\AppData\\Local\\Stockify")
 elif((platform == "linux") or (platform == "linux2")):
-	path.append("/usr/local/Stockify/bins")
+	path.append("/usr/local/Stockify/UI")
+	path.append("/usr/local/Stockify")
 else: # darwin
-	path.append("/usr/local/bin/Stockify/bins")
+	path.append("/usr/local/bin/Stockify/UI")
+	path.append("/usr/local/bin/Stockify")
 
 from PySimpleGUI.PySimpleGUI import Button, Text, Window
 
