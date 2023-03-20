@@ -122,7 +122,7 @@ class Pages:
 
 		return self.__senatePages[pageNum]
 
-	def search(self, name: str, isHouse: bool) -> Column or None:
+	def search(self, name: str, isHouse: bool) -> Column or list[list]:
 		'''
 		Search for a congress person via their name
 
@@ -141,6 +141,11 @@ class Pages:
 		else:
 			if (name in self.__senateMap):
 				return self.__senateMap[name]
+
+		if self.__days > 1:
+			return [Text(f"Either that congress person has not made a trade in {self.__days} days, or he/she does not exist", text_color="red")]
+		else:
+			return [Text(f"Either that congress person has not made a trade in {self.__days} day, or he/she does not exist", text_color="red")]
 
 	def searchTickers(self, name: str, isHouse: bool) -> Column or None:
 		'''
@@ -446,8 +451,8 @@ def dataScreen() -> None:
 		try:
 			days = int(values["days"].strip())
 
-			if days > MAX_DAYS:
-				layout.append([Text("Cannot enter a value that is greater than 1095", text_color="red")])
+			if((days > MAX_DAYS) or (days < 1)):
+				layout.append([Text("Cannot enter a value that is greater than 1095, or less than 1", text_color="red")])
 				data.close()
 				data = Window(winName, layout, modal=True)
 				continue
@@ -539,19 +544,32 @@ def dataScreen() -> None:
 			else:
 				temp = pages.search("Name: " + values["rep_name"], True)
 
-			if temp:
+			if type(temp) == Column:
 				temp = Window(winName, [[temp, data.Rows[0][1]]])
 				data.close()
 				data = temp
+			else:
+				data.Rows[0][0].Rows.insert(0, temp)
+				tempWin = Window(winName, [[data.Rows[0][0], data.Rows[0][1]]])
+				data.close()
+				data = tempWin
+				del tempWin
+
 			del temp
 
 		elif event == "sen_search":
 			temp = pages.search("Name: " + values["sen_name"], False)
 
-			if temp:
+			if type(temp) == Column:
 				temp = Window(winName, [[data.Rows[0][0], temp]])
 				data.close()
 				data = temp
+			else:
+				data.Rows[0][1].Rows.insert(0, temp)
+				tempWin = Window(winName, [[data.Rows[0][0], data.Rows[0][1]]])
+				data.close()
+				data = tempWin
+				del tempWin
 			del temp
 
 		# if user exits the search
@@ -566,11 +584,15 @@ def dataScreen() -> None:
 			except:
 				pass
 			
+			o_layout = [[Text("Enter how many days of trading data you want:"), Input(key="retype")], [Button("Submit"), Button("Exit")]]
+			O_SIZE = len(o_layout)
 			while True:
-				o_layout = [[Text("Enter how many days of trading data you want:"), Input(key="retype")], [Button("Submit"), Button("Exit")]]
 				overlayed = Window(winName, o_layout)
 				o_event, o_values = overlayed.read()
 				exited = False
+
+				if len(o_layout) > O_SIZE:
+					del o_layout[-1]
 
 				if exitApp(o_event, overlayed):
 					break
@@ -581,8 +603,8 @@ def dataScreen() -> None:
 				try:
 					days = int(o_values["retype"].strip())
 
-					if days > MAX_DAYS:
-						o_layout.append([Text("Cannot enter a value that is greater than 1095", text_color="red")])
+					if((days > MAX_DAYS) or (days < 1)):
+						o_layout.append([Text("Cannot enter a value that is greater than 1095, or less than 1", text_color="red")])
 						overlayed.close()
 						overlayed = Window(winName, o_layout, modal=True)
 						continue

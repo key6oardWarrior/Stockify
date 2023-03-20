@@ -35,6 +35,9 @@ def loginScreen() -> bool:
 			del layout[-1]
 
 		if event == "submit":
+			values["email"] = values["email"].strip()
+			values["mfa"] = values["mfa"].strip()
+
 			if((values["email"] == "") or (values["password"] == "")):
 				layout.append([Text("Enter your email and password to login", text_color="red")])
 				login.close()
