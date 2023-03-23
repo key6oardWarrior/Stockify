@@ -59,8 +59,10 @@ def createPath(dataDir: str, pyPackages: str) -> None:
 
 layout: list[list] = []
 if version_info.major != 3:
+	possible2Continue = False
 	layout.append([Text("Your version of Python is not supported :(\nPlease install Python 3.11, or greater. To install Python please click on Python installer")])
 elif version_info.minor < 11:
+	possible2Continue = True
 	layout.append([Text("While it is possible to run this program with your Python version.\nWe recommend downloading the version of Python that came with this installer.")])
 	layout.append([Button("Continue Without Updating", button_color="light gray", key="continue"), Button("Exit", key="exit")])
 
@@ -68,7 +70,10 @@ if len(layout) > 0:
 	win = Window("Stockify", layout)
 
 	event, values = win.read()
-	if(exitApp(event, win)):
+	if possible2Continue:
+		if(exitApp(event, win)):
+			exit(0)
+	else:
 		exit(0)
 
 # upgrade pip and install all required dependencies
