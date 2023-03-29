@@ -20,26 +20,28 @@ from TradeInfo import dataScreen
 from Helper.helper import exitApp, exit
 from Helper.creds import winName
 
-def landing():
-	layout = [
-		[Button("Login", pad=((39, 5), (0, 0))), Button("Sign Up"), Button("How to Use")],
-		[Text("Powered by Robin_Stocks, Authorize.Net,", text_color="light gray")],
-		[Text("and PySimpleGUI", text_color="light gray", pad=((71, 0), (0, 0)))]
-	]
-	isBack = True
+layout = [
+	[Button("Login", pad=((39, 5), (0, 0))), Button("Sign Up"), Button("How to Use")],
+	[Text("Powered by Robin_Stocks, Authorize.Net,", text_color="light gray")],
+	[Text("and PySimpleGUI", text_color="light gray", pad=((71, 0), (0, 0)))]
+]
+isBack = True
 
-	while isBack:
-		landingPage = Window(winName, layout, modal=True)
-		event, values = landingPage.read()
+from datetime import datetime
 
-		if exitApp(event, landingPage):
-			exit(0)
+x = datetime.today()
 
-		landingPage.close()
-		if event == "Login":
-			isBack = loginScreen()
-		elif event == "Sign Up":
-			isBack = signUpScreen()
+while isBack:
+	landingPage = Window(winName, layout, modal=True)
+	event, values = landingPage.read()
 
-landing()
+	if exitApp(event, landingPage):
+		exit(0)
+
+	landingPage.close()
+	if event == "Login":
+		isBack = loginScreen()
+	elif event == "Sign Up":
+		isBack = signUpScreen()
+
 dataScreen()

@@ -1,7 +1,11 @@
 from sys import exit
 from os.path import expanduser, join
 from shutil import rmtree
+
 from Helper.Errors import ConnectionError
+from Robinhood_API.Login import UserAuth
+
+userAuth = UserAuth()
 
 def checkConnection():
 	from socket import create_connection
@@ -122,6 +126,8 @@ def getPayment(email: str, ccn: str, code: str, state: str, city: str,
 	code: str = responce.messages.message.code.text
 	return (True, code) if code == "I00001" else (False, code)
 
+from robin_stocks.authentication import logout
+
 def exitApp(event, window: Window) -> bool:
 	'''
 	Determin if the event wants app to die
@@ -136,6 +142,10 @@ def exitApp(event, window: Window) -> bool:
 	'''
 	if((event == "Exit") or (event == WIN_CLOSED)):
 		window.close()
+
+		if userAuth.isLoggedIn:
+			logout() # logout of user's robinhood account on close
+
 		rmtree(join(expanduser("~"), ".tokens"), ignore_errors=True)
 		return True
 	return False

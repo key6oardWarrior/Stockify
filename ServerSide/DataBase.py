@@ -104,7 +104,7 @@ class DataBase:
 
 		self.__usersCollections.delete_one(query)
 
-	def updateUser(self, query: dict, newValue: tuple, isEnc=True) -> None:
+	def updateUser(self, query: dict, newValue: dict, isEnc=True) -> None:
 		'''
 		Update a user's data using query search and replace data with newValue.
 		Advanced and Regular expression query search not allowed.

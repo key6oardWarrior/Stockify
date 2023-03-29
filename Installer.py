@@ -78,7 +78,8 @@ if len(layout) > 0:
 
 # upgrade pip and install all required dependencies
 main(["install", "--upgrade", "pip"])
-for package in open(join(getcwd(), join("bins", join("Dependencies", "requirements.txt"))), "r").readlines():
+for package in open(join(getcwd(), join("bins", join("Dependencies",
+	"requirements.txt"))), "r").readlines():
 	main(["install", package])
 
 if platform == "win32":

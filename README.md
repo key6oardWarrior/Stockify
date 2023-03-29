@@ -45,7 +45,7 @@
 
 <ol>
 	<h3>MongoDB Windows Install</h3>
-	<li>Click on the downloaded Mongo DB file in the StockTrader directory</li>
+	<li>Download <a href="https://downloads.mongodb.com/compass/mongodb-compass-1.36.1-win32-x64.exe" target="blank">here</a></li>
 </ol>
 
 <ol>
@@ -55,6 +55,7 @@
 
 <ol>
 	<h3>Install macOS Install</h3>
+	<li><a href="https://www.mongodb.com/try/download/compass" target="blank">Download link</a>. Ensure that you are downloading Mongo DB Compas</li>
 	<li>Determin if your macOS is running on either ARM or Intel processor</li>
 	<li>Click on the downloaded .tgz file, that is for your processor, in the StockTrader folder and follow the install instructions</li>
 </ol>

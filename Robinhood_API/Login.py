@@ -4,9 +4,8 @@ from os import makedirs, remove
 from PySimpleGUI import Window, Text, Input, Button
 
 from robin_stocks.authentication import generate_device_token, urls, pickle, \
-	respond_to_challenge, logout
+	respond_to_challenge
 from robin_stocks import helper
-from Helper.helper import checkConnection, exitApp, exit
 from Helper.creds import winName
 
 def login(username=None, password=None, expiresIn=86400, scope='internal', by_sms=True, store_session=True, mfa_code=None):
@@ -35,6 +34,8 @@ def login(username=None, password=None, expiresIn=86400, scope='internal', by_sm
 	:returns:  A dictionary with log in information. The 'access_token' keyword contains the access token, and the 'detail' keyword \
 	contains information on whether the access token was generated or loaded from pickle file.
 	"""
+	from Helper.helper import exitApp, exit
+
 	device_token = generate_device_token()
 	home_dir = expanduser("~")
 	data_dir = join(home_dir, ".tokens")
@@ -161,7 +162,7 @@ class UserAuth:
 	__loginInfo = None
 
 	def __init__(self) -> None:
-		checkConnection()
+		pass
 
 	def login(self, uName: str, passwd: str, mfa: str) -> None:
 		# don't login twice
@@ -173,11 +174,6 @@ class UserAuth:
 			self.__loginInfo, self.__isLoggedIn = login(uName, passwd)
 		else:
 			self.__loginInfo, self.__isLoggedIn = login(uName, passwd, mfa_code=mfa)
-
-	def logout(self) -> None:
-		if self.__isLoggedIn:
-			logout()
-			self.__isLoggedIn = False
 
 	@property
 	def isLoggedIn(self) -> bool:
