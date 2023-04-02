@@ -27,10 +27,6 @@ layout = [
 ]
 isBack = True
 
-from datetime import datetime
-
-x = datetime.today()
-
 while isBack:
 	landingPage = Window(winName, layout, modal=True)
 	event, values = landingPage.read()

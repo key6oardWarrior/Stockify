@@ -19,12 +19,28 @@ class DataBase:
 	__users_db: Database
 	__usersCollections: Collection
 	__userData = None
+	__isConnected = False
 
 	def __init__(self) -> None:
-		self.__client = MongoClient(connectionString, tls=True,
-			tlsCertificateKeyFile=certFile)
-		self.__users_db: Database = self.__client["Users"]
-		self.__usersCollections = self.__users_db["PaymentData"]
+		self.connect()
+
+	def connect(self) -> None:
+		try:
+			self.__client = MongoClient(connectionString, tls=True,
+				tlsCertificateKeyFile=certFile)
+			self.__users_db: Database = self.__client["Users"]
+			self.__usersCollections = self.__users_db["PaymentData"]
+		except:
+			pass
+		else:
+			self.__isConnected = True
+
+	def close(self) -> None:
+		'''
+		Close connection between client and server
+		'''
+		self.__client.close()
+		self.__isConnected = False
 
 	def createUser(self, email: str, password: str, ccn: str,
 		code: str, state: str, city: str, addy: str, _zip: str, fName: str,
@@ -253,3 +269,7 @@ class DataBase:
 	@property
 	def userData(self) -> dict:
 		return self.__userData
+
+	@property
+	def isConnected(self) -> bool:
+		return self.__isConnected

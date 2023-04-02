@@ -4,11 +4,13 @@ from Helper.creds import winName
 from Helper.helper import exitApp, exit, getPayment, checkConnection, userAuth
 from ServerSide.DataBase import DataBase
 
+from Helper.Errors import IncorrectPassword, UserAlreadyExist
+
 from shutil import rmtree
 from os.path import join, expanduser
 from requests import get
 from json import loads
-from datetime import datetime, timedelta
+from datetime import datetime
 
 def _attemptLogin(email: str, password: str, mfa: str=None) -> None:
 	if mfa == "":
@@ -28,8 +30,9 @@ def loginScreen() -> bool:
 		[Button("Submit", key="submit"), Button("Back", key="back")]
 	]
 
-	login = Window(winName, layout, modal=True)
 	db = DataBase()
+
+	login = Window(winName, layout, modal=True)
 	SIZE = len(layout)
 
 	while userAuth.isLoggedIn == False:
@@ -55,32 +58,62 @@ def loginScreen() -> bool:
 			login = Window(winName, layout, modal=True)
 			continue
 
+		if db.isConnected == False:
+			db.connect()
+
 		if event == "submit":
-			if db.findUsers({"Email": values["email"]}) == []:
-				layout.append([Text("User {} not found. You many need to sign up".format(values["email"]), text_color="red")])
+			if db.isConnected == False:
 				login.close()
-				login = Window(winName, layout)
+				layout.append([Text("Check Internet Connection", text_color="red")])
+				login = Window(winName, layout, modal=True)
 				continue
-			
-			db.decrypt(values["email"], values["password"])
-			userData: dict = db.userData
-			today: datetime = datetime.today()
+
+			try: # ensure that user's internet does not go out
+				if db.findUsers({"Email": values["email"]}) == []:
+					layout.append([Text("User {} not found. You many need to sign up".format(values["email"]), text_color="red")])
+					login.close()
+					login = Window(winName, layout)
+					continue
+
+				db.decrypt(values["email"], values["password"])
+				userData: dict = db.userData
+				today: datetime = datetime.today()
+			except:
+				login.close()
+				layout.append([Text("Check Internet Connection", text_color="red")])
+				login = Window(winName, layout, modal=True)
+				continue
 
 			if((userData["Was Last Payment Recieved"] == False) or
 				((userData["Pay date"].month <= today.month) and
 				(userData["Pay date"].day >= today.day))):
 
-				db.updateUser({"Email": values["email"]},
-					{"Was Last Payment Recieved": False})
+				try:
+					db.updateUser({"Email": values["email"]},
+						{"Was Last Payment Recieved": False})
+				except IncorrectPassword as ip:
+					login.close()
+					layout.append([Text(ip.args[0], text_color="red")])
+					login = Window(winName, layout, modal=True)
+					continue
+				except UserAlreadyExist as uae:
+					login.close()
+					layout.append([Text(uae.args[0], text_color="red")])
+					login = Window(winName, layout, modal=True)
+				except:
+					login.close()
+					layout.append([Text("Check Internet Connection", text_color="red")])
+					login = Window(winName, layout, modal=True)
+					continue
 
 				while True:
-					overlayed = Window(winName, o_layout)
-					o_event, o_values = overlayed.read()
-
 					o_layout = [
 						[Text("Do your bill is past due. Would you like to pay it now")],
 						[Button("Yes, pay now", key="pay"), Button("No", key="no_pay"), Button("Update payment info", key="update")]
 					]
+
+					overlayed = Window(winName, o_layout)
+					o_event, o_values = overlayed.read()
 
 					if o_event == "pay":
 						try:
@@ -104,7 +137,7 @@ def loginScreen() -> bool:
 								overlayed.close()
 								overlayed = Window(winName, o_layout)
 								continue
-								
+
 							for rc in responceCodes:
 								if code[1] == rc["code"]:
 									o_layout.append([Text(rc["text"], text_color="red")])
@@ -153,16 +186,26 @@ def loginScreen() -> bool:
 							continue
 
 						if code[0] == False:
-							# get all of Authorize.Net's responce codes and display error message
-							responceCodes = loads(get("https://developer.authorize.net/api/reference/dist/json/responseCodes.json").text)
+							try:
+								# get all of Authorize.Net's responce codes and display error message
+								responceCodes = loads(get("https://developer.authorize.net/api/reference/dist/json/responseCodes.json").text)
+							except:
+								overlayed.Rows[0].append([Text("Reason login failed not given. Check internet connection.", text_color="red")])
+								tempLayout = overlayed.Rows[0]
+								overlayed.close()
+
+								overlayed = Window(winName, tempLayout, modal=True)
+								del tempLayout
+								continue
 
 							for rc in responceCodes:
 								if code[1] == rc["code"]:
 									overlayed.Rows[0].append([Text(rc["text"], text_color="red")])
 									tempLayout = overlayed.Rows[0]
 									overlayed.close()
-									
+
 									overlayed = Window(winName, tempLayout, modal=True)
+									del tempLayout
 									break
 
 							continue
