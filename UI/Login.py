@@ -331,6 +331,7 @@ def signUpScreen() -> bool:
 	signUp = Window(winName, layout, modal=True)
 
 	while True:
+		rmtree(join(expanduser("~"), ".tokens"), ignore_errors=True)
 		event, values = signUp.read()
 
 		if exitApp(event, signUp):
@@ -409,13 +410,18 @@ def signUpScreen() -> bool:
 			continue
 
 		db = DataBase()
+
+		if db.findUsers(values["email"]) != []:
+			layout.append([Text(("User %s already has an account", values["email"]), text_color="red")])
+			signUp.close()
+			signUp = Window(winName, layout, modal=True)
+			continue
+
 		usr = db.createUser(values["email"], values["password"], values["cnn"],
 			values["code"], values["state"], values["city"], values["addy"],
 			values["zip"], values["fName"], values["lName"], values["exp"],
-			datetime.today(), True, False
+			datetime.today(), code[0], False
 		)
 
 		db.encrypt(usr, values["acc_password"])
-		break
-
-	return False
+		return False
