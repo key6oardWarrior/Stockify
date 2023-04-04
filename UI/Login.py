@@ -11,6 +11,7 @@ from os.path import join, expanduser
 from requests import get
 from json import loads
 from datetime import datetime
+from hashlib import sha256
 
 def _attemptLogin(email: str, password: str, mfa: str=None) -> None:
 	if mfa == "":
@@ -24,7 +25,7 @@ def loginScreen() -> bool:
 	'''
 	layout = [
 		[Text("Enter your robinhood email address:"), Input(key="email", size=(30, 1))],
-		[Text("Enter your robinhood password:"), Input("",
+		[Text("Enter your password:"), Input("",
 			key="password", password_char="*", size=(15, 1), do_not_clear=False)],
 		[Text("Enter two factor authentication code. If one is not needed leave blank:"), Input(key="mfa")],
 		[Button("Submit", key="submit"), Button("Back", key="back")]
@@ -45,12 +46,6 @@ def loginScreen() -> bool:
 		if len(layout) > SIZE:
 			del layout[-1]
 
-		if((values["email"] == "") or (values["password"] == "")):
-			layout.append([Text("Enter your email and password to login", text_color="red")])
-			login.close()
-			login = Window(winName, layout)
-			continue
-
 		try:
 			checkConnection()
 		except:
@@ -62,20 +57,26 @@ def loginScreen() -> bool:
 			db.connect()
 
 		if event == "submit":
+			if((values["email"] == "") or (values["password"] == "")):
+				layout.append([Text("Enter your email and password to login", text_color="red")])
+				login.close()
+				login = Window(winName, layout)
+				continue
+
 			if db.isConnected == False:
 				login.close()
 				layout.append([Text("Check Internet Connection", text_color="red")])
 				login = Window(winName, layout, modal=True)
 				continue
 
-			try: # ensure that user's internet does not go out
+			try: # if internet goes out
 				if db.findUsers({"Email": values["email"]}) == []:
 					layout.append([Text("User {} not found. You many need to sign up".format(values["email"]), text_color="red")])
 					login.close()
 					login = Window(winName, layout)
 					continue
 
-				db.decrypt(values["email"], values["password"])
+				db.decrypt(values["email"], sha256(values["password"]).hexdigest())
 				userData: dict = db.userData
 				today: datetime = datetime.today()
 			except:
@@ -100,6 +101,7 @@ def loginScreen() -> bool:
 					login.close()
 					layout.append([Text(uae.args[0], text_color="red")])
 					login = Window(winName, layout, modal=True)
+					continue
 				except:
 					login.close()
 					layout.append([Text("Check Internet Connection", text_color="red")])
@@ -117,7 +119,7 @@ def loginScreen() -> bool:
 
 					if o_event == "pay":
 						try:
-							getPayment(userData["Email"],
+							code: tuple[bool, str] = getPayment(userData["Email"],
 								userData["Credit Card Number"], userData["Code"], userData["State"],
 								userData["City"], userData["Address"], userData["Zip"],
 								userData["Exp date"], userData["First Name"], userData["Last Name"]
@@ -165,6 +167,7 @@ def loginScreen() -> bool:
 							[Text("Expiration Date (YYYY-MM):"), Input("", key="exp")],
 							[Button("Submit", key="o_submit"), Button("Back", key="o_back")]
 						])
+						continue
 
 					elif o_event == "o_back":
 						o_layout = [
@@ -173,6 +176,7 @@ def loginScreen() -> bool:
 						]
 						overlayed.close()
 						overlayed = Window(winName, o_layout)
+						continue
 					
 					elif o_event == "o_submit":
 						try:
@@ -254,9 +258,6 @@ def _isEmpty(values) -> bool:
 	if values["password"] == "":
 		return True
 
-	if values["mfa"] == "":
-		return True
-
 	if values["ccn"] == "":
 		return True
 
@@ -307,9 +308,10 @@ def signUpScreen() -> bool:
 	True if user has signed up successfuly. False if user clicks back button
 	'''
 	layout = [
-		[Text("Enter your robinhood email address:"), Input(key="email")],
-		[Text("Enter your robinhood password:"), Input("", key="password",
-			password_char="*", do_not_clear=False)],
+		[Text("Enter your robinhood account email address:"), Input(key="email")],
+		[Text("Create an account password:"), Input("", key="acc_password", password_char="*")],
+		[Text("Enter your robinhood account password (must be different from account password):"), Input("", key="password",
+			password_char="*")],
 		[Text("Enter two factor authentication code. If one is not needed leave blank:"),
 			Input(key="mfa")],
 		[Text("Enter your credit card number:"), Input("", key="ccn")],
@@ -357,10 +359,23 @@ def signUpScreen() -> bool:
 			signUp = Window(winName, layout, modal=True)
 			continue
 
+		if values["password"] == values["acc_password"]:
+			layout.append([Text("Your robinhood account password cannot be the same as your Stockify account password", text_color="red")])
+			signUp.close()
+			signUp = Window(winName, layout, modal=True)
+			continue
+
 		try:
 			datetime.strptime(values["exp"], "%Y-%m")
 		except:
 			layout.append([Text("Please enter the expiration data in the proper format", text_color="red")])
+			signUp.close()
+			signUp = Window(winName, layout, modal=True)
+			continue
+
+		_attemptLogin(values["email"].strip(), values["password"], values["mfa"].strip())
+		if userAuth.isLoggedIn == False:
+			layout.append([Text(f"Robinhood's servers said, \"{userAuth.loginInfo}\"", text_color="red")])
 			signUp.close()
 			signUp = Window(winName, layout, modal=True)
 			continue
@@ -370,14 +385,20 @@ def signUpScreen() -> bool:
 				values["state"], values["city"], values["addy"], values["zip"],
 				values["exp"], values["fName"], values["lName"])
 		except Exception as e:
-			layout.append([Text(e, text_color="red")])
+			layout.append([Text("Payment failed please try again", text_color="red")])
 			signUp.close()
 			signUp = Window(winName, layout, modal=True)
 			continue
 
 		# get all of Authorize.Net's responce codes and display error message
-		if code[0] != True:
-			responceCodes = loads(get("https://developer.authorize.net/api/reference/dist/json/responseCodes.json").text)
+		if code[0] == False:
+			try:
+				responceCodes = loads(get("https://developer.authorize.net/api/reference/dist/json/responseCodes.json").text)
+			except:
+				layout.append([Text("Payment failed please try again", text_color="red")])
+				signUp.close()
+				signUp = Window(winName, layout, modal=True)
+				continue
 
 			for rc in responceCodes:
 				if code[1] == rc["code"]:
@@ -385,13 +406,16 @@ def signUpScreen() -> bool:
 					signUp.close()
 					signUp = Window(winName, layout, modal=True)
 					break
-		else:
-			_attemptLogin(values["email"].strip(), values["password"], values["mfa"].strip())
+			continue
 
-			if userAuth.isLoggedIn:
-				signUp.close()
-				break
+		db = DataBase()
+		usr = db.createUser(values["email"], values["password"], values["cnn"],
+			values["code"], values["state"], values["city"], values["addy"],
+			values["zip"], values["fName"], values["lName"], values["exp"],
+			datetime.today(), True, False
+		)
 
-			layout.append([Text(userAuth.loginInfo, text_color="red")])
-			signUp.close()
-			signUp = Window(winName, layout, modal=True)
+		db.encrypt(usr, values["acc_password"])
+		break
+
+	return False

@@ -180,5 +180,5 @@ class UserAuth:
 		return self.__isLoggedIn
 
 	@property
-	def loginInfo(self) -> dict | None:
+	def loginInfo(self) -> str | None:
 		return self.__loginInfo

@@ -47,7 +47,7 @@ class DataBase:
 		lName: str, exp: datetime, pay_day: datetime, payment_received: bool,
 		isEnc=True) -> dict:
 		'''
-		Set isEnc equal to False if password and code is plain text\n
+		Set isEnc equal to False if code is plain text\n
 		DB Key
 		{
 			"Email": str,
@@ -89,7 +89,7 @@ class DataBase:
 
 		return {
 				"Email": email,
-				"Password": sha256(password.encode()).hexdigest(),
+				"Password": password,
 				"Credit Card Number": ccn,
 				"Code": sha256(code.encode()).hexdigest(),
 				"State": state,
@@ -172,7 +172,7 @@ class DataBase:
 		number_of_bytes_to_pad = block_size - len(plain_text) % block_size
 		return plain_text + (number_of_bytes_to_pad * chr(number_of_bytes_to_pad))
 
-	def encrypt(self, user: dict, isUpdate=False) -> None:
+	def encrypt(self, user: dict, password: str, isUpdate=False) -> None:
 		'''
 		All user data must be encrypted using AES-128-CBC to ensure security.
 		Advanced and Regular expression query search are not allowed. This will
@@ -182,6 +182,7 @@ class DataBase:
 		# Params:
 		user - The dictionary that contains all user data and that data will be
 		encrypted\n
+		password - The password to encrypt the data\n
 		isUpdate (optional) - Do NOT set unless function is being called from
 		updateUser method
 		'''
@@ -212,7 +213,7 @@ class DataBase:
 
 		# encrypt the user's data using AES-128-CBC
 		iv = rand_new().read(block_size)
-		cipher = new(bytearray.fromhex(user["Password"]), MODE_CBC, iv)
+		cipher = new(bytearray.fromhex(sha256(password.encode()).hexdigest()), MODE_CBC, iv)
 		encrypted = cipher.encrypt(data.encode())
 
 		# store encrypted data
