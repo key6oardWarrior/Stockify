@@ -94,12 +94,12 @@ def loginScreen() -> bool:
 						{"Was Last Payment Recieved": False})
 				except IncorrectPassword as ip:
 					login.close()
-					layout.append([Text(ip.args[0], text_color="red")])
+					layout.append([Text(ip.args[1], text_color="red")])
 					login = Window(winName, layout, modal=True)
 					continue
 				except UserAlreadyExist as uae:
 					login.close()
-					layout.append([Text(uae.args[0], text_color="red")])
+					layout.append([Text(uae.args[1], text_color="red")])
 					login = Window(winName, layout, modal=True)
 					continue
 				except:
@@ -381,6 +381,22 @@ def signUpScreen() -> bool:
 			signUp = Window(winName, layout, modal=True)
 			continue
 
+		db = DataBase()
+
+		if db.findUsers(values["email"]) != []:
+			layout.append([Text(("User %s already has an account", values["email"]), text_color="red")])
+			signUp.close()
+			signUp = Window(winName, layout, modal=True)
+			continue
+
+		usr: dict = db.createUser(values["email"], values["password"], values["cnn"],
+			values["code"], values["state"], values["city"], values["addy"],
+			values["zip"], values["fName"], values["lName"], values["exp"],
+			datetime.today(), code[0], False
+		)
+
+		db.encrypt(usr, values["acc_password"])
+
 		try:
 			code: tuple[bool, str] = getPayment(values["email"], values["ccn"], values["code"],
 				values["state"], values["city"], values["addy"], values["zip"],
@@ -409,19 +425,5 @@ def signUpScreen() -> bool:
 					break
 			continue
 
-		db = DataBase()
-
-		if db.findUsers(values["email"]) != []:
-			layout.append([Text(("User %s already has an account", values["email"]), text_color="red")])
-			signUp.close()
-			signUp = Window(winName, layout, modal=True)
-			continue
-
-		usr = db.createUser(values["email"], values["password"], values["cnn"],
-			values["code"], values["state"], values["city"], values["addy"],
-			values["zip"], values["fName"], values["lName"], values["exp"],
-			datetime.today(), code[0], False
-		)
-
-		db.encrypt(usr, values["acc_password"])
+		db.close()
 		return False
