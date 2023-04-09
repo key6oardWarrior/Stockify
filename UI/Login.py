@@ -33,7 +33,7 @@ def loginScreen() -> bool:
 
 	db = DataBase()
 
-	login = Window(winName, layout, modal=True)
+	login = Window(winName, layout)
 	SIZE = len(layout)
 
 	while userAuth.isLoggedIn == False:
@@ -50,7 +50,7 @@ def loginScreen() -> bool:
 			checkConnection()
 		except:
 			layout.append([Text("Check Internet Connection", text_color="red")])
-			login = Window(winName, layout, modal=True)
+			login = Window(winName, layout)
 			continue
 
 		if db.isConnected == False:
@@ -66,7 +66,7 @@ def loginScreen() -> bool:
 			if db.isConnected == False:
 				login.close()
 				layout.append([Text("Check Internet Connection", text_color="red")])
-				login = Window(winName, layout, modal=True)
+				login = Window(winName, layout)
 				continue
 
 			try: # if internet goes out
@@ -82,7 +82,7 @@ def loginScreen() -> bool:
 			except:
 				login.close()
 				layout.append([Text("Check Internet Connection", text_color="red")])
-				login = Window(winName, layout, modal=True)
+				login = Window(winName, layout)
 				continue
 
 			if((userData["Was Last Payment Recieved"] == False) or
@@ -95,17 +95,17 @@ def loginScreen() -> bool:
 				except IncorrectPassword as ip:
 					login.close()
 					layout.append([Text(ip.args[1], text_color="red")])
-					login = Window(winName, layout, modal=True)
+					login = Window(winName, layout)
 					continue
 				except UserAlreadyExist as uae:
 					login.close()
 					layout.append([Text(uae.args[1], text_color="red")])
-					login = Window(winName, layout, modal=True)
+					login = Window(winName, layout)
 					continue
 				except:
 					login.close()
 					layout.append([Text("Check Internet Connection", text_color="red")])
-					login = Window(winName, layout, modal=True)
+					login = Window(winName, layout)
 					continue
 
 				while True:
@@ -127,7 +127,7 @@ def loginScreen() -> bool:
 						except Exception as e:
 							o_layout.append([Text("Payment failed, try again", text_color="red")])
 							overlayed.close()
-							overlayed = Window(winName, layout, modal=True)
+							overlayed = Window(winName, layout)
 							continue
 
 						if code[0] == False:
@@ -186,7 +186,7 @@ def loginScreen() -> bool:
 						except Exception as e:
 							o_layout.append([Text("There was an issue with payment proccessing. Please try again", text_color="red")])
 							overlayed.close()
-							overlayed = Window(winName, o_layout, modal=True)
+							overlayed = Window(winName, o_layout)
 							continue
 
 						if code[0] == False:
@@ -198,7 +198,7 @@ def loginScreen() -> bool:
 								tempLayout = overlayed.Rows[0]
 								overlayed.close()
 
-								overlayed = Window(winName, tempLayout, modal=True)
+								overlayed = Window(winName, tempLayout)
 								del tempLayout
 								continue
 
@@ -208,7 +208,7 @@ def loginScreen() -> bool:
 									tempLayout = overlayed.Rows[0]
 									overlayed.close()
 
-									overlayed = Window(winName, tempLayout, modal=True)
+									overlayed = Window(winName, tempLayout)
 									del tempLayout
 									break
 
@@ -234,7 +234,7 @@ def loginScreen() -> bool:
 			if userAuth.isLoggedIn == False:
 				login.close()
 				layout.append([Text(userAuth.loginInfo, text_color="red")])
-				login = Window(winName, layout, modal=True)
+				login = Window(winName, layout)
 
 		elif event == "back":
 			login.close()
@@ -328,7 +328,8 @@ def signUpScreen() -> bool:
 		[Button("Submit", key="submit"), Button("Back", key="back")]
 	]
 	SIZE: int = len(layout)
-	signUp = Window(winName, layout, modal=True)
+	signUp = Window(winName, layout)
+	db = DataBase()
 
 	while True:
 		rmtree(join(expanduser("~"), ".tokens"), ignore_errors=True)
@@ -349,7 +350,7 @@ def signUpScreen() -> bool:
 		except:
 			layout.append([Text("Check your internet connection", text_color="red")])
 			signUp.close()
-			signUp = Window(winName, layout, modal=True)
+			signUp = Window(winName, layout)
 			continue
 
 		values = _stripValues(values)
@@ -357,13 +358,13 @@ def signUpScreen() -> bool:
 		if _isEmpty(values):
 			layout.append([Text("All fields are required", text_color="red")])
 			signUp.close()
-			signUp = Window(winName, layout, modal=True)
+			signUp = Window(winName, layout)
 			continue
 
 		if values["password"] == values["acc_password"]:
 			layout.append([Text("Your robinhood account password cannot be the same as your Stockify account password", text_color="red")])
 			signUp.close()
-			signUp = Window(winName, layout, modal=True)
+			signUp = Window(winName, layout)
 			continue
 
 		try:
@@ -371,22 +372,28 @@ def signUpScreen() -> bool:
 		except:
 			layout.append([Text("Please enter the expiration data in the proper format", text_color="red")])
 			signUp.close()
-			signUp = Window(winName, layout, modal=True)
+			signUp = Window(winName, layout)
 			continue
 
 		_attemptLogin(values["email"].strip(), values["password"], values["mfa"].strip())
 		if userAuth.isLoggedIn == False:
 			layout.append([Text(f"Robinhood's servers said, \"{userAuth.loginInfo}\"", text_color="red")])
 			signUp.close()
-			signUp = Window(winName, layout, modal=True)
+			signUp = Window(winName, layout)
 			continue
 
-		db = DataBase()
+		db.connect()
 
-		if db.findUsers(values["email"]) != []:
-			layout.append([Text(("User %s already has an account", values["email"]), text_color="red")])
+		try:
+			if db.findUsers({"Email": values["email"]}) != []:
+				layout.append([Text(("User %s already has an account", values["email"]), text_color="red")])
+				signUp.close()
+				signUp = Window(winName, layout)
+				continue
+		except:
+			layout.append([Text("Check your internet connection", text_color="red")])
 			signUp.close()
-			signUp = Window(winName, layout, modal=True)
+			signUp = Window(winName, layout)
 			continue
 
 		usr: dict = db.createUser(values["email"], values["password"], values["cnn"],
@@ -395,7 +402,12 @@ def signUpScreen() -> bool:
 			datetime.today(), code[0], False
 		)
 
-		db.encrypt(usr, values["acc_password"])
+		try:
+			db.encrypt(usr, values["acc_password"])
+		except:
+			layout.append([Text("Check you internet connection", text_color="red")])
+			signUp.close()
+			signUp = Window(winName, layout)
 
 		try:
 			code: tuple[bool, str] = getPayment(values["email"], values["ccn"], values["code"],
@@ -404,7 +416,7 @@ def signUpScreen() -> bool:
 		except Exception as e:
 			layout.append([Text("Payment failed please try again", text_color="red")])
 			signUp.close()
-			signUp = Window(winName, layout, modal=True)
+			signUp = Window(winName, layout)
 			continue
 
 		# get all of Authorize.Net's responce codes and display error message
@@ -414,14 +426,14 @@ def signUpScreen() -> bool:
 			except:
 				layout.append([Text("Payment failed please try again", text_color="red")])
 				signUp.close()
-				signUp = Window(winName, layout, modal=True)
+				signUp = Window(winName, layout)
 				continue
 
 			for rc in responceCodes:
 				if code[1] == rc["code"]:
 					layout.append([Text(rc["text"], text_color="red")])
 					signUp.close()
-					signUp = Window(winName, layout, modal=True)
+					signUp = Window(winName, layout)
 					break
 			continue
 

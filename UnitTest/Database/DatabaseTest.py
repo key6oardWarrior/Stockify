@@ -33,12 +33,15 @@ class UnitTest(DataBase):
 			"123 Addy Lane", "12341", "John", "Doe", datetime(2025, 3, 5),
 			datetime(2023, 3, 16), True, False)
 
-		assert user["Email"] == "john_doe@example.com", "user not added to DB"
-		assert user["Password"] == sha256("1234".encode()).hexdigest(), "Passwords does not match"
+		# ensure findUsers works
+		assert super().findUsers({"Email": user["Email"]}) == [], "findUsers failed"
+
+		assert user["Email"] == sha256("john_doe@example.com".encode()).hexdigest(), "user not added to DB"
+		assert user["Password"] == "1234", "Passwords does not match"
 		assert user["Credit Card Number"] == "1234567890", "CCN does not match"
 		assert user["Code"] == sha256("321".encode()).hexdigest(), "CVV does not match"
 
-		super().encrypt(user)
+		super().encrypt(user, "5678")
 
 	def remove(self) -> None:
 		'''
@@ -52,8 +55,8 @@ class UnitTest(DataBase):
 		super().decrypt("john_doe@example.com", password)
 		user = self.userData
 
-		assert user["Email"] == "john_doe@example.com", "user not added to DB"
-		assert user["Password"] == sha256(password.encode()).hexdigest(), "Passwords does not match"
+		assert user["Email"] == sha256("john_doe@example.com".encode()).hexdigest(), "user not added to DB"
+		assert user["Password"] == "1234", "Passwords does not match"
 		assert user["Credit Card Number"] == "1234567890", "CCN does not match"
 		assert user["Code"] == sha256("321".encode()).hexdigest(), "CVV does not match"
 
@@ -61,9 +64,9 @@ class UnitTest(DataBase):
 		query = {"Email": "john_doe@example.com"}
 		newValue = {
 			"Email": "jane_doe@example.com",
-			"Password": "5678"
+			"Password": "5677848"
 		}
-		super().updateUser(query, newValue, False)
+		super().updateUser(query, newValue, "5647")
 
 if __name__ == "__main__":
 	test = UnitTest()
@@ -78,7 +81,7 @@ if __name__ == "__main__":
 		pass
 
 	# test can decrypt data
-	test.decrypt("1234")
+	test.decrypt("5678")
 
 	test.update()
 
