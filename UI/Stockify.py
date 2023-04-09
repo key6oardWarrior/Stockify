@@ -15,13 +15,13 @@ else: # darwin
 
 from PySimpleGUI.PySimpleGUI import Button, Text, Window
 
-from Login import loginScreen, signUpScreen
+from Account import loginScreen, signUpScreen
 from TradeInfo import dataScreen
 from Helper.helper import exitApp, exit
 from Helper.creds import winName
 
 layout = [
-	[Button("Login", pad=((39, 5), (0, 0))), Button("Sign Up"), Button("How to Use")],
+	[Button("Login", pad=((39, 5), (0, 0))), Button("Sign Up"), Button("Update Account Settings"), Button("How to Use")],
 	[Text("Powered by Robin_Stocks, Authorize.Net,", text_color="light gray")],
 	[Text("and PySimpleGUI", text_color="light gray", pad=((71, 0), (0, 0)))]
 ]
