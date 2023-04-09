@@ -21,14 +21,15 @@ from Helper.helper import exitApp, exit
 from Helper.creds import winName
 
 layout = [
-	[Button("Login", pad=((39, 5), (0, 0))), Button("Sign Up"), Button("Update Account Settings"), Button("How to Use")],
-	[Text("Powered by Robin_Stocks, Authorize.Net,", text_color="light gray")],
-	[Text("and PySimpleGUI", text_color="light gray", pad=((71, 0), (0, 0)))]
+	[Button("Login", pad=((5, 5), (0, 0))), Button("Sign Up"), Button("Update Account Settings")],\
+	[Button("Update App", pad=((55, 0), (0, 0))), Button("How to Use")],
+	[Text("Powered by Robin_Stocks, Authorize.Net,", pad=((20, 0), (0, 0)), text_color="light gray")],
+	[Text("and PySimpleGUI", text_color="light gray", pad=((80, 0), (0, 0)))]
 ]
 isBack = True
 
 while isBack:
-	landingPage = Window(winName, layout, modal=True)
+	landingPage = Window(winName, layout)
 	event, values = landingPage.read()
 
 	if exitApp(event, landingPage):

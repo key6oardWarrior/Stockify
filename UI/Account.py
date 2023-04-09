@@ -302,6 +302,37 @@ def _stripValues(values):
 
 	return values
 
+def collectPayment(values: dict[str, str], isCharging: bool) -> tuple[bool, str]:
+	'''
+	Either charge the credit card, or check if it is valid
+
+	# Params:
+	values - All the user's credit card details\n
+	isCharging - True if charging credit card else false
+
+	# Returns:
+	tuple[0] = if successful, tuple[1] = error code
+	'''
+	try: # check if credit card is valid before charing
+		code: tuple[bool, str] = getPayment(values["email"], values["ccn"], values["code"],
+			values["state"], values["city"], values["addy"], values["zip"],
+			values["exp"], values["fName"], values["lName"], isCharging)
+	except:
+		return (False, "Payment failed please try again")
+
+		# get all of Authorize.Net's responce codes and display error message
+	if code[0] == False:
+		try:
+			responceCodes = loads(get("https://developer.authorize.net/api/reference/dist/json/responseCodes.json").text)
+		except:
+			return (False, "Payment failed please try again")
+
+		for rc in responceCodes:
+			if code[1] == rc["code"]:
+				return (False, rc["text"])
+
+	return code
+
 def signUpScreen() -> bool:
 	'''
 	# Returns:
@@ -396,45 +427,42 @@ def signUpScreen() -> bool:
 			signUp = Window(winName, layout)
 			continue
 
-		usr: dict = db.createUser(values["email"], values["password"], values["cnn"],
-			values["code"], values["state"], values["city"], values["addy"],
-			values["zip"], values["fName"], values["lName"], values["exp"],
-			datetime.today(), code[0], False
-		)
+		# test if credit card works
+		code: tuple = collectPayment(False)
 
-		try:
+		if code[0]:
+			usr: dict = db.createUser(values["email"], values["password"], values["ccn"],
+				values["code"], values["state"], values["city"], values["addy"],
+				values["zip"], values["fName"], values["lName"], values["exp"],
+				datetime.today(), code[0], False
+			)
+		else:
+			layout.append([Text(code[1], text_color="red")])
+			signUp.close()
+			signUp = Window(winName, layout)
+			continue
+
+		try: # attempt to create account
 			db.encrypt(usr, values["acc_password"])
 		except:
 			layout.append([Text("Check you internet connection", text_color="red")])
 			signUp.close()
 			signUp = Window(winName, layout)
-
-		try:
-			code: tuple[bool, str] = getPayment(values["email"], values["ccn"], values["code"],
-				values["state"], values["city"], values["addy"], values["zip"],
-				values["exp"], values["fName"], values["lName"])
-		except Exception as e:
-			layout.append([Text("Payment failed please try again", text_color="red")])
-			signUp.close()
-			signUp = Window(winName, layout)
 			continue
 
-		# get all of Authorize.Net's responce codes and display error message
-		if code[0] == False:
-			try:
-				responceCodes = loads(get("https://developer.authorize.net/api/reference/dist/json/responseCodes.json").text)
-			except:
-				layout.append([Text("Payment failed please try again", text_color="red")])
-				signUp.close()
-				signUp = Window(winName, layout)
-				continue
+		# charge credit card this time
+		code: tuple = collectPayment(True)
 
-			for rc in responceCodes:
-				if code[1] == rc["code"]:
-					layout.append([Text(rc["text"], text_color="red")])
-					signUp.close()
-					signUp = Window(winName, layout)
-					break
+		if code[0]:
+			usr: dict = db.createUser(values["email"], values["password"], values["ccn"],
+				values["code"], values["state"], values["city"], values["addy"],
+				values["zip"], values["fName"], values["lName"], values["exp"],
+				datetime.today(), code[0], False
+			)
+		else:
+			layout.append([Text(code[1], text_color="red")])
+			signUp.close()
+			signUp = Window(winName, layout)
 			continue
 
 		db.close()

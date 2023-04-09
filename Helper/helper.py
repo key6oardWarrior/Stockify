@@ -26,7 +26,8 @@ from Helper.creds import apiLoginId, transactionKey
 from PySimpleGUI.PySimpleGUI import WIN_CLOSED, Window
 
 def getPayment(email: str, ccn: str, code: str, state: str, city: str,
-	address: str, _zip: str, exp: str, fName: str, lName: str) -> tuple[bool, str]:
+	address: str, _zip: str, exp: str, fName: str, lName: str,
+	isCharging: bool) -> tuple[bool, str]:
 	'''
 	Charge a credit card. Useful Authorize.Net docs can be found at:\n
 	Responce Codes: https://developer.authorize.net/api/reference/features/errorandresponsecodes.html\n
@@ -44,6 +45,7 @@ def getPayment(email: str, ccn: str, code: str, state: str, city: str,
 	exp - Credit card expiration date\n
 	fName - First name\n
 	lName - Last name\n
+	isCharging - True if charging the credit card
 
 	# Returns:
 	A tuple containing if successful and the status code
@@ -66,7 +68,7 @@ def getPayment(email: str, ccn: str, code: str, state: str, city: str,
 
 	# order info
 	order = orderType()
-	order.invoiceNumber = "00001"
+	order.invoiceNumber = ""
 	order.description = "Stockify's Monthly Service Fee"
 
 	# address info
@@ -83,7 +85,7 @@ def getPayment(email: str, ccn: str, code: str, state: str, city: str,
 	# customer's identifying information
 	customerData = customerDataType()
 	customerData.type = "individual"
-	customerData.id = "99999456654"
+	customerData.id = ""
 	customerData.email = email
 
 	# Add values for transaction settings
@@ -103,7 +105,10 @@ def getPayment(email: str, ccn: str, code: str, state: str, city: str,
 
 	# transaction info
 	transaction = transactionRequestType()
-	transaction.transactionType = "authCaptureTransaction"
+	if isCharging:
+		transaction.transactionType = "authCaptureTransaction"
+	else:
+		transaction.transactionType = "authOnlyTransaction"
 	transaction.amount = Decimal("10.0")
 	transaction.payment = payment
 	transaction.order = order
