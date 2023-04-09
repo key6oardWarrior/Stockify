@@ -53,7 +53,7 @@ class DataBase:
 
 	def createUser(self, email: str, password: str, ccn: str,
 		code: str, state: str, city: str, addy: str, _zip: str, fName: str,
-		lName: str, exp: datetime, pay_day: datetime, payment_received: bool,
+		lName: str, exp: str, pay_day: datetime, payment_received: bool,
 		isEnc=True) -> dict:
 		'''
 		Set isEnc equal to False if code and email is plain text\n
@@ -69,7 +69,7 @@ class DataBase:
 			"Zip": str,
 			"First Name": str,
 			"Last Name": str,
-			"Exp Date": datetime,
+			"Exp Date": str,
 			"Pay date": datetime,
 			"Was Last payment recieved": bool
 		}
@@ -230,7 +230,8 @@ class DataBase:
 
 		# add remaining data
 		key = next(itr)
-		data += str(user[key].year) + "," + str(user[key].month) + "\n"
+		IDX = user[key].find("-")
+		data += user[key][:IDX] + "," + user[key][IDX:] + "\n"
 
 		key = next(itr)
 		data += str(user[key].year) + "," + str(user[key].month) + "," + \

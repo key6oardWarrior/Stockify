@@ -124,16 +124,16 @@ def login(username=None, password=None, expiresIn=86400, scope='internal', by_sm
 			data = res.json()
 		elif 'challenge' in data:
 			challenge_id = data['challenge']['id']
-			win = Window(winName, [[Text("Enter Robinhood code for validation:"), Input(key="code"), Button("Submit")]])
+			win = Window(winName, [[Text("Enter the Robinhood texted/emailed code for validation:"), Input(key="code"), Button("Submit")]], modal=True)
 			event, values = win.read()
-			res = respond_to_challenge(challenge_id, values["code"])
+			res = respond_to_challenge(challenge_id, values["code"].strip())
 
 			while 'challenge' in res and res['challenge']['remaining_attempts'] > 0:
 				win.close()
 				win = Window(winName, [[Text("That code was not correct. {0} tries remaining. Please type in another code:".format(
-					res['challenge']['remaining_attempts'])), Input(key="code"), Button("Submit")]])
+					res['challenge']['remaining_attempts'])), Input(key="code"), Button("Submit")]], modal=True)
 				event, values = win.read()
-				res = respond_to_challenge(challenge_id, values["code"])
+				res = respond_to_challenge(challenge_id, values["code"].strip())
 
 			win.close()
 			helper.update_session(

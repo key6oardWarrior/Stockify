@@ -428,7 +428,7 @@ def signUpScreen() -> bool:
 			continue
 
 		# test if credit card works
-		code: tuple = collectPayment(False)
+		code: tuple = collectPayment(values, False)
 
 		if code[0]:
 			usr: dict = db.createUser(values["email"], values["password"], values["ccn"],
@@ -451,19 +451,14 @@ def signUpScreen() -> bool:
 			continue
 
 		# charge credit card this time
-		code: tuple = collectPayment(True)
+		code: tuple = collectPayment(values, True)
 
-		if code[0]:
-			usr: dict = db.createUser(values["email"], values["password"], values["ccn"],
-				values["code"], values["state"], values["city"], values["addy"],
-				values["zip"], values["fName"], values["lName"], values["exp"],
-				datetime.today(), code[0], False
-			)
-		else:
+		if code[0] == False:
 			layout.append([Text(code[1], text_color="red")])
 			signUp.close()
 			signUp = Window(winName, layout)
 			continue
 
 		db.close()
+		signUp.close()
 		return False

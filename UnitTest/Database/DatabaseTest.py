@@ -30,7 +30,7 @@ class UnitTest(DataBase):
 		'''
 		user = self.createUser(
 			"john_doe@example.com", "1234", "1234567890", "321", "MI", "Dearborn",
-			"123 Addy Lane", "12341", "John", "Doe", datetime(2025, 3, 5),
+			"123 Addy Lane", "12341", "John", "Doe", "2027-05",
 			datetime(2023, 3, 16), True, False)
 
 		# ensure findUsers works
