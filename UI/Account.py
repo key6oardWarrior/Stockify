@@ -13,6 +13,23 @@ from json import loads
 from datetime import datetime
 from hashlib import sha256
 
+def getNextMonth() ->  datetime:
+	'''
+	Determin the date for one month from now
+
+	# Returns:
+	A datatime object that contains next month's date
+	'''
+	nextMonth = datetime.today()
+
+	if nextMonth.month < 11:
+		nextMonth.month += 1
+	else:
+		nextMonth.year += 1
+		nextMonth.month += 1
+
+	return nextMonth
+
 def _attemptLogin(email: str, password: str, mfa: str=None) -> None:
 	if mfa == "":
 		mfa = None
@@ -76,9 +93,14 @@ def loginScreen() -> bool:
 					login = Window(winName, layout)
 					continue
 
-				db.decrypt(values["email"], sha256(values["password"]).hexdigest())
+				db.decrypt(values["email"], values["password"])
 				userData: dict = db.userData
 				today: datetime = datetime.today()
+			except IncorrectPassword as IP:
+				login.close()
+				layout.append([Text("The password you enterd is incorrect", text_color="red")])
+				login = Window(winName, layout)
+				continue
 			except:
 				login.close()
 				layout.append([Text("Check Internet Connection", text_color="red")])
@@ -86,12 +108,15 @@ def loginScreen() -> bool:
 				continue
 
 			if((userData["Was Last Payment Recieved"] == False) or
-				((userData["Pay date"].month <= today.month) and
-				(userData["Pay date"].day >= today.day))):
-
+				(
+					(userData["Pay date"].year <= today.year) and
+					(userData["Pay date"].month <= today.month) and
+					(userData["Pay date"].day >= today.day)
+				)
+			):
 				try:
 					db.updateUser({"Email": values["email"]},
-						{"Was Last Payment Recieved": False})
+						{"Was Last Payment Recieved": False}, values["password"])
 				except IncorrectPassword as ip:
 					login.close()
 					layout.append([Text(ip.args[1], text_color="red")])
@@ -108,24 +133,43 @@ def loginScreen() -> bool:
 					login = Window(winName, layout)
 					continue
 
+				o_layout = [
+					[Text("Do your bill is past due. Would you like to pay it now")],
+					[Button("Yes, pay now", key="pay"), Button("No", key="no_pay"), Button("Update payment info", key="update")]
+				]
+				overlayed = Window(winName, o_layout)
+
 				while True:
+					o_event, o_values = overlayed.read()
+
+					if exitApp(o_event, overlayed):
+						overlayed.close()
+						break
+
 					o_layout = [
 						[Text("Do your bill is past due. Would you like to pay it now")],
 						[Button("Yes, pay now", key="pay"), Button("No", key="no_pay"), Button("Update payment info", key="update")]
 					]
 
-					overlayed = Window(winName, o_layout)
-					o_event, o_values = overlayed.read()
-
 					if o_event == "pay":
+						douleOverlayed = Window(winName, [[Text("Verify Credit Card Code:"), Input(key="code")], [Button("Submit")]])
+						oo_event, oo_values = douleOverlayed.read()
+
+						if ((exitApp(oo_event, douleOverlayed)) or
+							(sha256(oo_values["code"].encode()).hexdigest() != userData["Code"])):
+							douleOverlayed.close()
+							o_layout.append([Text("Incorrect Credit Card Code", text_color="red")])
+							continue
+
 						try:
-							code: tuple[bool, str] = getPayment(userData["Email"],
-								userData["Credit Card Number"], userData["Code"], userData["State"],
+							code: tuple[bool, str] = getPayment(values["email"],
+								userData["Credit Card Number"], oo_values["code"], userData["State"],
 								userData["City"], userData["Address"], userData["Zip"],
-								userData["Exp date"], userData["First Name"], userData["Last Name"]
+								userData["Exp date"], userData["First Name"], userData["Last Name"], True
 							)
-						except Exception as e:
+						except:
 							o_layout.append([Text("Payment failed, try again", text_color="red")])
+							douleOverlayed.close()
 							overlayed.close()
 							overlayed = Window(winName, layout)
 							continue
@@ -137,6 +181,7 @@ def loginScreen() -> bool:
 							except:
 								o_layout.append([Text("Payment failed, try again", text_color="red")])
 								overlayed.close()
+								douleOverlayed.close()
 								overlayed = Window(winName, o_layout)
 								continue
 
@@ -144,12 +189,22 @@ def loginScreen() -> bool:
 								if code[1] == rc["code"]:
 									o_layout.append([Text(rc["text"], text_color="red")])
 									overlayed.close()
+									douleOverlayed.close()
 									overlayed = Window(winName, o_layout)
 									break
 
 							continue
 
 						overlayed.close()
+						douleOverlayed.close()
+
+						# update user's data
+						db.decrypt(values["email"], values["password"])
+						newValues = {
+							"Pay date": getNextMonth(),
+							"Was Last Payment Recieved": True
+						}
+						db.updateUser({"Email": values["email"]}, newValues, values["password"])
 						break
 
 					elif o_event == "update":
@@ -182,7 +237,7 @@ def loginScreen() -> bool:
 						try:
 							code: tuple[bool, str] = getPayment(userData["email"], o_values["ccn"], o_values["code"],
 								o_values["state"], o_values["city"], o_values["addy"], o_values["zip"],
-								o_values["exp"], o_values["fName"], o_values["lName"])
+								o_values["exp"], o_values["fName"], o_values["lName"], True)
 						except Exception as e:
 							o_layout.append([Text("There was an issue with payment proccessing. Please try again", text_color="red")])
 							overlayed.close()
@@ -194,7 +249,7 @@ def loginScreen() -> bool:
 								# get all of Authorize.Net's responce codes and display error message
 								responceCodes = loads(get("https://developer.authorize.net/api/reference/dist/json/responseCodes.json").text)
 							except:
-								overlayed.Rows[0].append([Text("Reason login failed not given. Check internet connection.", text_color="red")])
+								overlayed.Rows[0].append([Text("Payment failed try again", text_color="red")])
 								tempLayout = overlayed.Rows[0]
 								overlayed.close()
 
@@ -224,9 +279,10 @@ def loginScreen() -> bool:
 							"First Name": o_values["fName"],
 							"Last Name": o_values["lName"],
 							"Exp date": o_values["exp"],
-							"Was Last Payment Recieved": True
+							"Was Last Payment Recieved": True,
+							"Pay day": getNextMonth()
 						}
-						db.updateUser({"Email": values["email"]}, updatedData, False)
+						db.updateUser({"Email": values["email"]}, updatedData, values["password"])
 						overlayed.close()
 						break
 
@@ -240,6 +296,7 @@ def loginScreen() -> bool:
 			login.close()
 			return True
 
+	login.close()
 	return False
 
 def _isEmpty(values) -> bool:
@@ -434,7 +491,7 @@ def signUpScreen() -> bool:
 			usr: dict = db.createUser(values["email"], values["password"], values["ccn"],
 				values["code"], values["state"], values["city"], values["addy"],
 				values["zip"], values["fName"], values["lName"], values["exp"],
-				datetime.today(), code[0], False
+				getNextMonth(), code[0], False
 			)
 		else:
 			layout.append([Text(code[1], text_color="red")])

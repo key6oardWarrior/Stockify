@@ -142,15 +142,16 @@ class DataBase:
 		newValue - The new value(s) that will be put into the database\n
 		password - The password used to encrypt the data
 		'''
-		if "Email" not in newValue:
+		if "Email" not in query:
 			raise ValueError("Cannot complete query")
 
-		newValue["Email"] = sha256(newValue["Email"].encode()).hexdigest()
-		if self.__findUsers({"Email": newValue["Email"]}) != []:
-			raise UserAlreadyExist("User already in database")
+		if "Email" in newValue:
+			newValue["Email"] = sha256(newValue["Email"].encode()).hexdigest()
+			if self.__findUsers({"Email": newValue["Email"]}) != []:
+				raise UserAlreadyExist("User already in database")
 
 		query["Email"] = sha256(query["Email"].encode()).hexdigest()
-		if self.__userData != None:
+		if self.__userData:
 			for itr in newValue:
 				if(itr == "Code"):
 					self.__userData[itr] = sha256(newValue[itr].encode()) \
@@ -160,8 +161,8 @@ class DataBase:
 		else:
 			raise IncorrectPassword("User not decrypted")
 
-		self.encrypt(self.__userData, password, True)
 		self.removeUser(query, True)
+		self.encrypt(self.__userData, password, True)
 
 	def findUsers(self, query: dict[str, str], limit: int=0) -> list[Cursor]:
 		'''
@@ -307,7 +308,7 @@ class DataBase:
 		self.__userData = self.createUser(lst[0], lst[1], lst[2], lst[3], lst[4], lst[5],
 			lst[6], lst[7], lst[8], lst[9],
 
-			datetime(int(lst[10][:date1_delim]), int(lst[10][date1_delim+1:]), 1),
+			(lst[10][:date1_delim] + lst[10][date1_delim+1:]),
 
 			datetime(int(lst[11][:date2_delim]), int(lst[11][date2_delim+1: rdate2_delim]),
 			int(lst[11][rdate2_delim+1:])),
