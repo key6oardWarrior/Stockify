@@ -32,7 +32,7 @@ while isBack:
 	landingPage = Window(winName, layout)
 	event, values = landingPage.read()
 
-	if exitApp(event, landingPage):
+	if exitApp(event, landingPage, True):
 		exit(0)
 
 	landingPage.close()

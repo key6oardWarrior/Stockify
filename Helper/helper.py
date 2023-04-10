@@ -133,14 +133,26 @@ def getPayment(email: str, ccn: str, code: str, state: str, city: str,
 
 from robin_stocks.authentication import logout
 
-def exitApp(event, window: Window) -> bool:
+def killApp() -> None:
+	'''
+	Exit app ASAP
+	'''
+	rmtree(join(expanduser("~"), ".tokens"), ignore_errors=True)
+
+	if userAuth.isLoggedIn:
+		logout()
+
+	exit(0)
+
+def exitApp(event, window: Window, isLogout=False) -> bool:
 	'''
 	Determin if the event wants app to die
 
 	# Params:
 	event - If the user clicked exit or clicked the exit at the top left of
 	app\n
-	window - The window to close
+	window - The window to close\n
+	isLogout - True if you want to logout of Robinhood
 
 	# Returns:
 	True if event = Exit or WIN_CLOSED (see PyGUI) else False
@@ -148,7 +160,7 @@ def exitApp(event, window: Window) -> bool:
 	if((event == "Exit") or (event == WIN_CLOSED)):
 		window.close()
 
-		if userAuth.isLoggedIn:
+		if((isLogout) and (userAuth.isLoggedIn)):
 			logout() # logout of user's robinhood account on close
 
 		rmtree(join(expanduser("~"), ".tokens"), ignore_errors=True)

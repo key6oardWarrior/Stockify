@@ -1,7 +1,8 @@
 from PySimpleGUI.PySimpleGUI import Button, Input, Text, Window
 
 from Helper.creds import winName
-from Helper.helper import exitApp, exit, getPayment, checkConnection, userAuth
+from Helper.helper import exitApp, exit, getPayment, checkConnection, \
+	userAuth, killApp
 from ServerSide.DataBase import DataBase
 
 from Helper.Errors import IncorrectPassword, UserAlreadyExist
@@ -101,7 +102,7 @@ def loginScreen() -> bool:
 		rmtree(join(expanduser("~"), ".tokens"), ignore_errors=True)
 		event, values = login.read()
 
-		if exitApp(event, login):
+		if exitApp(event, login, True):
 			exit(0)
 
 		if len(layout) > SIZE:
@@ -196,7 +197,7 @@ def loginScreen() -> bool:
 					]
 
 					if o_event == "no_pay":
-						exit(0)
+						killApp()
 
 					if o_event == "pay":
 						douleOverlayed = Window(winName, [[Text("Verify Credit Card Code:"), Input(key="code")], [Button("Submit")]])
@@ -377,7 +378,7 @@ def signUpScreen() -> bool:
 		rmtree(join(expanduser("~"), ".tokens"), ignore_errors=True)
 		event, values = signUp.read()
 
-		if exitApp(event, signUp):
+		if exitApp(event, signUp, True):
 			exit(0)
 
 		if event == "back":
