@@ -304,6 +304,7 @@ class DataBase:
 		date1_delim = lst[10].find(",")
 		date2_delim = lst[11].find(",")
 		rdate2_delim = lst[11].rfind(",")
+		lst[12] = True if lst[12] == "True" else False
 
 		self.__userData = self.createUser(lst[0], lst[1], lst[2], lst[3], lst[4], lst[5],
 			lst[6], lst[7], lst[8], lst[9],
@@ -311,9 +312,7 @@ class DataBase:
 			(lst[10][:date1_delim] + lst[10][date1_delim+1:]),
 
 			datetime(int(lst[11][:date2_delim]), int(lst[11][date2_delim+1: rdate2_delim]),
-			int(lst[11][rdate2_delim+1:])),
-			
-			bool(lst[12]))
+			int(lst[11][rdate2_delim+1:])), lst[12])
 
 	@property
 	def userData(self) -> dict:

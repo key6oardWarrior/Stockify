@@ -20,13 +20,12 @@ def getNextMonth() ->  datetime:
 	# Returns:
 	A datatime object that contains next month's date
 	'''
-	nextMonth = datetime.today()
+	today = datetime.today()
 
-	if nextMonth.month < 11:
-		nextMonth.month += 1
+	if today.month < 11:
+		nextMonth = datetime(today.year, today.month+1, today.day)
 	else:
-		nextMonth.year += 1
-		nextMonth.month += 1
+		nextMonth = datetime(today.year+1, today.month+1, today.day)
 
 	return nextMonth
 
@@ -34,6 +33,37 @@ def _attemptLogin(email: str, password: str, mfa: str=None) -> None:
 	if mfa == "":
 		mfa = None
 	userAuth.login(email, password, mfa)
+
+def collectPayment(values: dict[str, str], isCharging: bool) -> tuple[bool, str]:
+	'''
+	Either charge the credit card, or check if it is valid
+
+	# Params:
+	values - All the user's credit card details\n
+	isCharging - True if charging credit card else false
+
+	# Returns:
+	tuple[0] = if successful, tuple[1] = error code
+	'''
+	try: # check if credit card is valid before charing
+		code: tuple[bool, str] = getPayment(values["email"], values["ccn"], values["code"],
+			values["state"], values["city"], values["addy"], values["zip"],
+			values["exp"], values["fName"], values["lName"], isCharging)
+	except:
+		return (False, "Payment failed please try again")
+
+		# get all of Authorize.Net's responce codes and display error message
+	if code[0] == False:
+		try:
+			responceCodes = loads(get("https://developer.authorize.net/api/reference/dist/json/responseCodes.json").text)
+		except:
+			return (False, "Payment failed please try again")
+
+		for rc in responceCodes:
+			if code[1] == rc["code"]:
+				return (False, rc["text"])
+
+	return code
 
 def loginScreen() -> bool:
 	'''
@@ -46,6 +76,20 @@ def loginScreen() -> bool:
 			key="password", password_char="*", size=(15, 1), do_not_clear=False)],
 		[Text("Enter two factor authentication code. If one is not needed leave blank:"), Input(key="mfa")],
 		[Button("Submit", key="submit"), Button("Back", key="back")]
+	]
+
+	updateLayout = [
+		[Text("Enter your credit card number:"), Input("", key="ccn")],
+		[Text("Enter credit card code:"), Input("", key="code",
+			password_char="*")],
+		[Text("State:"), Input("", key="state")],
+		[Text("City:"), Input("", key="city")],
+		[Text("Address:"), Input("", key="addy")],
+		[Text("Zip Code:"), Input("", key="zip")],
+		[Text("First Name:"), Input("", key="fName")],
+		[Text("Last Name:"), Input("", key="lName")],
+		[Text("Expiration Date (YYYY-MM):"), Input("", key="exp")],
+		[Button("Submit", key="o_submit"), Button("Back", key="o_back")]
 	]
 
 	db = DataBase()
@@ -111,7 +155,7 @@ def loginScreen() -> bool:
 				(
 					(userData["Pay date"].year <= today.year) and
 					(userData["Pay date"].month <= today.month) and
-					(userData["Pay date"].day >= today.day)
+					(userData["Pay date"].day <= today.day)
 				)
 			):
 				try:
@@ -151,6 +195,9 @@ def loginScreen() -> bool:
 						[Button("Yes, pay now", key="pay"), Button("No", key="no_pay"), Button("Update payment info", key="update")]
 					]
 
+					if o_event == "no_pay":
+						exit(0)
+
 					if o_event == "pay":
 						douleOverlayed = Window(winName, [[Text("Verify Credit Card Code:"), Input(key="code")], [Button("Submit")]])
 						oo_event, oo_values = douleOverlayed.read()
@@ -161,42 +208,16 @@ def loginScreen() -> bool:
 							o_layout.append([Text("Incorrect Credit Card Code", text_color="red")])
 							continue
 
-						try:
-							code: tuple[bool, str] = getPayment(values["email"],
-								userData["Credit Card Number"], oo_values["code"], userData["State"],
-								userData["City"], userData["Address"], userData["Zip"],
-								userData["Exp date"], userData["First Name"], userData["Last Name"], True
-							)
-						except:
-							o_layout.append([Text("Payment failed, try again", text_color="red")])
-							douleOverlayed.close()
+						code: tuple[bool, str] = collectPayment(values, True)
+						douleOverlayed.close()
+
+						if code[0]:
+							overlayed.close()
+						else:
+							o_layout.append([Text(code[1], text_color="red")])
 							overlayed.close()
 							overlayed = Window(winName, layout)
 							continue
-
-						if code[0] == False:
-							try:
-								# get all of Authorize.Net's responce codes and display error message
-								responceCodes = loads(get("https://developer.authorize.net/api/reference/dist/json/responseCodes.json").text)
-							except:
-								o_layout.append([Text("Payment failed, try again", text_color="red")])
-								overlayed.close()
-								douleOverlayed.close()
-								overlayed = Window(winName, o_layout)
-								continue
-
-							for rc in responceCodes:
-								if code[1] == rc["code"]:
-									o_layout.append([Text(rc["text"], text_color="red")])
-									overlayed.close()
-									douleOverlayed.close()
-									overlayed = Window(winName, o_layout)
-									break
-
-							continue
-
-						overlayed.close()
-						douleOverlayed.close()
 
 						# update user's data
 						db.decrypt(values["email"], values["password"])
@@ -209,19 +230,7 @@ def loginScreen() -> bool:
 
 					elif o_event == "update":
 						overlayed.close()
-						overlayed = Window(winName, [
-							[Text("Enter your credit card number:"), Input("", key="ccn")],
-							[Text("Enter credit card code:"), Input("", key="code",
-								password_char="*")],
-							[Text("State:"), Input("", key="state")],
-							[Text("City:"), Input("", key="city")],
-							[Text("Address:"), Input("", key="addy")],
-							[Text("Zip Code:"), Input("", key="zip")],
-							[Text("First Name:"), Input("", key="fName")],
-							[Text("Last Name:"), Input("", key="lName")],
-							[Text("Expiration Date (YYYY-MM):"), Input("", key="exp")],
-							[Button("Submit", key="o_submit"), Button("Back", key="o_back")]
-						])
+						overlayed = Window(winName, updateLayout)
 						continue
 
 					elif o_event == "o_back":
@@ -234,57 +243,32 @@ def loginScreen() -> bool:
 						continue
 					
 					elif o_event == "o_submit":
-						try:
-							code: tuple[bool, str] = getPayment(userData["email"], o_values["ccn"], o_values["code"],
-								o_values["state"], o_values["city"], o_values["addy"], o_values["zip"],
-								o_values["exp"], o_values["fName"], o_values["lName"], True)
-						except Exception as e:
-							o_layout.append([Text("There was an issue with payment proccessing. Please try again", text_color="red")])
+						o_values["email"] = userData["email"]
+						code: tuple[bool, str] = collectPayment(o_values, True)
+
+						if code[0]:
+							updatedData = {
+								"Credit Card Number": o_values["ccn"],
+								"Code": o_values["code"],
+								"State": o_values["state"],
+								"City": o_values["city"],
+								"Address": o_values["addy"],
+								"Zip": o_values["zip"],
+								"First Name": o_values["fName"],
+								"Last Name": o_values["lName"],
+								"Exp date": o_values["exp"],
+								"Was Last Payment Recieved": True,
+								"Pay day": getNextMonth()
+							}
+							db.updateUser({"Email": values["email"]}, updatedData, values["password"])
 							overlayed.close()
-							overlayed = Window(winName, o_layout)
-							continue
+							break
 
-						if code[0] == False:
-							try:
-								# get all of Authorize.Net's responce codes and display error message
-								responceCodes = loads(get("https://developer.authorize.net/api/reference/dist/json/responseCodes.json").text)
-							except:
-								overlayed.Rows[0].append([Text("Payment failed try again", text_color="red")])
-								tempLayout = overlayed.Rows[0]
-								overlayed.close()
-
-								overlayed = Window(winName, tempLayout)
-								del tempLayout
-								continue
-
-							for rc in responceCodes:
-								if code[1] == rc["code"]:
-									overlayed.Rows[0].append([Text(rc["text"], text_color="red")])
-									tempLayout = overlayed.Rows[0]
-									overlayed.close()
-
-									overlayed = Window(winName, tempLayout)
-									del tempLayout
-									break
-
-							continue
-
-						updatedData = {
-							"Credit Card Number": o_values["ccn"],
-							"Code": o_values["code"],
-							"State": o_values["state"],
-							"City": o_values["city"],
-							"Address": o_values["addy"],
-							"Zip": o_values["zip"],
-							"First Name": o_values["fName"],
-							"Last Name": o_values["lName"],
-							"Exp date": o_values["exp"],
-							"Was Last Payment Recieved": True,
-							"Pay day": getNextMonth()
-						}
-						db.updateUser({"Email": values["email"]}, updatedData, values["password"])
+						updateLayout.append([Text(code[1], text_color="red")])
 						overlayed.close()
-						break
+						overlayed = Window(winName, updateLayout)
+						del updateLayout[-1]
+						continue
 
 			_attemptLogin(values["email"].strip(), userData["Password"], values["mfa"].strip())
 			if userAuth.isLoggedIn == False:
@@ -296,6 +280,7 @@ def loginScreen() -> bool:
 			login.close()
 			return True
 
+	db.close()
 	login.close()
 	return False
 
@@ -358,37 +343,6 @@ def _stripValues(values):
 	values["lName"] = values["lName"].strip()
 
 	return values
-
-def collectPayment(values: dict[str, str], isCharging: bool) -> tuple[bool, str]:
-	'''
-	Either charge the credit card, or check if it is valid
-
-	# Params:
-	values - All the user's credit card details\n
-	isCharging - True if charging credit card else false
-
-	# Returns:
-	tuple[0] = if successful, tuple[1] = error code
-	'''
-	try: # check if credit card is valid before charing
-		code: tuple[bool, str] = getPayment(values["email"], values["ccn"], values["code"],
-			values["state"], values["city"], values["addy"], values["zip"],
-			values["exp"], values["fName"], values["lName"], isCharging)
-	except:
-		return (False, "Payment failed please try again")
-
-		# get all of Authorize.Net's responce codes and display error message
-	if code[0] == False:
-		try:
-			responceCodes = loads(get("https://developer.authorize.net/api/reference/dist/json/responseCodes.json").text)
-		except:
-			return (False, "Payment failed please try again")
-
-		for rc in responceCodes:
-			if code[1] == rc["code"]:
-				return (False, rc["text"])
-
-	return code
 
 def signUpScreen() -> bool:
 	'''

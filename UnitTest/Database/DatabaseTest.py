@@ -64,9 +64,10 @@ class UnitTest(DataBase):
 		query = {"Email": "john_doe@example.com"}
 		newValue = {
 			"Email": "jane_doe@example.com",
-			"Password": "5677848"
+			"Password": "5677848",
+			"Was Last Payment Recieved": False
 		}
-		super().updateUser(query, newValue, "5647")
+		super().updateUser(query, newValue, "5678")
 
 if __name__ == "__main__":
 	test = UnitTest()
