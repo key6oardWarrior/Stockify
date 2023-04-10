@@ -92,6 +92,7 @@ class Pages:
 				col.add_row(Text(f"Page: {self.__houseSize}"), Button("Prev Page", key="prev_rep"), Button("Next Page", key="nxt_rep"))
 			else:
 				col.add_row(Text(f"Page: {self.__houseSize}"), Button("Next Page", key="nxt_rep"))
+			col.add_row(Text("Do you want to see more, or less days of trading data"), Button("Yes", key="rep_yes"))
 
 		else:
 			self.__senatePages[self.__senateSize] = col
@@ -101,9 +102,9 @@ class Pages:
 				col.add_row(Text(f"Page: {self.__senateSize}"), Button("Prev Page", key="prev_sen"), Button("Next Page", key="nxt_sen"))
 			else:		
 				col.add_row(Text(f"Page: {self.__senateSize}"), Button("Next Page", key="nxt_sen"))
+			col.add_row(Text("Do you want to see more, or less days of trading data"), Button("Yes", key="sen_yes"))
 
 		col.add_row(Text("------------------"))
-		col.add_row(Text("Do you want to see more, or less days of trading data"), Button("Yes", key="rep_yes"))
 
 	def getPage(self, pageNum: int, isHouse: bool) -> Column:
 		'''
@@ -447,29 +448,28 @@ def dataScreen() -> None:
 
 	while True:
 		event, values = data.read()
-		if exitApp(event, data):
+		if exitApp(event, data, True):
 			exit(0)
 
 		if len(layout) > 3:
 			del layout[3]
 
-		try:
-			days = int(values["days"].strip())
+		values["days"] = values["days"].strip()
+		if values["days"].isdigit():
+			days = int(values["days"])
 
 			if((days > MAX_DAYS) or (days < 1)):
 				layout.append([Text("Cannot enter a value that is greater than 1095, or less than 1", text_color="red")])
 				data.close()
 				data = Window(winName, layout, modal=True)
-				continue
 			else:
 				pages.days = days
 				request = Request(days)
-		except:
+				break
+		else:
 			layout.append([Text("Please only type numbers", text_color="red")])
 			data.close()
 			data = Window(winName, layout, modal=True)
-		else:
-			break
 
 	dataVisulization(request)
 
@@ -487,7 +487,7 @@ def dataScreen() -> None:
 
 	while True:
 		event, values = data.read()
-		if exitApp(event, data):
+		if exitApp(event, data, True):
 			exit(0)
 
 		if isAdded[0]:
@@ -603,22 +603,23 @@ def dataScreen() -> None:
 			
 			o_layout = [[Text("Enter how many days of trading data you want:"), Input(key="retype")], [Button("Submit"), Button("Exit")]]
 			O_SIZE = len(o_layout)
+			delButton = False
 			while True:
 				overlayed = Window(winName, o_layout)
 				o_event, o_values = overlayed.read()
-				exited = False
-
-				if len(o_layout) > O_SIZE:
-					del o_layout[-1]
 
 				if exitApp(o_event, overlayed):
 					break
 
+				if len(o_layout) > O_SIZE:
+					del o_layout[-1]
+
 				if len(o_layout) > 3:
 					del o_layout[3]
 
-				try:
-					days = int(o_values["retype"].strip())
+				o_values["retype"] = o_values["retype"].strip()
+				if o_values["retype"].isdigit():
+					days = int(o_values["retype"])
 
 					if((days > MAX_DAYS) or (days < 1)):
 						o_layout.append([Text("Cannot enter a value that is greater than 1095, or less than 1", text_color="red")])
@@ -628,27 +629,29 @@ def dataScreen() -> None:
 					else:
 						pages.days = days
 						request = Request(days)
-				except:
+				else:
 					o_layout.append([Text("Please only type numbers", text_color="red")])
 					overlayed.close()
 					overlayed = Window(winName, o_layout, modal=True)
-				else:
-					if exited == False:
-						pages.clearRep()
-						pages.clearSen()
-						dataVisulization(request)
-						pages.emptyCheck()
-						data.close()
-						_houseSize = pages.houseSize
-						_senateSize = pages.senateSize
-						repPage = 0
-						senPage = 0
-						data = Window(winName, [[pages.getPage(repPage, True), pages.getPage(senPage, False)]])
+					continue
+				
+				pages.clearRep()
+				pages.clearSen()
+				dataVisulization(request)
+				pages.emptyCheck()
+				data.close()
+				_houseSize = pages.houseSize
+				_senateSize = pages.senateSize
+				repPage = 0
+				senPage = 0
+				data = Window(winName, [[pages.getPage(repPage, True), pages.getPage(senPage, False)]])
 
-					overlayed.close()
-					break
+				overlayed.close()
+				delButton = True
+				break
 
-			pages.removeLastNextButton()
+			if delButton:
+				pages.removeLastNextButton()
 
 		# if user wants to do a ticker search
 		elif event == "houseTicker":

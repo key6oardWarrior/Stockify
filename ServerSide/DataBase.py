@@ -2,8 +2,11 @@ from base64 import b64decode, b64encode
 from datetime import datetime
 from hashlib import sha256
 
-from Cryptodome.Cipher.AES import MODE_CBC, block_size, new
-from Cryptodome.Random import new as rand_new
+from Cryptodome.Cipher._mode_gcm import GcmMode
+from Cryptodome.Cipher.AES import MODE_GCM, block_size, new
+from Cryptodome.Protocol.KDF import scrypt
+from Cryptodome.Util.Padding import pad, unpad
+from os import urandom
 
 from pymongo import MongoClient
 from pymongo.collection import Collection
@@ -19,20 +22,42 @@ class DataBase:
 	__users_db: Database
 	__usersCollections: Collection
 	__userData = None
+	__isConnected = False
 
 	def __init__(self) -> None:
-		self.__client = MongoClient(connectionString, tls=True,
-			tlsCertificateKeyFile=certFile)
-		self.__users_db: Database = self.__client["Users"]
-		self.__usersCollections = self.__users_db["PaymentData"]
+		self.connect()
+
+	def connect(self) -> None:
+		'''
+		Connect to the database
+		'''
+		# cant connect twice
+		if self.__isConnected == False:
+			try:
+				self.__client = MongoClient(connectionString, tls=True,
+					tlsCertificateKeyFile=certFile)
+				self.__users_db: Database = self.__client["Users"]
+				self.__usersCollections = self.__users_db["PaymentData"]
+			except:
+				pass
+			else:
+				self.__isConnected = True
+
+	def close(self) -> None:
+		'''
+		Close connection between client and server
+		'''
+		if self.__isConnected:
+			self.__client.close()
+			self.__isConnected = False
 
 	def createUser(self, email: str, password: str, ccn: str,
 		code: str, state: str, city: str, addy: str, _zip: str, fName: str,
-		lName: str, exp: datetime, pay_day: datetime, payment_received: bool,
+		lName: str, exp: str, pay_day: datetime, payment_received: bool,
 		isEnc=True) -> dict:
 		'''
-		Set isEnc equal to False if password and code is plain text\n
-		DB Key
+		Set isEnc equal to False if code and email is plain text\n
+		DB Map legend:
 		{
 			"Email": str,
 			"Password": str,
@@ -44,7 +69,7 @@ class DataBase:
 			"Zip": str,
 			"First Name": str,
 			"Last Name": str,
-			"Exp Date": datetime,
+			"Exp Date": str,
 			"Pay date": datetime,
 			"Was Last payment recieved": bool
 		}
@@ -67,13 +92,9 @@ class DataBase:
 					"Was Last Payment Recieved": payment_received
 				}
 
-		# ensure the same user cannot be added twice
-		if self.findUsers({"Email": email}) != []:
-			raise UserAlreadyExist(f"User {email} already exists")
-
 		return {
-				"Email": email,
-				"Password": sha256(password.encode()).hexdigest(),
+				"Email": sha256(email.encode()).hexdigest(),
+				"Password": password,
 				"Credit Card Number": ccn,
 				"Code": sha256(code.encode()).hexdigest(),
 				"State": state,
@@ -87,16 +108,22 @@ class DataBase:
 				"Was Last Payment Recieved": payment_received
 			}
 
-	def removeUser(self, query: dict[str, str or int or datetime or
-		dict[str: str]]) -> None:
+	def removeUser(self, query: dict[str, str], isEnc=False) -> None:
 		'''
 		Delete a user using a query search against the Collection object.
 		Advanced and Regular expression query search are allowed
 
 		# Params:
-		query - The query that will be used to search the Collection for a user
+		query - Query that will be used to search the Collection for a user\n
+		isEnc (optional) - If the email in query is hashed or not
 		'''
-		if self.findUsers(query) == []:
+		if "Email" not in query:
+			raise ValueError("Cannot complete query")
+
+		if isEnc == False:
+			query["Email"] = sha256(query["Email"].encode()).hexdigest()
+
+		if self.__findUsers(query) == []:
 			raise UserDoesNotExist("The user is not in the database")
 
 		if self.__userData == None:
@@ -104,7 +131,8 @@ class DataBase:
 
 		self.__usersCollections.delete_one(query)
 
-	def updateUser(self, query: dict, newValue: tuple, isEnc=True) -> None:
+	def updateUser(self, query: dict[str, str], newValue: dict[str, str],
+		password: str) -> None:
 		'''
 		Update a user's data using query search and replace data with newValue.
 		Advanced and Regular expression query search not allowed.
@@ -112,33 +140,61 @@ class DataBase:
 		# Params:
 		query - The query that will be used to search the Collection for a user\n
 		newValue - The new value(s) that will be put into the database\n
-		isEnc (optional) - True If Password and Code are both hashed else False
+		password - The password used to encrypt the data
 		'''
-		if ("Email" in newValue):
-			if self.findUsers({"Email": newValue["Email"]}) != []:
+		if "Email" not in query:
+			raise ValueError("Cannot complete query")
+
+		if "Email" in newValue:
+			newValue["Email"] = sha256(newValue["Email"].encode()).hexdigest()
+			if self.__findUsers({"Email": newValue["Email"]}) != []:
 				raise UserAlreadyExist("User already in database")
 
-		if self.__userData != None:
+		query["Email"] = sha256(query["Email"].encode()).hexdigest()
+		if self.__userData:
 			for itr in newValue:
-				if((isEnc == False) and ((itr == "Password") or (itr == "Code"))):
-					self.__userData[itr] = sha256(newValue[itr].encode()).hexdigest()
+				if(itr == "Code"):
+					self.__userData[itr] = sha256(newValue[itr].encode()) \
+						.hexdigest()
 				else:
 					self.__userData[itr] = newValue[itr]
 		else:
 			raise IncorrectPassword("User not decrypted")
 
-		self.encrypt(self.__userData, True)
-		self.removeUser(query)
+		self.removeUser(query, True)
+		self.encrypt(self.__userData, password, True)
 
-	def findUsers(self, query: dict[str, str or int or datetime or 
-		dict[str: str]], limit: int=0) -> list[Cursor]:
+	def findUsers(self, query: dict[str, str], limit: int=0) -> list[Cursor]:
 		'''
 		Find a user using a query search against the Collection object.
 		Advanced and Regular expression query search are allowed
 
 		# Params:
 		query - The query that will be used to search the Collection for a user\n
-		limit (optional) - The max number of users to be returned. 0 = all users
+		limit (optional) - The max number of users to be returned. 0 = all users\n
+
+		# Returns:
+		The user(s) that have matched the query
+		'''
+		if "Email" in query:
+			query["Email"] = sha256(query["Email"].encode()).hexdigest()
+		else:
+			raise UserDoesNotExist("Email not in query")
+
+		users = []
+		for itr in self.__usersCollections.find(query).limit(limit):
+			users.append(itr)
+
+		return users
+
+	def __findUsers(self, query: dict[str, str], limit: int=0) -> list[Cursor]:
+		'''
+		Find a user using a query search against the Collection object.
+		Advanced and Regular expression query search are allowed
+
+		# Params:
+		query - The query that will be used to search the Collection for a user\n
+		limit (optional) - The max number of users to be returned. 0 = all users\n
 
 		# Returns:
 		The user(s) that have matched the query
@@ -149,14 +205,7 @@ class DataBase:
 
 		return users
 
-	def __pad(self, plain_text: str):
-		'''
-		Pad a string
-		'''
-		number_of_bytes_to_pad = block_size - len(plain_text) % block_size
-		return plain_text + (number_of_bytes_to_pad * chr(number_of_bytes_to_pad))
-
-	def encrypt(self, user: dict, isUpdate=False) -> None:
+	def encrypt(self, user: dict, password: str, isUpdate=False) -> None:
 		'''
 		All user data must be encrypted using AES-128-CBC to ensure security.
 		Advanced and Regular expression query search are not allowed. This will
@@ -166,11 +215,12 @@ class DataBase:
 		# Params:
 		user - The dictionary that contains all user data and that data will be
 		encrypted\n
+		password - The password to encrypt the data\n
 		isUpdate (optional) - Do NOT set unless function is being called from
 		updateUser method
 		'''
 		if isUpdate == False:
-			if self.findUsers({"Email": user["Email"]}) != []:
+			if self.__findUsers({"Email": user["Email"]}) != []:
 				raise UserAlreadyExist("User already exist")
 
 		# add user's strings to data
@@ -181,7 +231,8 @@ class DataBase:
 
 		# add remaining data
 		key = next(itr)
-		data += str(user[key].year) + "," + str(user[key].month) + "\n"
+		IDX = user[key].find("-")
+		data += user[key][:IDX] + "," + user[key][IDX:] + "\n"
 
 		key = next(itr)
 		data += str(user[key].year) + "," + str(user[key].month) + "," + \
@@ -191,18 +242,23 @@ class DataBase:
 		data += str(user[key]) + "\n"
 		data += "Test this string"
 
-		# pad string
-		data = self.__pad(data)
+		# create cryptographically secure random numbers
+		NONCE = urandom(12)
+		SALT = urandom(block_size)
 
-		# encrypt the user's data using AES-128-CBC
-		iv = rand_new().read(block_size)
-		cipher = new(bytearray.fromhex(user["Password"]), MODE_CBC, iv)
-		encrypted = cipher.encrypt(data.encode())
+		# derive 32 byte key
+		key = scrypt(password.encode(), SALT, key_len=32, N=16384, r=8, p=1)
+
+		# AES-256-GCM algorithm
+		cipher: GcmMode = new(key, MODE_GCM, nonce=NONCE)
+
+		# encrypt
+		ciphertext, tag = cipher.encrypt_and_digest(data.encode())
 
 		# store encrypted data
 		document = {
 			"Email": user["Email"],
-			"Data": b64encode(iv + encrypted).decode("utf-8")
+			"Data": b64encode(NONCE + SALT + ciphertext + tag).decode('utf-8')
 		}
 		self.__usersCollections.insert_one(document)
 
@@ -214,23 +270,32 @@ class DataBase:
 		email - The user's data that needs to be loaded\n
 		password - The user's password
 		'''
+		email = sha256(email.encode()).hexdigest()
 		if self.__userData:
 			raise UserAlreadyLoaded("Cannnot decrypt user twice")
 
-		user: list[Cursor] = self.findUsers({"Email": email})
+		user: list[Cursor] = self.__findUsers({"Email": email})
 		if user == []:
 			raise UserDoesNotExist("User is not in database")
 
-		encrypted = b64decode(user[0]["Data"])
-		iv = encrypted[:block_size]
-		cipher = new(sha256(password.encode()).digest(), MODE_CBC, iv)
+		decoded = b64decode(user[0]["Data"])
 
+		# get useful components
+		NONCE = decoded[:12]
+		SALT = decoded[12:28]
+		ciphertext = decoded[28:-16]
+		tag = decoded[-16:]
+
+		# derive the key from the password
+		key = scrypt(password.encode(), salt=SALT, key_len=32, N=16384, r=8, p=1)
+
+		# decrypt
+		cipher = new(key, MODE_GCM, nonce=NONCE)
 		try:
-			plain_text = cipher.decrypt(encrypted[block_size:]).decode("utf-8")
+			plain_text = cipher.decrypt_and_verify(ciphertext, tag).decode('utf-8')
 		except:
 			raise IncorrectPassword("The password entered was incorrect")
 
-		plain_text: str = plain_text[:-ord(plain_text[len(plain_text) - 1:])]
 		lst: list[str] = plain_text.split("\n")
 
 		if lst[-1] != "Test this string":
@@ -239,17 +304,20 @@ class DataBase:
 		date1_delim = lst[10].find(",")
 		date2_delim = lst[11].find(",")
 		rdate2_delim = lst[11].rfind(",")
+		lst[12] = True if lst[12] == "True" else False
 
 		self.__userData = self.createUser(lst[0], lst[1], lst[2], lst[3], lst[4], lst[5],
 			lst[6], lst[7], lst[8], lst[9],
 
-			datetime(int(lst[10][:date1_delim]), int(lst[10][date1_delim+1:]), 1),
+			(lst[10][:date1_delim] + lst[10][date1_delim+1:]),
 
 			datetime(int(lst[11][:date2_delim]), int(lst[11][date2_delim+1: rdate2_delim]),
-			int(lst[11][rdate2_delim+1:])),
-			
-			bool(lst[12]))
+			int(lst[11][rdate2_delim+1:])), lst[12])
 
 	@property
 	def userData(self) -> dict:
 		return self.__userData
+
+	@property
+	def isConnected(self) -> bool:
+		return self.__isConnected

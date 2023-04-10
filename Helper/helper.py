@@ -1,7 +1,11 @@
 from sys import exit
 from os.path import expanduser, join
 from shutil import rmtree
+
 from Helper.Errors import ConnectionError
+from Robinhood_API.Login import UserAuth
+
+userAuth = UserAuth()
 
 def checkConnection():
 	from socket import create_connection
@@ -22,7 +26,8 @@ from Helper.creds import apiLoginId, transactionKey
 from PySimpleGUI.PySimpleGUI import WIN_CLOSED, Window
 
 def getPayment(email: str, ccn: str, code: str, state: str, city: str,
-	address: str, _zip: str, exp: str, fName: str, lName: str) -> tuple[bool, str]:
+	address: str, _zip: str, exp: str, fName: str, lName: str,
+	isCharging: bool) -> tuple[bool, str]:
 	'''
 	Charge a credit card. Useful Authorize.Net docs can be found at:\n
 	Responce Codes: https://developer.authorize.net/api/reference/features/errorandresponsecodes.html\n
@@ -40,6 +45,7 @@ def getPayment(email: str, ccn: str, code: str, state: str, city: str,
 	exp - Credit card expiration date\n
 	fName - First name\n
 	lName - Last name\n
+	isCharging - True if charging the credit card
 
 	# Returns:
 	A tuple containing if successful and the status code
@@ -62,7 +68,7 @@ def getPayment(email: str, ccn: str, code: str, state: str, city: str,
 
 	# order info
 	order = orderType()
-	order.invoiceNumber = "00001"
+	order.invoiceNumber = ""
 	order.description = "Stockify's Monthly Service Fee"
 
 	# address info
@@ -79,7 +85,7 @@ def getPayment(email: str, ccn: str, code: str, state: str, city: str,
 	# customer's identifying information
 	customerData = customerDataType()
 	customerData.type = "individual"
-	customerData.id = "99999456654"
+	customerData.id = ""
 	customerData.email = email
 
 	# Add values for transaction settings
@@ -99,7 +105,10 @@ def getPayment(email: str, ccn: str, code: str, state: str, city: str,
 
 	# transaction info
 	transaction = transactionRequestType()
-	transaction.transactionType = "authCaptureTransaction"
+	if isCharging:
+		transaction.transactionType = "authCaptureTransaction"
+	else:
+		transaction.transactionType = "authOnlyTransaction"
 	transaction.amount = Decimal("10.0")
 	transaction.payment = payment
 	transaction.order = order
@@ -122,20 +131,38 @@ def getPayment(email: str, ccn: str, code: str, state: str, city: str,
 	code: str = responce.messages.message.code.text
 	return (True, code) if code == "I00001" else (False, code)
 
-def exitApp(event, window: Window) -> bool:
+from robin_stocks.authentication import logout
+
+def killApp() -> None:
+	'''
+	Exit app ASAP
+	'''
+	rmtree(join(expanduser("~"), ".tokens"), ignore_errors=True)
+
+	if userAuth.isLoggedIn:
+		logout()
+
+	exit(0)
+
+def exitApp(event, window: Window, isLogout=False) -> bool:
 	'''
 	Determin if the event wants app to die
 
 	# Params:
 	event - If the user clicked exit or clicked the exit at the top left of
 	app\n
-	window - The window to close
+	window - The window to close\n
+	isLogout - True if you want to logout of Robinhood
 
 	# Returns:
 	True if event = Exit or WIN_CLOSED (see PyGUI) else False
 	'''
 	if((event == "Exit") or (event == WIN_CLOSED)):
 		window.close()
+
+		if((isLogout) and (userAuth.isLoggedIn)):
+			logout() # logout of user's robinhood account on close
+
 		rmtree(join(expanduser("~"), ".tokens"), ignore_errors=True)
 		return True
 	return False

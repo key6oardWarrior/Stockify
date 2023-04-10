@@ -15,31 +15,30 @@ else: # darwin
 
 from PySimpleGUI.PySimpleGUI import Button, Text, Window
 
-from Login import loginScreen, signUpScreen
+from Account import loginScreen, signUpScreen
 from TradeInfo import dataScreen
 from Helper.helper import exitApp, exit
 from Helper.creds import winName
 
-def landing():
-	layout = [
-		[Button("Login", pad=((39, 5), (0, 0))), Button("Sign Up"), Button("How to Use")],
-		[Text("Powered by Robin_Stocks, Authorize.Net,", text_color="light gray")],
-		[Text("and PySimpleGUI", text_color="light gray", pad=((71, 0), (0, 0)))]
-	]
-	isBack = True
+layout = [
+	[Button("Login", pad=((5, 5), (0, 0))), Button("Sign Up"), Button("Update Account Settings")],\
+	[Button("Update App", pad=((55, 0), (0, 0))), Button("How to Use")],
+	[Text("Powered by Robin_Stocks, Authorize.Net,", pad=((20, 0), (0, 0)), text_color="light gray")],
+	[Text("and PySimpleGUI", text_color="light gray", pad=((80, 0), (0, 0)))]
+]
+isBack = True
 
-	while isBack:
-		landingPage = Window(winName, layout, modal=True)
-		event, values = landingPage.read()
+while isBack:
+	landingPage = Window(winName, layout)
+	event, values = landingPage.read()
 
-		if exitApp(event, landingPage):
-			exit(0)
+	if exitApp(event, landingPage, True):
+		exit(0)
 
-		landingPage.close()
-		if event == "Login":
-			isBack = loginScreen()
-		elif event == "Sign Up":
-			isBack = signUpScreen()
+	landingPage.close()
+	if event == "Login":
+		isBack = loginScreen()
+	elif event == "Sign Up":
+		isBack = signUpScreen()
 
-landing()
 dataScreen()
