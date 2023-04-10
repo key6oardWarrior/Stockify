@@ -38,7 +38,7 @@ class Pages:
 			button = Button("Back", key="rep_back")
 
 			name: str = lst[0][0].DisplayText.lower()
-			if (lst[0][0].DisplayText in self.__houseMap) == False:
+			if (name in self.__houseMap) == False:
 				self.__houseMap[name] = Column(lst, size=(500, 500), scrollable=True)
 				self.__houseMap[name].add_row(button)
 			else:
@@ -53,7 +53,7 @@ class Pages:
 			tickerName = tickerName[tickerName.find(" ")+1:]
 			low = tickerName.lower()
 
-			if (tickerName in self.__houseTickers) == False:
+			if (low in self.__houseTickers) == False:
 				self.__houseTickers[low] = Column(lst, size=(500, 500), scrollable=True)
 				self.__houseTickers[low].add_row(button)
 			else:
