@@ -45,5 +45,6 @@ def updateScreen() -> bool:
 					win = Window(winName, [[Text("To update this app close this app and run the downloaded app"), Button("Ok")]])
 					win.read()
 					win.close()
+					return False
 			else:
 				layout.append([Text("The folder location selected is not a folder", text_color="red")])
