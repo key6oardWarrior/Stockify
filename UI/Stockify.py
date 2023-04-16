@@ -13,9 +13,10 @@ else: # darwin
 	path.append("/usr/local/bin/Stockify/UI")
 	path.append("/usr/local/bin/Stockify")
 
-from PySimpleGUI.PySimpleGUI import Button, Text, Window
+from PyGUI import Button, Text, Window
 
 from Account import loginScreen, signUpScreen
+from UpdateApp import updateScreen
 from TradeInfo import dataScreen
 from Helper.helper import exitApp, exit
 from Helper.creds import winName
@@ -40,5 +41,7 @@ while isBack:
 		isBack = loginScreen()
 	elif event == "Sign Up":
 		isBack = signUpScreen()
+	elif "Update App":
+		isBack = updateScreen()
 
 dataScreen()

@@ -23,7 +23,7 @@ paymentType, settingType, transactionRequestType)
 from authorizenet.apicontrollers import createTransactionController
 from Helper.creds import apiLoginId, transactionKey
 
-from PySimpleGUI.PySimpleGUI import WIN_CLOSED, Window
+from UI.PyGUI import WIN_CLOSED, Window
 
 def getPayment(email: str, ccn: str, code: str, state: str, city: str,
 	address: str, _zip: str, exp: str, fName: str, lName: str,
@@ -166,3 +166,33 @@ def exitApp(event, window: Window, isLogout=False) -> bool:
 		rmtree(join(expanduser("~"), ".tokens"), ignore_errors=True)
 		return True
 	return False
+
+class Version:
+	__major = 1
+	__minor = 0
+	__micro = 0
+
+	def __init__(self, version: str=None) -> None:
+		if version:
+			versionLst: list[str] = version.split(".")
+
+			self.__major = int(versionLst[0])
+			self.__minor = int(versionLst[1])
+			self.__micro = int(versionLst[2])
+
+	@property
+	def major(self) -> int:
+		return self.__major
+
+	@property
+	def minor(self) -> int:
+		return self.__minor
+
+	@property
+	def micro(self) -> int:
+		return self.__micro
+
+	@property
+	def version(self) -> str:
+		return "v" + str(self.__major) + "." + str(self.__minor) + "." + \
+			str(self.__micro)

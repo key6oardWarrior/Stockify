@@ -1,4 +1,4 @@
-from PySimpleGUI.PySimpleGUI import Button, Input, Text, Window
+from PyGUI import Button, Input, Text, Window
 
 from Helper.creds import winName
 from Helper.helper import exitApp, exit, getPayment, checkConnection, \
@@ -14,7 +14,7 @@ from json import loads
 from datetime import datetime
 from hashlib import sha256
 
-def getNextMonth() ->  datetime:
+def getNextMonth() -> datetime:
 	'''
 	Determin the date for one month from now
 
