@@ -13,16 +13,17 @@ else: # darwin
 	path.append("/usr/local/bin/Stockify/UI")
 	path.append("/usr/local/bin/Stockify")
 
-from PySimpleGUI.PySimpleGUI import Button, Text, Window
+from PyGUI import Button, Text, Window
 
 from Account import loginScreen, signUpScreen
+from UpdateApp import updateScreen
 from TradeInfo import dataScreen
 from Helper.helper import exitApp, exit
 from Helper.creds import winName
 
 layout = [
-	[Button("Login", pad=((5, 5), (0, 0))), Button("Sign Up"), Button("Update Account Settings")],\
-	[Button("Update App", pad=((55, 0), (0, 0))), Button("How to Use")],
+	[Button("Login", pad=((5, 5), (0, 0))), Button("Sign Up"), Button("Update Account Settings")],
+	[Button("Check for Updates", pad=((40, 0), (0, 0))), Button("How to Use")],
 	[Text("Powered by Robin_Stocks, Authorize.Net,", pad=((20, 0), (0, 0)), text_color="light gray")],
 	[Text("and PySimpleGUI", text_color="light gray", pad=((80, 0), (0, 0)))]
 ]
@@ -40,5 +41,7 @@ while isBack:
 		isBack = loginScreen()
 	elif event == "Sign Up":
 		isBack = signUpScreen()
+	elif event == "Check for Updates":
+		updateScreen()
 
 dataScreen()

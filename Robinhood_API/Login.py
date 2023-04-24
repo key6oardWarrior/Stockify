@@ -1,7 +1,7 @@
 from os.path import expanduser, join, exists, isfile
 from os import makedirs, remove
 
-from PySimpleGUI import Window, Text, Input, Button
+from UI.PyGUI import Window, Text, Input, Button
 
 from robin_stocks.authentication import generate_device_token, urls, pickle, \
 	respond_to_challenge
