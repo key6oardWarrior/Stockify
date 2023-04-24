@@ -69,7 +69,7 @@ def updateScreen() -> None:
 				FILE_NAME = join(values["browse"], f"Stockify{PKG_NAME}")
 
 				if exists(join(values["browse"], FILE_NAME)):
-					win = Window(winName, [[Text("The folder you selected already has the lastest version downloaded. Run the installer in that folder.", text_color="red")], [Button("Ok")]])
+					win = Window(winName, [[Text("The folder you selected already has the lastest version downloaded. Run the installer in that folder.", text_color="red")], [Button("Ok")]], modal=True)
 					win.read()
 					win.close()
 					update.close()
@@ -84,7 +84,7 @@ def updateScreen() -> None:
 					layout.append([Text("Check you internet connection", text_color="red")])
 					update.close()
 				else:
-					win = Window(winName, [[Text("To update this app close this app and run the installer"), Button("Ok")]])
+					win = Window(winName, [[Text("To update this app close this app and run the installer"), Button("Ok")]], modal=True)
 					win.read()
 					win.close()
 					update.close()

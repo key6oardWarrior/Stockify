@@ -182,7 +182,7 @@ def loginScreen() -> bool:
 					[Text("Do your bill is past due. Would you like to pay it now")],
 					[Button("Yes, pay now", key="pay"), Button("No", key="no_pay"), Button("Update payment info", key="update")]
 				]
-				overlayed = Window(winName, o_layout)
+				overlayed = Window(winName, o_layout, modal=True)
 
 				while True:
 					o_event, o_values = overlayed.read()
@@ -200,7 +200,7 @@ def loginScreen() -> bool:
 						killApp()
 
 					if o_event == "pay":
-						douleOverlayed = Window(winName, [[Text("Verify Credit Card Code:"), Input(key="code")], [Button("Submit")]])
+						douleOverlayed = Window(winName, [[Text("Verify Credit Card Code:"), Input(key="code")], [Button("Submit")]], modal=True)
 						oo_event, oo_values = douleOverlayed.read()
 
 						if ((exitApp(oo_event, douleOverlayed)) or
@@ -217,7 +217,7 @@ def loginScreen() -> bool:
 						else:
 							o_layout.append([Text(code[1], text_color="red")])
 							overlayed.close()
-							overlayed = Window(winName, layout)
+							overlayed = Window(winName, layout, modal=True)
 							continue
 
 						# update user's data
@@ -231,7 +231,7 @@ def loginScreen() -> bool:
 
 					elif o_event == "update":
 						overlayed.close()
-						overlayed = Window(winName, updateLayout)
+						overlayed = Window(winName, updateLayout, modal=True)
 						continue
 
 					elif o_event == "o_back":
@@ -240,7 +240,7 @@ def loginScreen() -> bool:
 							[Button("Yes, pay now", key="pay"), Button("No", "no_pay"), Button("Update payment info", key="update")]
 						]
 						overlayed.close()
-						overlayed = Window(winName, o_layout)
+						overlayed = Window(winName, o_layout, modal=True)
 						continue
 					
 					elif o_event == "o_submit":
@@ -267,7 +267,7 @@ def loginScreen() -> bool:
 
 						updateLayout.append([Text(code[1], text_color="red")])
 						overlayed.close()
-						overlayed = Window(winName, updateLayout)
+						overlayed = Window(winName, updateLayout, modal=True)
 						del updateLayout[-1]
 						continue
 
