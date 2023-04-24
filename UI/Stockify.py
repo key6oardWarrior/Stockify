@@ -23,7 +23,7 @@ from Helper.creds import winName
 
 layout = [
 	[Button("Login", pad=((5, 5), (0, 0))), Button("Sign Up"), Button("Update Account Settings")],
-	[Button("Update App", pad=((55, 0), (0, 0))), Button("How to Use")],
+	[Button("Check for Updates", pad=((40, 0), (0, 0))), Button("How to Use")],
 	[Text("Powered by Robin_Stocks, Authorize.Net,", pad=((20, 0), (0, 0)), text_color="light gray")],
 	[Text("and PySimpleGUI", text_color="light gray", pad=((80, 0), (0, 0)))]
 ]
@@ -41,7 +41,7 @@ while isBack:
 		isBack = loginScreen()
 	elif event == "Sign Up":
 		isBack = signUpScreen()
-	elif "Update App":
-		isBack = updateScreen()
+	elif event == "Check for Updates":
+		updateScreen()
 
 dataScreen()
