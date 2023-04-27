@@ -131,6 +131,8 @@ class DataBase:
 			raise IncorrectPassword("User not decrypted")
 
 		self.__usersCollections.delete_one(query)
+		del self.__userData
+		self.__userData = None
 
 	def updateUser(self, query: dict[str, str], newValue: dict[str, str],
 		password: str) -> None:

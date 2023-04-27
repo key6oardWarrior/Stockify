@@ -50,7 +50,7 @@ def updateAccount() -> bool:
 		[Text("Last Name:"), Input(key="Last Name")],
 		[Text("Expiration Date (YYYY-MM):"), Input(key="Exp date")],
 
-		[Button("Submit"), Button("Back")]
+		[Button("Submit"), Button("Back"), Button("Delete Account", key="del", button_color="red")]
 	]
 	SIZE = len(layout)
 	O_SIZE = len(oLayout)
@@ -135,11 +135,30 @@ def updateAccount() -> bool:
 							newValues[key] = value.strip()
 
 				if oValues["acc_password"] == "":
-					db.updateUser({"Email": values["email"]}, newValues,
-						values["password"])
+					try:
+						db.updateUser({"Email": values["email"]}, newValues,
+							values["password"])
+					except:
+						oLayout.append([Text("Check your internet connection", text_color="red")])
+						win.close()
+						continue
 				else:
-					db.updateUser({"Email": values["email"]}, newValues,
-						oValues["acc_password"])
+					try:
+						db.updateUser({"Email": values["email"]}, newValues,
+							oValues["acc_password"])
+					except:
+						oLayout.append([Text("Check your internet connection", text_color="red")])
+						win.close()
+						continue
+
+			elif oEvent == "del":
+				try:
+					db.removeUser({"Email": values["email"]})
+					db.close()
+				except:
+					oLayout.append([Text("Check your internet connection", text_color="red")])
+					win.close()
+					continue
 
 			layout.append([Text("Accout changes were successful")])
 			win.close()
