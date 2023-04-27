@@ -71,6 +71,7 @@ def updateAccount() -> bool:
 		if len(layout) > SIZE:
 			layout = layout[:-1]
 
+		values["email"] = values["email"].strip()
 		if((values["email"] == "") or (values["password"] == "")):
 			layout.append([Text("Username and password are required", text_color="red")])
 			updateAcc.close()
