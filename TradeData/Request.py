@@ -2,7 +2,7 @@ from json import loads
 
 from bs4 import BeautifulSoup
 from requests import get
-from threading import Lock, Thread
+from threading import Thread
 
 from Helper.Errors import ConnectionError
 
@@ -16,9 +16,6 @@ class Request:
 	__loadedHouse = []
 	__senate_db = "https://senate-stock-watcher-data.s3-us-west-2.amazonaws.com/"
 	__house_db = "https://house-stock-watcher-data.s3-us-west-2.amazonaws.com/"
-	# A mutex is needed to access this resource from inside the class
-	__downloadFailed = []
-	__mutex: Lock = Lock()
 	__days: int
 
 	def __set_dbLocation(self, soup: BeautifulSoup, isHouse: bool=True) -> None:
@@ -94,9 +91,7 @@ class Request:
 				self.__loadedSenate.append(loads(get(
 					self.__senate_db + self.__senate_dbLocations[itr]).text))
 			except:
-				self.__mutex.acquire(True)
-				self.__downloadFailed.append(itr)
-				self.__mutex.release()
+				pass
 
 	def download(self) -> None:
 		'''
@@ -110,9 +105,7 @@ class Request:
 				self.__loadedHouse.append(loads(get(
 					self.__house_db + self.__house_dbLocations[itr]).text))
 			except:
-				self.__mutex.acquire(True)
-				self.__downloadFailed.append(itr)
-				self.__mutex.release()
+				pass
 
 		thread.join()
 
@@ -123,7 +116,3 @@ class Request:
 	@property
 	def loadedHouse(self) -> list:
 		return self.__loadedHouse
-
-	@property
-	def downloadFailed(self) -> list:
-		return self.__downloadFailed

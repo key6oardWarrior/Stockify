@@ -440,7 +440,7 @@ def dataScreen() -> None:
 	request: Request
 	layout = [
 		[Text("How many past days of congress stock trading do you want to see (up to 1095 days ago):"), Input(key="days")],
-		[Text("Depending on your internet speed this could take a few seconds, or a few mins. The app may go to sleep, so please wait")],
+		[Text("Depending on your internet speed this could take a few seconds, or a few mins. The app may stop responding, so please wait")],
 		[Button("Submit", key="sub")]
 	]
 
