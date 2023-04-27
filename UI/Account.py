@@ -119,6 +119,9 @@ def loginScreen() -> bool:
 			db.connect()
 
 		if event == "submit":
+			values["email"] = values["email"].strip()
+			values["mfa"] = values["mfa"].strip()
+
 			if((values["email"] == "") or (values["password"] == "")):
 				layout.append([Text("Enter your email and password to login", text_color="red")])
 				login.close()
@@ -271,7 +274,7 @@ def loginScreen() -> bool:
 						del updateLayout[-1]
 						continue
 
-			attemptLogin(values["email"].strip(), userData["Password"], values["mfa"].strip())
+			attemptLogin(values["email"], userData["Password"], values["mfa"])
 			if userAuth.isLoggedIn == False:
 				login.close()
 				layout.append([Text(userAuth.loginInfo, text_color="red")])
@@ -420,7 +423,7 @@ def signUpScreen() -> bool:
 			signUp = Window(winName, layout)
 			continue
 
-		attemptLogin(values["email"].strip(), values["password"], values["mfa"].strip())
+		attemptLogin(values["email"], values["password"], values["mfa"])
 		if userAuth.isLoggedIn == False:
 			layout.append([Text(f"Robinhood's servers said, \"{userAuth.loginInfo}\"", text_color="red")])
 			signUp.close()
