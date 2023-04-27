@@ -14,7 +14,7 @@ from json import loads
 from datetime import datetime
 from hashlib import sha256
 
-def getNextMonth() -> datetime:
+def _getNextMonth() -> datetime:
 	'''
 	Determin the date for one month from now
 
@@ -30,12 +30,12 @@ def getNextMonth() -> datetime:
 
 	return nextMonth
 
-def _attemptLogin(email: str, password: str, mfa: str=None) -> None:
+def attemptLogin(email: str, password: str, mfa: str=None) -> None:
 	if mfa == "":
 		mfa = None
 	userAuth.login(email, password, mfa)
 
-def collectPayment(values: dict[str, str], isCharging: bool) -> tuple[bool, str]:
+def _collectPayment(values: dict[str, str], isCharging: bool) -> tuple[bool, str]:
 	'''
 	Either charge the credit card, or check if it is valid
 
@@ -209,7 +209,7 @@ def loginScreen() -> bool:
 							o_layout.append([Text("Incorrect Credit Card Code", text_color="red")])
 							continue
 
-						code: tuple[bool, str] = collectPayment(values, True)
+						code: tuple[bool, str] = _collectPayment(values, True)
 						douleOverlayed.close()
 
 						if code[0]:
@@ -223,7 +223,7 @@ def loginScreen() -> bool:
 						# update user's data
 						db.decrypt(values["email"], values["password"])
 						newValues = {
-							"Pay date": getNextMonth(),
+							"Pay date": _getNextMonth(),
 							"Was Last Payment Recieved": True
 						}
 						db.updateUser({"Email": values["email"]}, newValues, values["password"])
@@ -245,7 +245,7 @@ def loginScreen() -> bool:
 					
 					elif o_event == "o_submit":
 						o_values["email"] = userData["email"]
-						code: tuple[bool, str] = collectPayment(o_values, True)
+						code: tuple[bool, str] = _collectPayment(o_values, True)
 
 						if code[0]:
 							updatedData = {
@@ -259,7 +259,7 @@ def loginScreen() -> bool:
 								"Last Name": o_values["lName"],
 								"Exp date": o_values["exp"],
 								"Was Last Payment Recieved": True,
-								"Pay day": getNextMonth()
+								"Pay day": _getNextMonth()
 							}
 							db.updateUser({"Email": values["email"]}, updatedData, values["password"])
 							overlayed.close()
@@ -271,7 +271,7 @@ def loginScreen() -> bool:
 						del updateLayout[-1]
 						continue
 
-			_attemptLogin(values["email"].strip(), userData["Password"], values["mfa"].strip())
+			attemptLogin(values["email"].strip(), userData["Password"], values["mfa"].strip())
 			if userAuth.isLoggedIn == False:
 				login.close()
 				layout.append([Text(userAuth.loginInfo, text_color="red")])
@@ -282,7 +282,9 @@ def loginScreen() -> bool:
 			return True
 
 	db.close()
-	login.close()
+
+	if login.is_closed == False:
+		login.close()
 	return False
 
 def _isEmpty(values) -> bool:
@@ -418,7 +420,7 @@ def signUpScreen() -> bool:
 			signUp = Window(winName, layout)
 			continue
 
-		_attemptLogin(values["email"].strip(), values["password"], values["mfa"].strip())
+		attemptLogin(values["email"].strip(), values["password"], values["mfa"].strip())
 		if userAuth.isLoggedIn == False:
 			layout.append([Text(f"Robinhood's servers said, \"{userAuth.loginInfo}\"", text_color="red")])
 			signUp.close()
@@ -440,13 +442,13 @@ def signUpScreen() -> bool:
 			continue
 
 		# test if credit card works
-		code: tuple = collectPayment(values, False)
+		code: tuple = _collectPayment(values, False)
 
 		if code[0]:
 			usr: dict = db.createUser(values["email"], values["password"], values["ccn"],
 				values["code"], values["state"], values["city"], values["addy"],
 				values["zip"], values["fName"], values["lName"], values["exp"],
-				getNextMonth(), code[0], False
+				_getNextMonth(), code[0], False
 			)
 		else:
 			layout.append([Text(code[1], text_color="red")])
@@ -463,7 +465,7 @@ def signUpScreen() -> bool:
 			continue
 
 		# charge credit card this time
-		code: tuple = collectPayment(values, True)
+		code: tuple = _collectPayment(values, True)
 
 		if code[0] == False:
 			layout.append([Text(code[1], text_color="red")])

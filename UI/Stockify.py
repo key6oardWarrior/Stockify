@@ -18,6 +18,7 @@ from PyGUI import Button, Text, Window
 from Account import loginScreen, signUpScreen
 from UpdateApp import updateScreen
 from TradeInfo import dataScreen
+from UpdateAccount import updateAccount
 from Helper.helper import exitApp, exit
 from Helper.creds import winName
 
@@ -43,5 +44,7 @@ while isBack:
 		isBack = signUpScreen()
 	elif event == "Check for Updates":
 		updateScreen()
+	elif event == "Update Account Settings":
+		isBack = updateAccount()
 
 dataScreen()

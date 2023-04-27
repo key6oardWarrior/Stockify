@@ -5,7 +5,6 @@ from hashlib import sha256
 from Cryptodome.Cipher._mode_gcm import GcmMode
 from Cryptodome.Cipher.AES import MODE_GCM, block_size, new
 from Cryptodome.Protocol.KDF import scrypt
-from Cryptodome.Util.Padding import pad, unpad
 from os import urandom
 
 from pymongo import MongoClient
@@ -50,6 +49,8 @@ class DataBase:
 		if self.__isConnected:
 			self.__client.close()
 			self.__isConnected = False
+			del self.__userData
+			self.__userData = None
 
 	def createUser(self, email: str, password: str, ccn: str,
 		code: str, state: str, city: str, addy: str, _zip: str, fName: str,
@@ -313,6 +314,13 @@ class DataBase:
 
 			datetime(int(lst[11][:date2_delim]), int(lst[11][date2_delim+1: rdate2_delim]),
 			int(lst[11][rdate2_delim+1:])), lst[12])
+
+	def logout(self) -> None:
+		'''
+		Delete all of the user's decrypted data
+		'''
+		del self.__userData
+		self.__userData = None
 
 	@property
 	def userData(self) -> dict:
