@@ -100,7 +100,7 @@ def login(username=None, password=None, expiresIn=86400, scope='internal', by_sm
 	# Handle case where mfa or challenge is required.
 	if data:
 		if 'mfa_required' in data:
-			win = Window(winName, [[Text("Please type in the MFA code:"), Input(key="code"), Button("Submit")]])
+			win = Window(winName, [[Text("Please type in the MFA code:"), Input(key="code"), Button("Submit")]], modal=True)
 			event, values = win.read()
 
 			if exitApp(event, win):
@@ -111,7 +111,7 @@ def login(username=None, password=None, expiresIn=86400, scope='internal', by_sm
 
 			while (res.status_code != 200):
 				win.close()
-				win = Window(winName, [[Text("That MFA code was not correct. Please type in another MFA code:"), Input(key="code"), Button("Submit")]])
+				win = Window(winName, [[Text("That MFA code was not correct. Please type in another MFA code:"), Input(key="code"), Button("Submit")]], modal=True)
 				event, values = win.read()
 
 				if exitApp(event, win):

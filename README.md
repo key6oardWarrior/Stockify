@@ -9,6 +9,7 @@
 <ol>
  <li>All code must use tabs over spaces</li>
  <li>One tab is equal to four spaces</li>
+ <li>All lines of code must be 80 chars or else. The only exception to this rule is for layout array that are fed to the Window constructor
 </ol>
 
 <h2>Notes about the READMEs</h2>
