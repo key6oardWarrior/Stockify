@@ -1,9 +1,10 @@
-from PyGUI import Button, Window, Text, Column, Input
+from PyGUI import Button, Window, Text, Column, Input, ProgressBar
 from threading import Thread
 
 from TradeData.Request import Request
 from Helper.creds import winName
 from Helper.helper import exitApp, exit
+from time import sleep
 
 class Pages:
 	__housePages: dict[int, Column] = dict({})
@@ -433,6 +434,32 @@ def dataVisulization(request: Request) -> None:
 	createLeftSide.join()
 	createRightSide.join()
 
+def loadingScreen(thread: Thread) -> None:
+	text = "Downloaing and Setting Up Data"
+	dotCnt = 0
+	loading = Window(winName, [[Text(text, key="text")]], finalize=True)
+
+	while True:
+		event, values = loading.read(timeout=0)
+
+		if exitApp(event, loading, True):
+			exit(0)
+
+		if thread.is_alive() == False:
+			loading.close()
+			break
+
+		if dotCnt == 4:
+			text = text[:-4]
+			dotCnt = 0
+		else:
+			text += "."
+			dotCnt += 1
+
+		loading["text"].update(text)
+		loading.refresh()
+		sleep(.5)
+
 def dataScreen() -> None:
 	'''
 	Display all congress trade data
@@ -440,7 +467,7 @@ def dataScreen() -> None:
 	request: Request
 	layout = [
 		[Text("How many past days of congress stock trading do you want to see (up to 1095 days ago):"), Input(key="days")],
-		[Text("Depending on your internet speed this could take a few seconds, or a few mins. The app may go to sleep, so please wait")],
+		[Text("Depending on your internet speed this could take a few seconds, or a few mins. The app may stop responding, so please wait")],
 		[Button("Submit", key="sub")]
 	]
 
@@ -471,9 +498,11 @@ def dataScreen() -> None:
 			data.close()
 			data = Window(winName, layout, modal=True)
 
-	dataVisulization(request)
-
+	thread = Thread(target=dataVisulization, args=(request,))
 	data.close()
+	thread.start()
+	loadingScreen(thread)
+
 	repPage = 0
 	senPage = 0
 	_houseSize = pages.houseSize
@@ -637,7 +666,9 @@ def dataScreen() -> None:
 				
 				pages.clearRep()
 				pages.clearSen()
-				dataVisulization(request)
+				thread = Thread(target=dataVisulization, args=(request, ))
+				thread.start()
+				loadingScreen(thread)
 				pages.emptyCheck()
 				data.close()
 				_houseSize = pages.houseSize

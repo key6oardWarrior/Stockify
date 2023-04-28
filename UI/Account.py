@@ -285,9 +285,7 @@ def loginScreen() -> bool:
 			return True
 
 	db.close()
-
-	if login.is_closed == False:
-		login.close()
+	login.close()
 	return False
 
 def _isEmpty(values) -> bool:
