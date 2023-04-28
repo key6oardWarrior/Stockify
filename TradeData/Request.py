@@ -18,6 +18,23 @@ class Request:
 	__house_db = "https://house-stock-watcher-data.s3-us-west-2.amazonaws.com/"
 	__days: int
 
+	def __init__(self, days: int) -> None:
+		self.__days = days
+		thread = Thread(target=self.__orgnizeHouse)
+		thread.start()
+
+		senateDB: str = "https://senate-stock-watcher-data.s3-us-west-2.amazonaws.com/aggregate/filemap.xml"
+
+		try:
+			senateSoup: BeautifulSoup = BeautifulSoup(get(senateDB).text,
+				features="lxml")
+		except:
+			raise ConnectionError(f"Could not get {senateDB}")
+
+		self.__set_dbLocation(senateSoup, False)
+		self.__findDates(iter(self.__senate_dbLocations.keys()), False)
+		thread.join()
+
 	def __set_dbLocation(self, soup: BeautifulSoup, isHouse: bool=True) -> None:
 		'''
 		Set data base locations
@@ -64,23 +81,6 @@ class Request:
 
 		self.__set_dbLocation(houseSoup)
 		self.__findDates(iter(self.__house_dbLocations.keys()))
-
-	def __init__(self, days: int) -> None:
-		self.__days = days
-		thread = Thread(target=self.__orgnizeHouse)
-		thread.start()
-
-		senateDB: str = "https://senate-stock-watcher-data.s3-us-west-2.amazonaws.com/aggregate/filemap.xml"
-
-		try:
-			senateSoup: BeautifulSoup = BeautifulSoup(get(senateDB).text,
-				features="lxml")
-		except:
-			raise ConnectionError(f"Could not get {senateDB}")
-
-		self.__set_dbLocation(senateSoup, False)
-		self.__findDates(iter(self.__senate_dbLocations.keys()), False)
-		thread.join()
 
 	def __senateDownload(self) -> None:
 		'''
