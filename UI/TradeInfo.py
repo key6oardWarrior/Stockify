@@ -1,4 +1,4 @@
-from PyGUI import Button, Window, Text, Column, Input, ProgressBar
+from PyGUI import Button, Window, Text, Column, Input
 from threading import Thread
 
 from TradeData.Request import Request
@@ -65,7 +65,7 @@ class Pages:
 				self.__houseTickers[low].add_row(button)
 
 		else:
-			lst.append([Button("Back", key="sen_back")])
+			button = Button("Back", key="sen_back")
 
 			name: str = lst[0][0].DisplayText.lower()
 			if (name in self.__senateMap) == False:
@@ -74,6 +74,21 @@ class Pages:
 				del self.__senateMap[name].Rows[-1]
 				for row in lst[1:]:
 					self.__senateMap[name].add_row(row[0])
+
+			# add the stock's ticker name to the map
+			tickerName: str = lst[8][0].DisplayText
+			tickerName = tickerName[tickerName.find(" ")+1:]
+			low = tickerName.lower()
+
+			if (low in self.__senateTickers) == False:
+				self.__senateTickers[low] = Column(lst, size=(500, 500), scrollable=True)
+				self.__senateTickers[low].add_row(button)
+			else:
+				del self.__senateTickers[low].Rows[-1]
+				for row in lst:
+					self.__senateTickers[low].add_row(row[0])
+
+				self.__senateTickers[low].add_row(button)
 
 	def addPage(self, col: Column, isHouse: bool) -> None:
 		'''
@@ -265,6 +280,7 @@ def createHeadLine(isHouse: bool) -> Column:
 		[
 			[Text("Senate's Trades:", pad=(200, 0))],
 			[Button("Search", key="sen_search"), Text("Enter Senator's full name:"), Input(key="sen_name", size=(33, None))],
+			[Button("Search", key="senateTicker"), Text("Enter the ticker name of the stock:"), Input(key="sen_ticker", size=(27, None))],
 			[Text("-------------------------------------------------------------------------------------------------------------------------")]
 		],
 		size=(500, 500), scrollable=True
@@ -328,6 +344,11 @@ def rightSide(senateTrades) -> None:
 					rightCol.add_row(amt)
 					comment = Text("\tComment: " + trade["comment"])
 					rightCol.add_row(comment)
+
+					END_IDX = trade["ticker"].rfind("</a>")
+					if END_IDX > -1:
+						trade["ticker"] = trade["ticker"][trade["ticker"].index(">")+1: END_IDX]
+
 					ticker = Text("\tTicker: " + trade["ticker"])
 					rightCol.add_row(ticker)
 
@@ -400,13 +421,21 @@ def leftSide(houseTrades) -> None:
 					leftCol.add_row(amt)
 					cap = Text("\tCap Gains Over 200: " + str(trade["cap_gains_over_200"]))
 					leftCol.add_row(cap)
-					button = Button("Trade This Stock")
-					leftCol.add_row(button)
+
+					if trade["ticker"] != "--":
+						button = Button("Trade This Stock")
+						leftCol.add_row(button)
 
 					line = Text("\t------------------")
-					pages.updateMap([[name], [owner], [ticker], [desc],
-						[transDate], [transType], [amt], [cap], [button],
-						[line]], True)
+
+					if trade["ticker"] != "--":
+						pages.updateMap([[name], [owner], [ticker], [desc],
+							[transDate], [transType], [amt], [cap], [button],
+							[line]], True)
+					else:
+						pages.updateMap([[name], [owner], [ticker], [desc],
+							[transDate], [transType], [amt], [cap], [line]],
+							True)
 
 					if cnt != SIZE:
 						leftCol.add_row(line)
@@ -702,6 +731,15 @@ def dataScreen() -> None:
 
 		elif event == "senateTicker":
 			temp = pages.searchTickers(values["sen_ticker"], False)
-			tempWin = Window(winName, [[data.Rows[0][0], temp]])
-			data.close()
-			data = tempWin
+
+			if type(temp) == Column:
+				tempWin = Window(winName, [[data.Rows[0][0], temp]])
+				data.close()
+				data = tempWin
+			else:
+				data.Rows[0][1].Rows.insert(0, temp)
+				tempWin = Window(winName, [[data.Rows[0][0], data.Rows[0][1]]])
+				data.close()
+				data = tempWin
+				del tempWin
+				isAdded[1] = True

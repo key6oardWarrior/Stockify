@@ -30,10 +30,8 @@ def _getNextMonth() -> datetime:
 
 	return nextMonth
 
-def attemptLogin(email: str, password: str, mfa: str=None) -> None:
-	if mfa == "":
-		mfa = None
-	userAuth.login(email, password, mfa)
+def attemptLogin(email: str, password: str) -> None:
+	userAuth.login(email, password)
 
 def _collectPayment(values: dict[str, str], isCharging: bool) -> tuple[bool, str]:
 	'''
@@ -75,7 +73,6 @@ def loginScreen() -> bool:
 		[Text("Enter your robinhood email address:"), Input(key="email", size=(30, 1))],
 		[Text("Enter your password:"), Input("",
 			key="password", password_char="*", size=(15, 1), do_not_clear=False)],
-		[Text("Enter two factor authentication code. If one is not needed leave blank:"), Input(key="mfa")],
 		[Button("Submit", key="submit"), Button("Back", key="back")]
 	]
 
@@ -120,7 +117,6 @@ def loginScreen() -> bool:
 
 		if event == "submit":
 			values["email"] = values["email"].strip()
-			values["mfa"] = values["mfa"].strip()
 
 			if((values["email"] == "") or (values["password"] == "")):
 				layout.append([Text("Enter your email and password to login", text_color="red")])
@@ -274,7 +270,7 @@ def loginScreen() -> bool:
 						del updateLayout[-1]
 						continue
 
-			attemptLogin(values["email"], userData["Password"], values["mfa"])
+			attemptLogin(values["email"], userData["Password"])
 			if userAuth.isLoggedIn == False:
 				login.close()
 				layout.append([Text(userAuth.loginInfo, text_color="red")])
@@ -335,7 +331,6 @@ def _isEmpty(values) -> bool:
 
 def _stripValues(values):
 	values["email"] = values["email"].strip()
-	values["mfa"] = values["mfa"].strip()
 	values["ccn"] = values["ccn"].strip()
 	values["code"] = values["code"].strip()
 	values["state"] = values["state"].strip()
@@ -358,8 +353,6 @@ def signUpScreen() -> bool:
 		[Text("Create an account password:"), Input("", key="acc_password", password_char="*")],
 		[Text("Enter your robinhood account password (must be different from account password):"), Input("", key="password",
 			password_char="*")],
-		[Text("Enter two factor authentication code. If one is not needed leave blank:"),
-			Input(key="mfa")],
 		[Text("Enter your credit card number:"), Input("", key="ccn")],
 		[Text("Enter credit card code:"), Input("", key="code",
 			password_char="*")],
@@ -421,7 +414,7 @@ def signUpScreen() -> bool:
 			signUp = Window(winName, layout)
 			continue
 
-		attemptLogin(values["email"], values["password"], values["mfa"])
+		attemptLogin(values["email"], values["password"])
 		if userAuth.isLoggedIn == False:
 			layout.append([Text(f"Robinhood's servers said, \"{userAuth.loginInfo}\"", text_color="red")])
 			signUp.close()
