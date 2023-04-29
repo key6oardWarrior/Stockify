@@ -164,16 +164,13 @@ class UserAuth:
 	def __init__(self) -> None:
 		pass
 
-	def login(self, uName: str, passwd: str, mfa: str) -> None:
+	def login(self, uName: str, passwd: str) -> None:
 		# don't login twice
 		if self.__isLoggedIn:
 			return
 
 		# robin_stocks.authentication.login
-		if mfa == "":
-			self.__loginInfo, self.__isLoggedIn = login(uName, passwd)
-		else:
-			self.__loginInfo, self.__isLoggedIn = login(uName, passwd, mfa_code=mfa)
+		self.__loginInfo, self.__isLoggedIn = login(uName, passwd)
 
 	@property
 	def isLoggedIn(self) -> bool:
