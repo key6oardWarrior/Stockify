@@ -328,6 +328,11 @@ def rightSide(senateTrades) -> None:
 					rightCol.add_row(amt)
 					comment = Text("\tComment: " + trade["comment"])
 					rightCol.add_row(comment)
+
+					END_IDX = trade["ticker"].rfind("</a>")
+					if END_IDX > -1:
+						trade["ticker"] = trade["ticker"][trade["ticker"].index(">")+1: END_IDX]
+
 					ticker = Text("\tTicker: " + trade["ticker"])
 					rightCol.add_row(ticker)
 
