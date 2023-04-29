@@ -1,18 +1,19 @@
-from os import removedirs, system
+from os import system
 from sys import platform
 from os.path import join, expanduser
+from shutil import rmtree
 
 def _getAlias() -> str:
-	if system("py") == 0:
-		return "py"
-
-	if system("py3") == 0:
+	if system("py3 --help") == 0:
 		return "py3"
 
-	if system("python") == 0:
+	if system("py --help") == 0:
+		return "py"
+
+	if system("python --help") == 0:
 		return "python"
 
-	if system("python3") == 0:
+	if system("python3 --help") == 0:
 		return "python3"
 
 def uninstall() -> None:
@@ -28,10 +29,10 @@ def uninstall() -> None:
 
 	alias = _getAlias()
 
-	for itr in open(join(dataDir, "Dependencies/requirements.txt", "r")).readlines():
+	for itr in open(join(dataDir, "Dependencies/requirements.txt"), "r").readlines():
 		if itr == "lxml==4.9.2":
 			continue
 
-		system(f"{alias} -m pip uninstall {itr}")
+		system(f"echo Y | {alias} -m pip uninstall {itr}")
 
-	removedirs(dataDir)
+	rmtree(dataDir, True)
