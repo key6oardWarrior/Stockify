@@ -405,13 +405,21 @@ def leftSide(houseTrades) -> None:
 					leftCol.add_row(amt)
 					cap = Text("\tCap Gains Over 200: " + str(trade["cap_gains_over_200"]))
 					leftCol.add_row(cap)
-					button = Button("Trade This Stock")
-					leftCol.add_row(button)
+
+					if trade["ticker"] != "--":
+						button = Button("Trade This Stock")
+						leftCol.add_row(button)
 
 					line = Text("\t------------------")
-					pages.updateMap([[name], [owner], [ticker], [desc],
-						[transDate], [transType], [amt], [cap], [button],
-						[line]], True)
+
+					if trade["ticker"] != "--":
+						pages.updateMap([[name], [owner], [ticker], [desc],
+							[transDate], [transType], [amt], [cap], [button],
+							[line]], True)
+					else:
+						pages.updateMap([[name], [owner], [ticker], [desc],
+							[transDate], [transType], [amt], [cap], [line]],
+							True)
 
 					if cnt != SIZE:
 						leftCol.add_row(line)
