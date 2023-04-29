@@ -1,13 +1,10 @@
 from os import mkdir, getcwd
 from os.path import isdir, join, expanduser
 from shutil import copytree, move, rmtree
-from sys import platform, path, version_info
+from sys import platform, path
 from pip._internal import main
 
-from PySimpleGUI import Text, Button, Window
-
 path.append(path[0][:path[0].rfind("\\")])
-from Helper.helper import exit, exitApp
 
 def lst2Str(lst: list[str]) -> str:
 	'''
@@ -56,25 +53,6 @@ def createPath(dataDir: str, pyPackages: str) -> None:
 		from collections import MutableSequence
 	except:
 		fixFile(join(pyPackages, "pyxb\\binding\\content.py"))
-
-layout: list[list] = []
-if version_info.major != 3:
-	possible2Continue = False
-	layout.append([Text("Your version of Python is not supported :(\nPlease install Python 3.11, or greater. To install Python please click on Python installer")])
-elif version_info.minor < 11:
-	possible2Continue = True
-	layout.append([Text("While it is possible to run this program with your Python version.\nWe recommend downloading the version of Python that came with this installer.")])
-	layout.append([Button("Continue Without Updating", button_color="light gray", key="continue"), Button("Exit", key="exit")])
-
-if len(layout) > 0:
-	win = Window("Stockify", layout)
-
-	event, values = win.read()
-	if possible2Continue:
-		if(exitApp(event, win)):
-			exit(0)
-	else:
-		exit(0)
 
 # upgrade pip and install all required dependencies
 main(["install", "--upgrade", "pip"])

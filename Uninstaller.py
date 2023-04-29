@@ -1,43 +1,38 @@
-from os import removedirs, system
+from os import system
 from sys import platform
 from os.path import join, expanduser
+from shutil import rmtree
 
-def getAlias() -> str:
-	if system("py") == 0:
-		return "py"
-
-	if system("py3") == 0:
+def _getAlias() -> str:
+	if system("py3 --help") == 0:
 		return "py3"
 
-	if system("python") == 0:
+	if system("py --help") == 0:
+		return "py"
+
+	if system("python --help") == 0:
 		return "python"
 
-	if system("python3") == 0:
+	if system("python3 --help") == 0:
 		return "python3"
 
-if platform == "win32":
-	# create Stockify dir
-	usr = expanduser("~")
-	dataDir = usr + "\\AppData\\Local\\Stockify"
-	# create a needed missing directory
-	pyPackages = usr + "\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages"
-elif((platform == "linux") or (platform == "linux2")):
-	# create Stockify dir
-	dataDir = "/usr/local/Stockify"
-	# create a needed missing directory
-	pyPackages = "/usr/lib/python3/dist-packages"
-else: # darwin
-	# create Stockify dir
-	dataDir = "/usr/local/bin/Stockify"
-	# create a needed missing directory
-	pyPackages = ""
+def uninstall() -> None:
+	if platform == "win32":
+		# create Stockify dir
+		dataDir = expanduser("~") + "\\AppData\\Local\\Stockify"
+	elif((platform == "linux") or (platform == "linux2")):
+		# create Stockify dir
+		dataDir = "/usr/local/Stockify"
+	else: # darwin
+		# create Stockify dir
+		dataDir = "/usr/local/bin/Stockify"
 
-alias = getAlias()
+	alias = _getAlias()
 
-for itr in open(join(dataDir, "Dependencies/requirements.txt", "r")).readlines():
-	if itr == "lxml==4.9.2":
-		continue
+	for itr in open(join(dataDir, "Dependencies/requirements.txt"), "r").readlines():
+		if itr == "lxml==4.9.2":
+			continue
 
-	extCode: int = system(f"{alias} -m pip uninstall {itr}")
+		system(f"echo Y | {alias} -m pip uninstall {itr}")
 
-removedirs(dataDir)
+	rmtree(dataDir, True)
