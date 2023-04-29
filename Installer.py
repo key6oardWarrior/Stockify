@@ -78,7 +78,8 @@ if len(layout) > 0:
 
 # upgrade pip and install all required dependencies
 main(["install", "--upgrade", "pip"])
-for package in open(join(getcwd(), join("bins", join("Dependencies",
+CWD = getcwd()
+for package in open(join(CWD, join(join("Dependencies",
 	"requirements.txt"))), "r").readlines():
 	main(["install", package])
 
@@ -105,4 +106,8 @@ else: # darwin
 if isdir(dataDir):
 	rmtree(dataDir, True)
 
-move("bins", dataDir)
+# throws exception for moving bin folder, but dont want it to do that anyway
+try:
+	move(CWD, dataDir)
+except Exception as e:
+	pass
