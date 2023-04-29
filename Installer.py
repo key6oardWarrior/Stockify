@@ -1,50 +1,108 @@
-from os import walk, system, mkdir, rename, remove
-from os.path import join, isdir, exists
-from shutil import copy2, move
+from os import mkdir, getcwd
+from os.path import isdir, join, expanduser
+from shutil import copytree, move, rmtree
+from sys import platform, path, version_info
+from pip._internal import main
 
-# compile main dir
-system("py -m compileall -b")
+from PySimpleGUI import Text, Button, Window
 
-dirTree: tuple = next(walk("."))
-testTree: list = [join("UnitTest", "DataBase"), join("UnitTest", "Helper"),
-	join("UnitTest", "Login")]
+path.append(path[0][:path[0].rfind("\\")])
+from Helper.helper import exit, exitApp
 
-if isdir("bins") == False:
-	mkdir("bins")
+def lst2Str(lst: list[str]) -> str:
+	'''
+	Convert a list to a str
 
-# compile sub dirs
-for itr in dirTree[1]:
-	system(f"cd {itr} && py -m compileall -b")
+	# Params:
+	lst - The string list to be converted to a str
 
-	# copy all compiled (non-unit test) files into bins folder
-	if((itr != ".git") and (itr != "bins") and (itr != ".vscode") and
-		(itr != "UnitTest")):
-		dirName = join("bins", itr)
+	# Returns:
+	A string with all of lst's data
+	'''
+	string = ""
+	for itr in lst:
+		string += itr + "\n"
 
-		if isdir(dirName) == False:
-			mkdir(dirName)
+	return string
 
-		for file in next(walk(itr))[2]:
-			if file[-4:] == ".pyc":
-				copy2(join(itr, file), dirName)
+def fixFile(PATH: str) -> None:
+	'''
+	Fix one of Python's packages, so it will work for our App
 
-# copy main compiled files to bins folder
-for itr in dirTree[2]:
-	if itr[-4:] == ".pyc":
-		if((itr != "compile.pyc") and (itr != "setup.pyc")):
-			copy2(itr, "bins")
+	# Params:
+	PATH - The file to be fixed
+	'''
+	rFile = open(PATH, "r").read().splitlines()
+	rFile[806] = "class _PluralBinding (collections.abc.MutableSequence):"
+	open(PATH, "w").write(lst2Str(rFile))
 
-# compile unit test
-for itr in testTree:
-	system(f"cd {itr} && py -m compileall -b")
+def createPath(dataDir: str, pyPackages: str) -> None:
+	'''
+	Create the needed paths for the app to run
 
-# convert the main .pyc file to a .pyw
-PATH = join("UI", "Stockify.py")
-FINAL_PATH = join("bins", PATH + "w")
+	# Params:
+	dataDir - The directory that contains all the App's code\n
+	pyPackages - All of Python's packages
+	'''
+	if isdir(dataDir) == False:
+		mkdir(dataDir)
 
-if exists(FINAL_PATH):
-	remove(FINAL_PATH)
+	JOINED_PATH = join(pyPackages, join("src", "lxml"))
+	if isdir(JOINED_PATH) == False:
+		copytree(join(pyPackages, "lxml"), JOINED_PATH)
 
-copy2(join("Dependencies", "requirements.txt"), join("bins", "Dependencies"))
-rename(join("bins", PATH + "c"), FINAL_PATH)
-move(FINAL_PATH, "Stockify.pyw")
+	# edit content.py to fix error if error exists
+	try:
+		from collections import MutableSequence
+	except:
+		fixFile(join(pyPackages, "pyxb\\binding\\content.py"))
+
+layout: list[list] = []
+if version_info.major != 3:
+	possible2Continue = False
+	layout.append([Text("Your version of Python is not supported :(\nPlease install Python 3.11, or greater. To install Python please click on Python installer")])
+elif version_info.minor < 11:
+	possible2Continue = True
+	layout.append([Text("While it is possible to run this program with your Python version.\nWe recommend downloading the version of Python that came with this installer.")])
+	layout.append([Button("Continue Without Updating", button_color="light gray", key="continue"), Button("Exit", key="exit")])
+
+if len(layout) > 0:
+	win = Window("Stockify", layout)
+
+	event, values = win.read()
+	if possible2Continue:
+		if(exitApp(event, win)):
+			exit(0)
+	else:
+		exit(0)
+
+# upgrade pip and install all required dependencies
+main(["install", "--upgrade", "pip"])
+for package in open(join(getcwd(), join("bins", join("Dependencies",
+	"requirements.txt"))), "r").readlines():
+	main(["install", package])
+
+if platform == "win32":
+	# create Stockify dir
+	usr = expanduser("~")
+	dataDir = usr + "\\AppData\\Local\\Stockify"
+	# create a needed missing directory
+	pyPackages = usr + "\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages"
+	createPath(dataDir, pyPackages)
+elif((platform == "linux") or (platform == "linux2")):
+	# create Stockify dir
+	dataDir = "/usr/local/Stockify"
+	# create a needed missing directory
+	pyPackages = "/usr/lib/python3/dist-packages"
+	createPath(dataDir, pyPackages)
+else: # darwin
+	# create Stockify dir
+	dataDir = "/usr/local/bin/Stockify"
+	# create a needed missing directory
+	pyPackages = ""
+	createPath(dataDir, pyPackages)
+
+if isdir(dataDir):
+	rmtree(dataDir, True)
+
+move("bins", dataDir)
