@@ -629,7 +629,7 @@ def dataScreen() -> None:
 		[Button("Submit", key="sub")]
 	]
 
-	data = Window(winName, layout, modal=True)
+	data = Window(winName, layout)
 
 	while True:
 		event, values = data.read()

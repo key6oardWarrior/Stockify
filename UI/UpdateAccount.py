@@ -17,6 +17,9 @@ def _isEmpty(values: dict[str, str]) -> bool:
 	SIZE = len(values)
 	cnt = 0
 
+	if "Email" in values:
+		values["Email"] = values["Email"].lower()
+
 	for value in values.values():
 		if value.strip() == "":
 			cnt += 1
@@ -71,7 +74,7 @@ def updateAccount() -> bool:
 		if len(layout) > SIZE:
 			layout = layout[:-1]
 
-		values["email"] = values["email"].strip()
+		values["email"] = values["email"].strip().lower()
 		if((values["email"] == "") or (values["password"] == "")):
 			layout.append([Text("Username and password are required", text_color="red")])
 			updateAcc.close()
