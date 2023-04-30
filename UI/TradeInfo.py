@@ -502,15 +502,20 @@ def _getStockInfo(ticker: str) -> str and str:
 
 	return name, price
 
-def buyStock(ticker: str) -> None:
+def buyStock(ticker: str):
 	name, price = _getStockInfo(ticker)
 
 	layout = [
 		[Text(f"The price of {ticker} ({name}) is: {price} per share")],
-		[Text("How many share would you like to buy"), Input(key="shares")],
+		[Text("How many shares would you like to buy"), Input(key="shares")],
 		[Button("Submit")]
 	]
 	SIZE = len(layout)
+
+	if((name == "") and (price == None)):
+		Window(winName, [[Text("This stock cannot be traded on Robinhood")]], modal=True).read()
+		return
+
 	win = Window(winName, layout, modal=True)
 
 	while True:
