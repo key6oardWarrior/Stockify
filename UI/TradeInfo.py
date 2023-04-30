@@ -1,5 +1,6 @@
 from PyGUI import Button, Window, Text, Column, Input
 from threading import Thread
+from robin_stocks.robinhood import get_latest_price, get_name_by_symbol, order_buy_market
 
 from TradeData.Request import Request
 from Helper.creds import winName
@@ -354,11 +355,11 @@ def rightSide(senateTrades) -> None:
 
 					button = None
 					if trade["asset_type"] == "Stock":
-						button = Button("Trade This Stock")
+						button = Button("Trade This Stock", key=f"senStock-{ticker}")
 						rightCol.add_row(button)
 
 					if trade["asset_type"] == "Stock Option":
-						button = Button("Trade This Option")
+						button = Button("Trade This Option", key=f"senOption-{ticker}")
 						rightCol.add_row(button)
 
 					line = Text("\t------------------")
@@ -423,7 +424,7 @@ def leftSide(houseTrades) -> None:
 					leftCol.add_row(cap)
 
 					if trade["ticker"] != "--":
-						button = Button("Trade This Stock")
+						button = Button("Trade This Stock", key=f"repStock-{ticker}")
 						leftCol.add_row(button)
 
 					line = Text("\t------------------")
@@ -488,6 +489,71 @@ def loadingScreen(thread: Thread) -> None:
 		loading["text"].update(text)
 		loading.refresh()
 		sleep(.5)
+
+def _getStockInfo(ticker: str) -> str and str:
+	try:
+		name: str = get_name_by_symbol(ticker)
+		price: str = get_latest_price(ticker)[0]
+	except:
+		name = ""
+		price = ""
+
+	return name, price
+
+def buyStock(ticker: str) -> None:
+	name, price = _getStockInfo(ticker)
+
+	layout = [
+		[Text(f"The price of {ticker} ({name}) is: {price} per share")],
+		[Text("How many share would you like to buy"), Input(key="shares")],
+		[Button("Submit")]
+	]
+	SIZE = len(layout)
+	win = Window(winName, layout, modal=True)
+
+	while True:
+		event, values = win.read()
+
+		if len(layout) > SIZE:
+			layout = layout[:-1]
+
+		if exitApp(event, win):
+			win.close()
+			break
+
+		if((name == "") or (price == "")):
+			layout.append([Text("Check internet connection", text_color="red")])
+			name, price = _getStockInfo(ticker)
+
+			win.close()
+			layout[0] = [Text(f"The price of {ticker} ({name}) is: {price}")]
+			win = Window(winName, layout, modal=True)
+			continue
+
+		if event == "Submit":
+			if values["shares"].isdigit():
+				shares = int(values["shares"])
+
+				if shares > 0:
+					try:
+						order_buy_market(ticker, shares)
+					except:
+						layout.append([Text("Check internet connection", text_color="red")])
+						win.close()
+						win = Window(winName, layout, modal=True)
+						continue
+				else:
+					layout.append([Text("Must order more than one share", text_color="red")])
+					win.close()
+					win = Window(winName, layout, modal=True)
+					continue
+			else:
+				layout.append([Text("Enter only numbers", text_color="red")])
+				win.close()
+				win = Window(winName, layout, modal=True)
+				continue
+
+		break
 
 def dataScreen() -> None:
 	'''
@@ -743,3 +809,12 @@ def dataScreen() -> None:
 				data = tempWin
 				del tempWin
 				isAdded[1] = True
+
+		elif "repStock" in event:
+			buyStock(event[event.index("-")+1:])
+
+		elif "senStock" in event:
+			buyStock(event[event.index("-")+1:])
+
+		elif event == "senOption":
+			pass
