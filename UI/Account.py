@@ -109,6 +109,7 @@ def loginScreen() -> bool:
 			checkConnection()
 		except:
 			layout.append([Text("Check Internet Connection", text_color="red")])
+			login.close()
 			login = Window(winName, layout)
 			continue
 

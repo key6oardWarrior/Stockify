@@ -356,11 +356,11 @@ def rightSide(senateTrades) -> None:
 					button = None
 					if trade["asset_type"] == "Stock":
 						tName = trade["ticker"]
-						button = Button("Trade This Stock", key=f"senStock-{tName}")
+						button = Button("Trade This Stock", key=f"senStock-{tName}-")
 						rightCol.add_row(button)
 
 					if trade["asset_type"] == "Stock Option":
-						button = Button("Trade This Option", key=f"senOption-{ticker}")
+						button = Button("Trade This Option", key=f"senOption-{ticker}-")
 						rightCol.add_row(button)
 
 					line = Text("\t------------------")
@@ -426,7 +426,7 @@ def leftSide(houseTrades) -> None:
 
 					if trade["ticker"] != "--":
 						tName = trade["ticker"]
-						button = Button("Trade This Stock", key=f"repStock-{tName}")
+						button = Button("Trade This Stock", key=f"repStock-{tName}-")
 						leftCol.add_row(button)
 
 					line = Text("\t------------------")
@@ -879,10 +879,10 @@ def dataScreen() -> None:
 				isAdded[1] = True
 
 		elif "repStock" in event:
-			buyStock(event[event.index("-")+1:])
+			buyStock(event[event.index("-")+1: event.rindex("-")])
 
 		elif "senStock" in event:
-			buyStock(event[event.index("-")+1:])
+			buyStock(event[event.index("-")+1: event.rindex("-")])
 
 		elif event == "senOption":
 			pass
