@@ -254,7 +254,7 @@ class Pages:
 
 pages = Pages()
 MAX_TRADE_CNT = 5
-MAX_DAYS = 1095
+MAX_DAYS = 500
 
 def createHeadLine(isHouse: bool) -> Column:
 	'''
@@ -629,7 +629,7 @@ def dataScreen() -> None:
 	'''
 	request: Request
 	layout = [
-		[Text("How many past days of congress stock trading do you want to see (up to 1095 days ago):"), Input(key="days")],
+		[Text("How many past days of congress stock trading do you want to see (up to 500 days ago):"), Input(key="days")],
 		[Text("Depending on your internet speed this could take a few seconds, or a few mins. The app may stop responding, so please wait")],
 		[Button("Submit", key="sub")]
 	]
@@ -649,7 +649,7 @@ def dataScreen() -> None:
 			days = int(values["days"])
 
 			if((days > MAX_DAYS) or (days < 1)):
-				layout.append([Text("Cannot enter a value that is greater than 1095, or less than 1", text_color="red")])
+				layout.append([Text("Cannot enter a value that is greater than 500, or less than 1", text_color="red")])
 				data.close()
 				data = Window(winName, layout, modal=True)
 			else:
