@@ -1,6 +1,6 @@
 from PyGUI import Button, Window, Text, Column, Input
 from threading import Thread
-from robin_stocks.robinhood import get_latest_price, get_name_by_symbol, order_buy_market
+from robin_stocks.robinhood import get_latest_price, get_name_by_symbol, order_buy_market, order_sell_market
 
 from TradeData.Request import Request
 from Helper.creds import winName
@@ -543,7 +543,7 @@ def buyStock(ticker: str) -> None:
 						win = Window(winName, layout, modal=True)
 						continue
 				else:
-					layout.append([Text("Must order more than one share", text_color="red")])
+					layout.append([Text("Must order at least one share", text_color="red")])
 					win.close()
 					win = Window(winName, layout, modal=True)
 					continue
@@ -554,6 +554,67 @@ def buyStock(ticker: str) -> None:
 				continue
 
 		break
+
+	win.close()
+	Window(winName, [[Text("Success")]], modal=True).read()
+
+def sellStock(ticker: str) -> None:
+	name, price = _getStockInfo(ticker)
+
+	layout = [
+		[Text(f"The price of {ticker} ({name}) is: {price} per share")],
+		[Text("How many share would you like to sell"), Input(key="shares")],
+		[Button("Submit")]
+	]
+	SIZE = len(layout)
+	win = Window(winName, layout, modal=True)
+
+	while True:
+		event, values = win.read()
+
+		if len(layout) > SIZE:
+			layout = layout[:-1]
+
+		if exitApp(event, win):
+			win.close()
+			break
+
+		if((name == "") or (price == "")):
+			layout.append([Text("Check internet connection", text_color="red")])
+			name, price = _getStockInfo(ticker)
+
+			win.close()
+			layout[0] = [Text(f"The price of {ticker} ({name}) is: {price}")]
+			win = Window(winName, layout, modal=True)
+			continue
+
+		if event == "Submit":
+			if values["shares"].isdigit():
+				shares = int(values["shares"])
+
+				if shares > 0:
+					try:
+						order_sell_market(ticker, shares)
+					except:
+						layout.append([Text("Check internet connection", text_color="red")])
+						win.close()
+						win = Window(winName, layout, modal=True)
+						continue
+				else:
+					layout.append([Text("Must sell at least one share", text_color="red")])
+					win.close()
+					win = Window(winName, layout, modal=True)
+					continue
+			else:
+				layout.append([Text("Enter only numbers", text_color="red")])
+				win.close()
+				win = Window(winName, layout, modal=True)
+				continue
+
+		break
+
+	win.close()
+	Window(winName, [[Text("Success")]], modal=True).read()
 
 def dataScreen() -> None:
 	'''
