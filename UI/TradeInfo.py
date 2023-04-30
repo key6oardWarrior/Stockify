@@ -355,7 +355,8 @@ def rightSide(senateTrades) -> None:
 
 					button = None
 					if trade["asset_type"] == "Stock":
-						button = Button("Trade This Stock", key=f"senStock-{ticker}")
+						tName = trade["ticker"]
+						button = Button("Trade This Stock", key=f"senStock-{tName}")
 						rightCol.add_row(button)
 
 					if trade["asset_type"] == "Stock Option":
@@ -424,7 +425,8 @@ def leftSide(houseTrades) -> None:
 					leftCol.add_row(cap)
 
 					if trade["ticker"] != "--":
-						button = Button("Trade This Stock", key=f"repStock-{ticker}")
+						tName = trade["ticker"]
+						button = Button("Trade This Stock", key=f"repStock-{tName}")
 						leftCol.add_row(button)
 
 					line = Text("\t------------------")
@@ -519,7 +521,7 @@ def buyStock(ticker: str) -> None:
 
 		if exitApp(event, win):
 			win.close()
-			break
+			return
 
 		if((name == "") or (price == "")):
 			layout.append([Text("Check internet connection", text_color="red")])
@@ -577,7 +579,7 @@ def sellStock(ticker: str) -> None:
 
 		if exitApp(event, win):
 			win.close()
-			break
+			return
 
 		if((name == "") or (price == "")):
 			layout.append([Text("Check internet connection", text_color="red")])
