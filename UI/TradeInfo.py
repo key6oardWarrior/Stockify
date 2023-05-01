@@ -1,5 +1,6 @@
 from PyGUI import Button, Window, Text, Column, Input
 from threading import Thread
+from robin_stocks.robinhood import get_latest_price, get_name_by_symbol, order_buy_market, order_sell_market
 
 from TradeData.Request import Request
 from Helper.creds import winName
@@ -253,7 +254,7 @@ class Pages:
 
 pages = Pages()
 MAX_TRADE_CNT = 5
-MAX_DAYS = 1095
+MAX_DAYS = 500
 
 def createHeadLine(isHouse: bool) -> Column:
 	'''
@@ -307,6 +308,26 @@ def displayPage(repPage: int, senPage: int, SIZE: int, isHouse: bool) -> Window 
 		if((senPage < SIZE) and (senPage >= 0)):
 			return Window(winName, [[pages.getPage(repPage, True), pages.getPage(senPage, False)]])
 
+def _cleanStr(string: str) -> str:
+	'''
+	Recursive function that removed all HTML tags from a string while keeping
+	the human readable data
+
+	# Params:
+	string - The string with the HTML data
+
+	# Returns:
+	The human readable string without HTML tags
+	'''
+	START = string.find("<")
+	END = string.find(">")
+
+	if START == -1:
+		return string
+
+	string = string[:START] + string[END+1:]
+	return _cleanStr(string)
+
 def rightSide(senateTrades) -> None:
 	'''
 	A child thread that creates and stores all pages that will be displayed on
@@ -334,6 +355,9 @@ def rightSide(senateTrades) -> None:
 					rightCol.add_row(transDate)
 					owner = Text("\tOwner: " + trade["owner"])
 					rightCol.add_row(owner)
+
+					trade["asset_description"] = _cleanStr(trade["asset_description"])
+
 					assetDesc = Text("\tAsset Description: " + trade["asset_description"])
 					rightCol.add_row(assetDesc)
 					assetType = Text("\tAsset Type: " + trade["asset_type"])
@@ -354,11 +378,12 @@ def rightSide(senateTrades) -> None:
 
 					button = None
 					if trade["asset_type"] == "Stock":
-						button = Button("Trade This Stock")
+						tName = trade["ticker"]
+						button = Button("Trade This Stock", key=f"senStock-{tName}-")
 						rightCol.add_row(button)
 
 					if trade["asset_type"] == "Stock Option":
-						button = Button("Trade This Option")
+						button = Button("Trade This Option", key=f"senOption-{ticker}-")
 						rightCol.add_row(button)
 
 					line = Text("\t------------------")
@@ -423,7 +448,8 @@ def leftSide(houseTrades) -> None:
 					leftCol.add_row(cap)
 
 					if trade["ticker"] != "--":
-						button = Button("Trade This Stock")
+						tName = trade["ticker"]
+						button = Button("Trade This Stock", key=f"repStock-{tName}-")
 						leftCol.add_row(button)
 
 					line = Text("\t------------------")
@@ -489,18 +515,149 @@ def loadingScreen(thread: Thread) -> None:
 		loading.refresh()
 		sleep(.5)
 
+def _getStockInfo(ticker: str) -> str and str:
+	try:
+		name: str = get_name_by_symbol(ticker)
+		price: str = get_latest_price(ticker, "ask_price")[0]
+	except:
+		name = ""
+		price = ""
+
+	return name, price
+
+def buyStock(ticker: str):
+	name, price = _getStockInfo(ticker)
+
+	layout = [
+		[Text(f"The price of {ticker} ({name}) is: {price} per share")],
+		[Text("How many shares would you like to buy"), Input(key="shares")],
+		[Button("Submit")]
+	]
+	SIZE = len(layout)
+
+	if((name == "") and (price == None)):
+		Window(winName, [[Text("This stock cannot be traded on Robinhood")]], modal=True).read()
+		return
+
+	win = Window(winName, layout, modal=True)
+
+	while True:
+		event, values = win.read()
+
+		if len(layout) > SIZE:
+			layout = layout[:-1]
+
+		if exitApp(event, win):
+			win.close()
+			return
+
+		if((name == "") or (price == "")):
+			layout.append([Text("Check internet connection", text_color="red")])
+			name, price = _getStockInfo(ticker)
+
+			win.close()
+			layout[0] = [Text(f"The price of {ticker} ({name}) is: {price}")]
+			win = Window(winName, layout, modal=True)
+			continue
+
+		if event == "Submit":
+			if values["shares"].isdigit():
+				shares = int(values["shares"])
+
+				if shares > 0:
+					try:
+						order_buy_market(ticker, shares)
+					except:
+						layout.append([Text("Check internet connection", text_color="red")])
+						win.close()
+						win = Window(winName, layout, modal=True)
+						continue
+				else:
+					layout.append([Text("Must order at least one share", text_color="red")])
+					win.close()
+					win = Window(winName, layout, modal=True)
+					continue
+			else:
+				layout.append([Text("Enter only numbers", text_color="red")])
+				win.close()
+				win = Window(winName, layout, modal=True)
+				continue
+
+		break
+
+	win.close()
+	Window(winName, [[Text("Success")]], modal=True).read()
+
+def sellStock(ticker: str) -> None:
+	name, price = _getStockInfo(ticker)
+
+	layout = [
+		[Text(f"The price of {ticker} ({name}) is: {price} per share")],
+		[Text("How many share would you like to sell"), Input(key="shares")],
+		[Button("Submit")]
+	]
+	SIZE = len(layout)
+	win = Window(winName, layout, modal=True)
+
+	while True:
+		event, values = win.read()
+
+		if len(layout) > SIZE:
+			layout = layout[:-1]
+
+		if exitApp(event, win):
+			win.close()
+			return
+
+		if((name == "") or (price == "")):
+			layout.append([Text("Check internet connection", text_color="red")])
+			name, price = _getStockInfo(ticker)
+
+			win.close()
+			layout[0] = [Text(f"The price of {ticker} ({name}) is: {price}")]
+			win = Window(winName, layout, modal=True)
+			continue
+
+		if event == "Submit":
+			if values["shares"].isdigit():
+				shares = int(values["shares"])
+
+				if shares > 0:
+					try:
+						order_sell_market(ticker, shares)
+					except:
+						layout.append([Text("Check internet connection", text_color="red")])
+						win.close()
+						win = Window(winName, layout, modal=True)
+						continue
+				else:
+					layout.append([Text("Must sell at least one share", text_color="red")])
+					win.close()
+					win = Window(winName, layout, modal=True)
+					continue
+			else:
+				layout.append([Text("Enter only numbers", text_color="red")])
+				win.close()
+				win = Window(winName, layout, modal=True)
+				continue
+
+		break
+
+	win.close()
+	Window(winName, [[Text("Success")]], modal=True).read()
+
 def dataScreen() -> None:
 	'''
 	Display all congress trade data
 	'''
 	request: Request
 	layout = [
-		[Text("How many past days of congress stock trading do you want to see (up to 1095 days ago):"), Input(key="days")],
+		[Text("How many past days of congress stock trading do you want to see (up to 500 days ago):"), Input(key="days")],
 		[Text("Depending on your internet speed this could take a few seconds, or a few mins. The app may stop responding, so please wait")],
 		[Button("Submit", key="sub")]
 	]
 
-	data = Window(winName, layout, modal=True)
+	data = Window(winName, layout)
 
 	while True:
 		event, values = data.read()
@@ -515,7 +672,7 @@ def dataScreen() -> None:
 			days = int(values["days"])
 
 			if((days > MAX_DAYS) or (days < 1)):
-				layout.append([Text("Cannot enter a value that is greater than 1095, or less than 1", text_color="red")])
+				layout.append([Text("Cannot enter a value that is greater than 500, or less than 1", text_color="red")])
 				data.close()
 				data = Window(winName, layout, modal=True)
 			else:
@@ -743,3 +900,12 @@ def dataScreen() -> None:
 				data = tempWin
 				del tempWin
 				isAdded[1] = True
+
+		elif "repStock" in event:
+			buyStock(event[event.index("-")+1: event.rindex("-")])
+
+		elif "senStock" in event:
+			buyStock(event[event.index("-")+1: event.rindex("-")])
+
+		elif event == "senOption":
+			pass

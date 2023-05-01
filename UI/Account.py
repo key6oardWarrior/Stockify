@@ -109,6 +109,7 @@ def loginScreen() -> bool:
 			checkConnection()
 		except:
 			layout.append([Text("Check Internet Connection", text_color="red")])
+			login.close()
 			login = Window(winName, layout)
 			continue
 
@@ -116,7 +117,7 @@ def loginScreen() -> bool:
 			db.connect()
 
 		if event == "submit":
-			values["email"] = values["email"].strip()
+			values["email"] = values["email"].strip().lower()
 
 			if((values["email"] == "") or (values["password"] == "")):
 				layout.append([Text("Enter your email and password to login", text_color="red")])
@@ -300,6 +301,9 @@ def _isEmpty(values) -> bool:
 	if values["password"] == "":
 		return True
 
+	if values["acc_password"] == "":
+		return True
+
 	if values["ccn"] == "":
 		return True
 
@@ -330,7 +334,7 @@ def _isEmpty(values) -> bool:
 	return False
 
 def _stripValues(values):
-	values["email"] = values["email"].strip()
+	values["email"] = values["email"].strip().lower()
 	values["ccn"] = values["ccn"].strip()
 	values["code"] = values["code"].strip()
 	values["state"] = values["state"].strip()

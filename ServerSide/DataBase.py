@@ -12,7 +12,7 @@ from pymongo.collection import Collection
 from pymongo.cursor import Cursor
 from pymongo.database import Database
 
-from Helper.creds import connectionString, certFile
+from Helper.creds import connectionString
 from Helper.Errors import (IncorrectPassword, UserAlreadyExist,
     UserAlreadyLoaded, UserDoesNotExist)
 
@@ -33,8 +33,7 @@ class DataBase:
 		# cant connect twice
 		if self.__isConnected == False:
 			try:
-				self.__client = MongoClient(connectionString, tls=True,
-					tlsCertificateKeyFile=certFile)
+				self.__client = MongoClient(connectionString, tls=True)
 				self.__users_db: Database = self.__client["Users"]
 				self.__usersCollections = self.__users_db["PaymentData"]
 			except:
