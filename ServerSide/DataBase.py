@@ -12,7 +12,7 @@ from pymongo.collection import Collection
 from pymongo.cursor import Cursor
 from pymongo.database import Database
 
-from Helper.creds import connectionString, certFile
+from Helper.creds import connectionString
 from Helper.Errors import (IncorrectPassword, UserAlreadyExist,
     UserAlreadyLoaded, UserDoesNotExist)
 
