@@ -308,6 +308,26 @@ def displayPage(repPage: int, senPage: int, SIZE: int, isHouse: bool) -> Window 
 		if((senPage < SIZE) and (senPage >= 0)):
 			return Window(winName, [[pages.getPage(repPage, True), pages.getPage(senPage, False)]])
 
+def _cleanStr(string: str) -> str:
+	'''
+	Recursive function that removed all HTML tags from a string while keeping
+	the human readable data
+
+	# Params:
+	string - The string with the HTML data
+
+	# Returns:
+	The human readable string without HTML tags
+	'''
+	START = string.find("<")
+	END = string.find(">")
+
+	if START == -1:
+		return string
+
+	string = string[:START] + string[END+1:]
+	return _cleanStr(string)
+
 def rightSide(senateTrades) -> None:
 	'''
 	A child thread that creates and stores all pages that will be displayed on
@@ -335,6 +355,9 @@ def rightSide(senateTrades) -> None:
 					rightCol.add_row(transDate)
 					owner = Text("\tOwner: " + trade["owner"])
 					rightCol.add_row(owner)
+
+					trade["asset_description"] = _cleanStr(trade["asset_description"])
+
 					assetDesc = Text("\tAsset Description: " + trade["asset_description"])
 					rightCol.add_row(assetDesc)
 					assetType = Text("\tAsset Type: " + trade["asset_type"])
@@ -495,7 +518,7 @@ def loadingScreen(thread: Thread) -> None:
 def _getStockInfo(ticker: str) -> str and str:
 	try:
 		name: str = get_name_by_symbol(ticker)
-		price: str = get_latest_price(ticker)[0]
+		price: str = get_latest_price(ticker, "ask_price")[0]
 	except:
 		name = ""
 		price = ""
