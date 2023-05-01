@@ -33,8 +33,7 @@ class DataBase:
 		# cant connect twice
 		if self.__isConnected == False:
 			try:
-				self.__client = MongoClient(connectionString, tls=True,
-					tlsCertificateKeyFile=certFile)
+				self.__client = MongoClient(connectionString, tls=True)
 				self.__users_db: Database = self.__client["Users"]
 				self.__usersCollections = self.__users_db["PaymentData"]
 			except:
