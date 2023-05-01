@@ -71,10 +71,13 @@ class Pages:
 			name: str = lst[0][0].DisplayText.lower()
 			if (name in self.__senateMap) == False:
 				self.__senateMap[name] = Column(lst, size=(500, 500), scrollable=True)
+				self.__senateMap[name].add_row(button)
 			else:
 				del self.__senateMap[name].Rows[-1]
 				for row in lst[1:]:
 					self.__senateMap[name].add_row(row[0])
+
+				self.__senateMap[name].add_row(button)
 
 			# add the stock's ticker name to the map
 			tickerName: str = lst[8][0].DisplayText
