@@ -145,3 +145,4 @@ creds.py
 App/
 *.pyw
 bins/
+*.zip
