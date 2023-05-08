@@ -218,11 +218,11 @@ class Pages:
 		'''
 		if not self.__houseMap:
 			self.__housePages[0].add_row(Text(f"There were no trades during the last {self.__days} days. Do you want to download more data?"))
-			self.__housePages[0].add_row(Button("Yes", key="rep_yes", pad=(121, None)))
+			self.__housePages[0].add_row(Button("Yes", key="rep_yes0", pad=(121, None)))
 
 		if not self.__senateMap:
 			self.__senatePages[0].add_row(Text(f"There were no trades during the last {self.__days} days. Do you want to download more data?"))
-			self.__senatePages[0].add_row(Button("Yes", key="sen_yes", pad=(242, None)))
+			self.__senatePages[0].add_row(Button("Yes", key="sen_yes0", pad=(242, None)))
 
 	def removeLastNextButton(self) -> None:
 		'''
@@ -813,7 +813,8 @@ def dataScreen() -> None:
 			data = displayPage(repPage, senPage, _houseSize, True)
 
 		# if user wants more data
-		elif((event == "rep_yes") or (event == "sen_yes")):
+		elif((event == "rep_yes0") or (event == "sen_yes0") or
+			(event == "rep_yes") or (event == "sen_yes")):
 			try: # just incase it has already been garbage collected
 				del request
 			except:
@@ -823,7 +824,7 @@ def dataScreen() -> None:
 			O_SIZE = len(o_layout)
 			delButton = False
 			while True:
-				overlayed = Window(winName, o_layout)
+				overlayed = Window(winName, o_layout, modal=True)
 				o_event, o_values = overlayed.read()
 
 				if exitApp(o_event, overlayed):
