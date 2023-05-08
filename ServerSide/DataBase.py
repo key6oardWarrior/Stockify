@@ -41,6 +41,15 @@ class DataBase:
 			else:
 				self.__isConnected = True
 
+	def closeClient(self) -> None:
+		'''
+		Close connection between client and server, but don't delete user data
+		'''
+		if self.__isConnected:
+			self.__client.close()
+			self.__isConnected = False
+			self.__userData = None
+
 	def close(self) -> None:
 		'''
 		Close connection between client and server

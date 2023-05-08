@@ -471,6 +471,6 @@ def signUpScreen() -> bool:
 			signUp = Window(winName, layout)
 			continue
 
-		db.close()
+		db.closeClient()
 		signUp.close()
 		return False
