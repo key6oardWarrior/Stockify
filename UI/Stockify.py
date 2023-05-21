@@ -25,7 +25,7 @@ from Uninstaller import uninstall
 
 layout = [
 	[Button("Login", pad=((5, 5), (0, 0))), Button("Sign Up"), Button("Update Account Settings")],
-	[Button("Check for Updates", pad=((5, 0), (0, 0))), Button("How to Use"), Button("Uninstall")],
+	[Button("Check for Updates", pad=((47, 0), (0, 0))), Button("Uninstall")],
 	[Text("Powered by Robin_Stocks, Authorize.Net,", pad=((20, 0), (0, 0)), text_color="light gray")],
 	[Text("and PySimpleGUI", text_color="light gray", pad=((80, 0), (0, 0)))]
 ]

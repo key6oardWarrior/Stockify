@@ -382,7 +382,14 @@ def rightSide(senateTrades) -> None:
 					button = None
 					if trade["asset_type"] == "Stock":
 						tName = trade["ticker"]
-						button = Button("Trade This Stock", key=f"senStock-{tName}-")
+						buy_or_sell: str
+
+						if "Sale" in trade["type"]:
+							buy_or_sell = "Sell"
+						else:
+							buy_or_sell = "Buy"
+
+						button = Button(f"{buy_or_sell} This Stock", key=f"senStock-{tName}-{buy_or_sell}-")
 						rightCol.add_row(button)
 
 					if trade["asset_type"] == "Stock Option":
@@ -450,14 +457,26 @@ def leftSide(houseTrades) -> None:
 					cap = Text("\tCap Gains Over 200: " + str(trade["cap_gains_over_200"]))
 					leftCol.add_row(cap)
 
-					if trade["ticker"] != "--":
+					addButton: bool = False
+					if((trade["transaction_type"] != "--") and (
+						(trade["transaction_type"] == "purchase") or
+						("sale" in trade["transaction_type"]) or
+						("sell" in trade["transaction_type"]))
+					):
 						tName = trade["ticker"]
-						button = Button("Trade This Stock", key=f"repStock-{tName}-")
+						buy_or_sell: str = ""
+						if trade["transaction_type"].find("_") == -1:
+							buy_or_sell = "Buy"
+						else:
+							buy_or_sell = "Sell"
+
+						button = Button(f"{buy_or_sell} This Stock", key=f"repStock-{tName}-{buy_or_sell}-")
 						leftCol.add_row(button)
+						addButton = True
 
 					line = Text("\t------------------")
 
-					if trade["ticker"] != "--":
+					if addButton:
 						pages.updateMap([[name], [owner], [ticker], [desc],
 							[transDate], [transType], [amt], [cap], [button],
 							[line]], True)
@@ -905,11 +924,16 @@ def dataScreen() -> None:
 				del tempWin
 				isAdded[1] = True
 
-		elif "repStock" in event:
-			buyStock(event[event.index("-")+1: event.rindex("-")])
+		# if user wants to buy or sell a stock
+		elif(("repStock" in event) or ("senStock" in event)):
+			START: int = event.index("-")+1
+			END: int = event.rindex("-")
+			MID: int = event.index("-", START)+1
 
-		elif "senStock" in event:
-			buyStock(event[event.index("-")+1: event.rindex("-")])
+			if event[MID: END] == "Buy":
+				buyStock(event[START: MID])
+			else:
+				sellStock(event[START: MID])
 
 		elif event == "senOption":
 			pass
