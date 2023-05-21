@@ -541,7 +541,7 @@ def _getStockInfo(ticker: str) -> str and str:
 	try:
 		name: str = get_name_by_symbol(ticker)
 		# casting is needed here to remove trailing zeros
-		price: str = str(float(get_latest_price(ticker, "ask_price")[0]))
+		price: str = "$" + str(float(get_latest_price(ticker, "ask_price")[0]))
 	except:
 		name = ""
 		price = ""
