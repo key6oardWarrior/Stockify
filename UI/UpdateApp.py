@@ -20,7 +20,7 @@ def _setLayout(version: Version) -> list[list]:
 	version_str = ""
 
 	try:
-		responce = get("https://raw.githubusercontent.com/key6oardWarrior/Stockify_Release/main/version.txt")	
+		responce = get("https://raw.githubusercontent.com/key6oardWarrior/Stockify_Release/main/version.txt")
 	except:
 		layout.append([Text("Check your internet connection", text_color="red")])
 		layout.append([Button("Retry"), Button("Back")])
