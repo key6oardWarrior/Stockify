@@ -3,10 +3,12 @@ from os import makedirs, remove
 
 from UI.PyGUI import Window, Text, Input, Button
 
-from robin_stocks.authentication import generate_device_token, pickle, \
+from robin_stocks.robinhood.authentication import generate_device_token, pickle, \
 	respond_to_challenge
-from robin_stocks.urls import login_url, positions
-from robin_stocks.helper import set_login_state, update_session, request_get, request_post
+from robin_stocks.robinhood.urls import login_url
+from robin_stocks.urls import positions
+from robin_stocks.robinhood.helper import set_login_state, update_session, \
+	request_get, request_post
 from Helper.creds import winName
 
 def login(username=None, password=None, expiresIn=86400, scope='internal', by_sms=True, store_session=True, mfa_code=None, pickle_name=""):
@@ -162,6 +164,9 @@ def login(username=None, password=None, expiresIn=86400, scope='internal', by_sm
 						'refresh_token': data['refresh_token'],
 						'device_token': payload['device_token']}, f)
 		else:
+			if "detail" not in data:
+				return "MFA Code Required", False
+
 			return data['detail'], False
 	else:
 		return "Check Internet Connection", False

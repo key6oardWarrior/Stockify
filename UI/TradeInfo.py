@@ -540,10 +540,21 @@ def loadingScreen(thread: Thread) -> None:
 def _getStockInfo(ticker: str) -> str and str:
 	try:
 		name: str = get_name_by_symbol(ticker)
-		price: str = get_latest_price(ticker, "ask_price")[0]
+		# casting is needed here to remove trailing zeros
+		price: str = str(float(get_latest_price(ticker, "ask_price")[0]))
 	except:
 		name = ""
 		price = ""
+
+	# add the tenth, and or hundredth place value if they does not exist
+	IDX = price.rfind(".")
+	if IDX != -1:
+		placeValues: int = len(price[price.rindex(".")+1:])
+
+		if placeValues < 1:
+			price += "00"
+		elif placeValues == 1:
+			price += "0"
 
 	return name, price
 
@@ -569,7 +580,7 @@ def buyStock(ticker: str):
 		if len(layout) > SIZE:
 			layout = layout[:-1]
 
-		if exitApp(event, win):
+		if exitApp(event, win, rm_tree=False):
 			win.close()
 			return
 
@@ -615,7 +626,7 @@ def sellStock(ticker: str) -> None:
 
 	layout = [
 		[Text(f"The price of {ticker} ({name}) is: {price} per share")],
-		[Text("How many share would you like to sell"), Input(key="shares")],
+		[Text("How many shares would you like to sell"), Input(key="shares")],
 		[Button("Submit")]
 	]
 	SIZE = len(layout)
@@ -627,7 +638,7 @@ def sellStock(ticker: str) -> None:
 		if len(layout) > SIZE:
 			layout = layout[:-1]
 
-		if exitApp(event, win):
+		if exitApp(event, win, rm_tree=False):
 			win.close()
 			return
 
@@ -846,7 +857,7 @@ def dataScreen() -> None:
 				overlayed = Window(winName, o_layout, modal=True)
 				o_event, o_values = overlayed.read()
 
-				if exitApp(o_event, overlayed):
+				if exitApp(o_event, overlayed, rm_tree=False):
 					break
 
 				if len(o_layout) > O_SIZE:
@@ -928,9 +939,9 @@ def dataScreen() -> None:
 		elif(("repStock" in event) or ("senStock" in event)):
 			START: int = event.index("-")+1
 			END: int = event.rindex("-")
-			MID: int = event.index("-", START)+1
+			MID: int = event.index("-", START)
 
-			if event[MID: END] == "Buy":
+			if event[MID+1: END] == "Buy":
 				buyStock(event[START: MID])
 			else:
 				sellStock(event[START: MID])

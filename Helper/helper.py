@@ -144,7 +144,7 @@ def killApp() -> None:
 
 	exit(0)
 
-def exitApp(event, window: Window, isLogout=False) -> bool:
+def exitApp(event, window: Window, isLogout=False, rm_tree=True) -> bool:
 	'''
 	Determin if the event wants app to die
 
@@ -163,7 +163,9 @@ def exitApp(event, window: Window, isLogout=False) -> bool:
 		if((isLogout) and (userAuth.isLoggedIn)):
 			logout() # logout of user's robinhood account on close
 
-		rmtree(join(expanduser("~"), ".tokens"), ignore_errors=True)
+		if rm_tree:
+			rmtree(join(expanduser("~"), ".tokens"), ignore_errors=True)
+
 		return True
 	return False
 
