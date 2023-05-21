@@ -5,7 +5,8 @@ from Helper.helper import exitApp, exit, getPayment, checkConnection, \
 	userAuth, killApp
 from ServerSide.DataBase import DataBase
 
-from Helper.Errors import IncorrectPassword, UserAlreadyExist
+from Helper.Errors import IncorrectPassword, UserAlreadyExist, \
+	UserAlreadyLoaded
 
 from shutil import rmtree
 from os.path import join, expanduser
@@ -141,11 +142,15 @@ def loginScreen() -> bool:
 				db.decrypt(values["email"], values["password"])
 				userData: dict = db.userData
 				today: datetime = datetime.today()
-			except IncorrectPassword as IP:
+			except IncorrectPassword as ip:
 				login.close()
 				layout.append([Text("The password you enterd is incorrect", text_color="red")])
 				login = Window(winName, layout)
 				continue
+			except UserAlreadyLoaded as ual:
+				db.close()
+				db.connect()
+				db.decrypt(values["email"], values["password"])
 			except:
 				login.close()
 				layout.append([Text("Check Internet Connection", text_color="red")])
@@ -276,6 +281,7 @@ def loginScreen() -> bool:
 				login.close()
 				layout.append([Text(userAuth.loginInfo, text_color="red")])
 				login = Window(winName, layout)
+				db.close()
 
 		elif event == "back":
 			login.close()
