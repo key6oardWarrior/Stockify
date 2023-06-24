@@ -791,6 +791,8 @@ def dataScreen() -> None:
 
 	while True:
 		event, values = data.read()
+		values: dict[str, str]
+
 		if exitApp(event, data, True):
 			exit(0)
 
