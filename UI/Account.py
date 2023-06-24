@@ -24,10 +24,10 @@ def _getNextMonth() -> datetime:
 	'''
 	today = datetime.today()
 
-	if today.month < 11:
+	if today.month < 12:
 		nextMonth = datetime(today.year, today.month+1, today.day)
 	else:
-		nextMonth = datetime(today.year+1, today.month+1, today.day)
+		nextMonth = datetime(today.year+1, 1, today.day)
 
 	return nextMonth
 
