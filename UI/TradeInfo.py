@@ -1,8 +1,9 @@
 from PyGUI import Button, Window, Text, Column, Input
 from threading import Thread
-from robin_stocks.robinhood import get_latest_price, get_name_by_symbol, \
+from robin_stocks.robinhood.export import get_latest_price, get_name_by_symbol, \
 	order_buy_fractional_by_price, order_buy_market, order_sell_market, \
-	get_open_stock_positions, order_sell_fractional_by_price
+	order_sell_fractional_by_price
+from robin_stocks.robinhood.account import get_open_stock_positions
 
 from TradeData.Request import Request
 from Helper.creds import winName
