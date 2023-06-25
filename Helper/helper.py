@@ -131,7 +131,7 @@ def getPayment(email: str, ccn: str, code: str, state: str, city: str,
 	code: str = responce.messages.message.code.text
 	return (True, code) if code == "I00001" else (False, code)
 
-from robin_stocks.authentication import logout
+from robin_stocks.robinhood.authentication import logout
 
 def killApp() -> None:
 	'''
