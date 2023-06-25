@@ -620,15 +620,24 @@ def buyStock(ticker: str):
 				win = Window(winName, layout, modal=True)
 				continue
 
-			if "shares" in values:
+			if values["shares"] != "":
 				str_shares = values["shares"].strip()
 				IS_FShares = False
 			else:
 				str_shares = values["f-shares"].strip()
 				IS_FShares = True
 
-			if str_shares.isdigit():
-				shares = int(str_shares)
+			if str_shares.replace(".", "").isdigit():
+				if IS_FShares:
+					shares = float(str_shares)
+				else:
+					if "." in str_shares:
+						layout.append([Text("Only enter intergers in the first text box", text_color="red")])
+						win.close()
+						win = Window(winName, layout, modal=True)
+						continue
+					else:
+						shares = int(str_shares)
 
 				if shares > 0:
 					order: dict[str, str]
@@ -644,6 +653,7 @@ def buyStock(ticker: str):
 						win = Window(winName, layout, modal=True)
 						continue
 
+				if "state" in order:
 					if order["state"].lower().strip() == "canceled":
 						layout.append([Text("The order was canceled. Please try again, or contact Robinhood", text_color="red")])
 						win.close()
@@ -672,7 +682,7 @@ def sellStock(ticker: str) -> None:
 		[Text(f"The price of {ticker} ({name}) is: {price} per share")],
 		[Text("How many shares would you like to sell"), Input(key="shares")],
 		[Text("or")],
-		[Text("How much in fractional sales would you like to sell", Input(key="f-shares"))],
+		[Text("How much in fractional sales would you like to sell"), Input(key="f-shares")],
 		[Button("Submit")]
 	]
 	SIZE = len(layout)
@@ -680,6 +690,7 @@ def sellStock(ticker: str) -> None:
 
 	while True:
 		event, values = win.read()
+		values: dict[str, str]
 
 		if len(layout) > SIZE:
 			layout = layout[:-1]
@@ -721,8 +732,17 @@ def sellStock(ticker: str) -> None:
 				strShares = values["f-shares"].strip()
 				IS_FSHARES = True
 
-			if strShares.isdigit():
-				shares = int(strShares)
+			if strShares.replace(".", "").isdigit():
+				if IS_FSHARES:
+					shares = float(strShares)
+				else:
+					if "." in strShares:
+						layout.append([Text("Only enter intergers in the first text box", text_color="red")])
+						win.close()
+						win = Window(winName, layout, modal=True)
+						continue
+					else:
+						shares = int(strShares)
 
 				if shares > 0:
 					try:
