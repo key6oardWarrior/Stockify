@@ -4,8 +4,6 @@ from shutil import copytree, move, rmtree
 from sys import platform, path
 from pip._internal import main
 
-path.append(path[0][:path[0].rfind("\\")])
-
 def lst2Str(lst: list[str]) -> str:
 	'''
 	Convert a list to a str
@@ -54,38 +52,41 @@ def createPath(dataDir: str, pyPackages: str) -> None:
 	except:
 		fixFile(join(pyPackages, "pyxb\\binding\\content.py"))
 
-# upgrade pip and install all required dependencies
-main(["install", "--upgrade", "pip"])
-CWD = getcwd()
-for package in open(join(CWD, join(join("Dependencies",
-	"requirements.txt"))), "r").readlines():
-	main(["install", package])
+if __name__ == "__main__":
+	path.append(path[0][:path[0].rfind("\\")])
 
-if platform == "win32":
-	# create Stockify dir
-	usr = expanduser("~")
-	dataDir = usr + "\\AppData\\Local\\Stockify"
-	# create a needed missing directory
-	pyPackages = usr + "\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages"
-	createPath(dataDir, pyPackages)
-elif((platform == "linux") or (platform == "linux2")):
-	# create Stockify dir
-	dataDir = "/usr/local/Stockify"
-	# create a needed missing directory
-	pyPackages = "/usr/lib/python3/dist-packages"
-	createPath(dataDir, pyPackages)
-else: # darwin
-	# create Stockify dir
-	dataDir = "/usr/local/bin/Stockify"
-	# create a needed missing directory
-	pyPackages = ""
-	createPath(dataDir, pyPackages)
+	# upgrade pip and install all required dependencies
+	main(["install", "--upgrade", "pip"])
+	CWD = getcwd()
+	for package in open(join(CWD, join(join("Dependencies",
+		"requirements.txt"))), "r").readlines():
+		main(["install", package])
 
-if isdir(dataDir):
-	rmtree(dataDir, True)
+	if platform == "win32":
+		# create Stockify dir
+		usr = expanduser("~")
+		dataDir = usr + "\\AppData\\Local\\Stockify"
+		# create a needed missing directory
+		pyPackages = usr + "\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages"
+		createPath(dataDir, pyPackages)
+	elif((platform == "linux") or (platform == "linux2")):
+		# create Stockify dir
+		dataDir = "/usr/local/Stockify"
+		# create a needed missing directory
+		pyPackages = "/usr/lib/python3/dist-packages"
+		createPath(dataDir, pyPackages)
+	else: # darwin
+		# create Stockify dir
+		dataDir = "/usr/local/bin/Stockify"
+		# create a needed missing directory
+		pyPackages = ""
+		createPath(dataDir, pyPackages)
 
-# throws exception for moving bin folder, but dont want it to do that anyway
-try:
-	move(CWD, dataDir)
-except Exception as e:
-	pass
+	if isdir(dataDir):
+		rmtree(dataDir, True)
+
+	# throws exception for moving bin folder, but dont want it to do that anyway
+	try:
+		move(CWD, dataDir)
+	except Exception as e:
+		pass
