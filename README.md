@@ -42,7 +42,7 @@
 	<li>Download <a href="https://www.python.org/downloads/release/python-3111/">Python v3.11.1</a></li>
 	<li>Run <code>git clone <a href="https://github.com/key6oardWarrior/StockTracker">https://github.com/key6oardWarrior/StockTracker</a></code></li>
 	<li><code>cd [dir that cloned StockTrader]</code></li>
-	<li><code>python setup.py</code> This will install all the need python dependencies</li>
+	<li><code>python setup.py</code> This will install all the need python dependencies. If you have any more issue read the other README.md files</li>
 </ol>
 
 <p><b>***NOTE***:</b> MongoDB <b>MUST</b> be installed to do System test and any test that will use server side code</p>

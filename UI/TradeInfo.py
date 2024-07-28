@@ -1,6 +1,9 @@
 from PyGUI import Button, Window, Text, Column, Input
 from threading import Thread
-from robin_stocks.robinhood import get_latest_price, get_name_by_symbol, order_buy_market, order_sell_market
+from robin_stocks.robinhood.export import get_latest_price, get_name_by_symbol, \
+	order_buy_fractional_by_price, order_buy_market, order_sell_market, \
+	order_sell_fractional_by_price
+from robin_stocks.robinhood.account import get_open_stock_positions
 
 from TradeData.Request import Request
 from Helper.creds import winName
@@ -541,15 +544,15 @@ def _getStockInfo(ticker: str) -> str and str:
 	try:
 		name: str = get_name_by_symbol(ticker)
 		# casting is needed here to remove trailing zeros
-		price: str = str(float(get_latest_price(ticker, "ask_price")[0]))
+		price: str = "$" + str(float(get_latest_price(ticker, "ask_price")[0]))
 	except:
 		name = ""
 		price = ""
 
 	# add the tenth, and or hundredth place value if they does not exist
-	IDX = price.rfind(".")
+	IDX: int = price.find(".")
 	if IDX != -1:
-		placeValues: int = len(price[price.rindex(".")+1:])
+		placeValues: int = len(price[IDX+1:])
 
 		if placeValues < 1:
 			price += "00"
@@ -563,7 +566,9 @@ def buyStock(ticker: str):
 
 	layout = [
 		[Text(f"The price of {ticker} ({name}) is: {price} per share")],
-		[Text("How many shares would you like to buy"), Input(key="shares")],
+		[Text("How many shares do you want to buy"), Input(key="shares")],
+		[Text("or")],
+		[Text("How much do you want to spend on fractional shares"), Input(key="f-shares")],
 		[Button("Submit")]
 	]
 	SIZE = len(layout)
@@ -589,19 +594,69 @@ def buyStock(ticker: str):
 			name, price = _getStockInfo(ticker)
 
 			win.close()
-			layout[0] = [Text(f"The price of {ticker} ({name}) is: {price}")]
+			layout[0] = [Text(f"The price of {ticker} ({name}) is: {price} per share")]
 			win = Window(winName, layout, modal=True)
 			continue
 
 		if event == "Submit":
-			if values["shares"].isdigit():
-				shares = int(values["shares"])
+			str_shares: str
+			IS_FShares: bool
+			values: dict[str, str]
+
+			if((values["shares"] != "") and (values["f-shares"] != "")):
+				layout.append([Text("Only pick one", text_color="red")])
+				name, price = _getStockInfo(ticker)
+
+				win.close()
+				layout[0] = [Text(f"The price of {ticker} ({name}) is: {price} per share")]
+				win = Window(winName, layout, modal=True)
+				continue
+
+			if((values["shares"] == "") and (values["f-shares"] == "")):
+				layout.append([Text("One text box is required", text_color="red")])
+				name, price = _getStockInfo(ticker)
+
+				win.close()
+				layout[0] = [Text(f"The price of {ticker} ({name}) is: {price} per share")]
+				win = Window(winName, layout, modal=True)
+				continue
+
+			if values["shares"] != "":
+				str_shares = values["shares"].strip()
+				IS_FShares = False
+			else:
+				str_shares = values["f-shares"].strip()
+				IS_FShares = True
+
+			if str_shares.replace(".", "").isdigit():
+				if IS_FShares:
+					shares = float(str_shares)
+				else:
+					if "." in str_shares:
+						layout.append([Text("Only enter intergers in the first text box", text_color="red")])
+						win.close()
+						win = Window(winName, layout, modal=True)
+						continue
+					else:
+						shares = int(str_shares)
 
 				if shares > 0:
+					order: dict[str, str]
+
 					try:
-						order_buy_market(ticker, shares)
+						if IS_FShares:
+							order = order_buy_fractional_by_price(ticker, shares)
+						else:
+							order = order_buy_market(ticker, shares)
 					except:
 						layout.append([Text("Check internet connection", text_color="red")])
+						win.close()
+						win = Window(winName, layout, modal=True)
+						continue
+
+				if "state" in order:
+					if order["state"].lower().strip() == "canceled":
+						layout.append([Text("The order was canceled. Please try again, or contact Robinhood", text_color="red")])
 						win.close()
 						win = Window(winName, layout, modal=True)
 						continue
@@ -627,6 +682,8 @@ def sellStock(ticker: str) -> None:
 	layout = [
 		[Text(f"The price of {ticker} ({name}) is: {price} per share")],
 		[Text("How many shares would you like to sell"), Input(key="shares")],
+		[Text("or")],
+		[Text("How much in fractional sales would you like to sell"), Input(key="f-shares")],
 		[Button("Submit")]
 	]
 	SIZE = len(layout)
@@ -634,6 +691,7 @@ def sellStock(ticker: str) -> None:
 
 	while True:
 		event, values = win.read()
+		values: dict[str, str]
 
 		if len(layout) > SIZE:
 			layout = layout[:-1]
@@ -652,17 +710,77 @@ def sellStock(ticker: str) -> None:
 			continue
 
 		if event == "Submit":
-			if values["shares"].isdigit():
-				shares = int(values["shares"])
+			values: dict[str, str]
+
+			if((values["shares"] == "") and (values["f-shares"] == "")):
+				layout.append([Text("A value is required", text_color="red")])
+				win.close()
+				win = Window(winName, layout, modal=True)
+				continue
+
+			if((values["shares"] != "") and (values["f-shares"] != "")):
+				layout.append([Text("Pick only one", text_color="red")])
+				win.close()
+				win = Window(winName, layout, modal=True)
+				continue
+
+			strShares: str
+			IS_FSHARES = False
+
+			if values["shares"] != "":
+				strShares = values["shares"].strip()
+			else:
+				strShares = values["f-shares"].strip()
+				IS_FSHARES = True
+
+			if strShares.replace(".", "").isdigit():
+				if IS_FSHARES:
+					shares = float(strShares)
+				else:
+					if "." in strShares:
+						layout.append([Text("Only enter intergers in the first text box", text_color="red")])
+						win.close()
+						win = Window(winName, layout, modal=True)
+						continue
+					else:
+						shares = int(strShares)
 
 				if shares > 0:
 					try:
-						order_sell_market(ticker, shares)
+						positions: list[dict] = get_open_stock_positions()
 					except:
 						layout.append([Text("Check internet connection", text_color="red")])
 						win.close()
 						win = Window(winName, layout, modal=True)
 						continue
+
+					if positions == []:
+						layout.append([Text("You do not own this stock, so you cannot sell", text_color="red")])
+						win.close()
+						win = Window(winName, layout, modal=True)
+						continue
+
+					for pos in positions:
+						pass
+
+					order: dict[str, str]
+					try:
+						if IS_FSHARES:
+							order = order_sell_fractional_by_price(ticker, shares)
+						else:
+							order = order_sell_market(ticker, shares)
+					except:
+						layout.append([Text("Check internet connection", text_color="red")])
+						win.close()
+						win = Window(winName, layout, modal=True)
+						continue
+
+					if order["state"].lower().strip() == "canceled":
+						layout.append([Text("The order was canceled. Please try again, or contact Robinhood", text_color="red")])
+						win.close()
+						win = Window(winName, layout, modal=True)
+						continue
+
 				else:
 					layout.append([Text("Must sell at least one share", text_color="red")])
 					win.close()
@@ -694,6 +812,8 @@ def dataScreen() -> None:
 
 	while True:
 		event, values = data.read()
+		values: dict[str, str]
+
 		if exitApp(event, data, True):
 			exit(0)
 

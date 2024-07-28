@@ -137,6 +137,7 @@ geckodriver.log
 
 # senitive files
 creds.py
+Helper/creds.py
 
 # certs
 *.pem
