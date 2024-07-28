@@ -4,6 +4,8 @@
 
 <h1>StockTracker</h1>
 <p>This page is the offical documentation for downloading and running the code in this code base.</p>
+<h2>Update:</h2>
+<p>This project is no longer in develoment. Attempting to build this project will fail because the required API keys are not present in this repo and the MongoDB servers are no longer active. This project has been made public so others may learn from it's existence.</p>
 
 <h2>Programming Conventions</h2>
 <ol>
