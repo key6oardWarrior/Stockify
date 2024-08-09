@@ -5,7 +5,7 @@
 <h1>StockTracker</h1>
 <p>This page is the offical documentation for downloading and running the code in this code base.</p>
 <h2>Update:</h2>
-<p>This project is no longer in develoment. Attempting to build this project will fail because the required API keys are not present in this repo and the MongoDB servers are no longer active. See No_Server_Stockify to run the app. This project has been made public so others may learn from it's existence.</p>
+<p>This project is no longer in develoment. Attempting to build this project will fail because the required API keys are not present in this repo and the MongoDB servers are no longer active. See <a href="https://github.com/key6oardWarrior/No_Server_Stockify">No_Server_Stockify</a> to run the app. This project has been made public so others may learn from it's existence.</p>
 
 <h2>Preview:</h2>
 <img src="https://github.com/user-attachments/assets/24b37a28-4057-4dbe-8f36-b20d5560bd9b" alt="Image of the app working" />
